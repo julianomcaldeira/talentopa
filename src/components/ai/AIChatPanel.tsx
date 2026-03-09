@@ -8,7 +8,7 @@ import ReactMarkdown from "react-markdown";
 type Msg = { role: "user" | "assistant"; content: string };
 
 interface AIChatPanelProps {
-  mode: "project-scope" | "project-manager" | "erp-knowledge";
+  mode: "project-scope" | "project-manager" | "erp-knowledge" | "consultant-copilot" | "consultant-analysis";
   projectData?: any;
   initialMessage?: string;
   placeholder?: string;
