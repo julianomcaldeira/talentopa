@@ -22,7 +22,7 @@ const Login = () => {
     try {
       await signIn(email, password);
       toast({ title: "Login realizado com sucesso!" });
-      // Navigation will be handled by auth state change
+      navigate("/dashboard");
     } catch (error: any) {
       toast({
         title: "Erro ao fazer login",
