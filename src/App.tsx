@@ -80,6 +80,7 @@ const App = () => (
               <Route path="base-conhecimento" element={<AdminBaseConhecimento />} />
               <Route path="ai-project-manager" element={<AdminAIProjectManager />} />
               <Route path="erp-knowledge" element={<AdminERPKnowledgeAI />} />
+              <Route path="consultant-intelligence" element={<AdminConsultantIntelligence />} />
             </Route>
 
             {/* Consultor */}
