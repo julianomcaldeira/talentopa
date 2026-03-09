@@ -20,6 +20,7 @@ import AdminTemplates from "./pages/admin/AdminTemplates";
 import AdminEmpresas from "./pages/admin/AdminEmpresas";
 import AdminProjetos from "./pages/admin/AdminProjetos";
 import AdminFinanceiro from "./pages/admin/AdminFinanceiro";
+import AdminConsultores from "./pages/admin/AdminConsultores";
 import ConsultorDashboard from "./pages/consultor/ConsultorDashboard";
 import ConsultorPerfil from "./pages/consultor/ConsultorPerfil";
 import ConsultorHabilidades from "./pages/consultor/ConsultorHabilidades";
