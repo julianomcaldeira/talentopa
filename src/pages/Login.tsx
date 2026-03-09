@@ -1,23 +1,43 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const { signIn, role } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: integrate with auth
+    setIsLoading(true);
+    try {
+      await signIn(email, password);
+      toast({ title: "Login realizado com sucesso!" });
+      // Navigation will be handled by auth state change
+    } catch (error: any) {
+      toast({
+        title: "Erro ao fazer login",
+        description: error.message === "Invalid login credentials"
+          ? "E-mail ou senha incorretos"
+          : error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <div className="min-h-screen flex">
-      {/* Left - Form */}
       <div className="flex-1 flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-md">
           <Link to="/" className="flex items-center gap-2 mb-10">
@@ -69,8 +89,8 @@ const Login = () => {
               </div>
             </div>
 
-            <Button type="submit" className="w-full" size="lg">
-              Entrar
+            <Button type="submit" className="w-full" size="lg" disabled={isLoading}>
+              {isLoading ? "Entrando..." : "Entrar"}
             </Button>
           </form>
 
@@ -83,7 +103,6 @@ const Login = () => {
         </div>
       </div>
 
-      {/* Right - Visual */}
       <div className="hidden lg:flex flex-1 bg-hero items-center justify-center p-12">
         <div className="max-w-md text-center">
           <h2 className="text-3xl font-display font-bold text-primary-foreground mb-4">
