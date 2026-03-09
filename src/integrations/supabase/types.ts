@@ -306,10 +306,118 @@ export type Database = {
         }
         Relationships: []
       }
+      projeto_alertas: {
+        Row: {
+          created_at: string
+          descricao: string | null
+          id: string
+          projeto_id: string
+          resolved_at: string | null
+          resolvido: boolean | null
+          severidade: string
+          tipo: string
+          titulo: string
+        }
+        Insert: {
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          projeto_id: string
+          resolved_at?: string | null
+          resolvido?: boolean | null
+          severidade?: string
+          tipo: string
+          titulo: string
+        }
+        Update: {
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          projeto_id?: string
+          resolved_at?: string | null
+          resolvido?: boolean | null
+          severidade?: string
+          tipo?: string
+          titulo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "projeto_alertas_projeto_id_fkey"
+            columns: ["projeto_id"]
+            isOneToOne: false
+            referencedRelation: "projetos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      projeto_aprendizados: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          dificuldades: string | null
+          erp_utilizado: string | null
+          horas_estimadas: number | null
+          horas_reais: number | null
+          id: string
+          licoes_aprendidas: string | null
+          modulos_implementados: string[] | null
+          projeto_id: string
+          recomendacoes: string | null
+          tags: string[] | null
+          tempo_estimado_dias: number | null
+          tempo_real_dias: number | null
+          tipo_projeto: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          dificuldades?: string | null
+          erp_utilizado?: string | null
+          horas_estimadas?: number | null
+          horas_reais?: number | null
+          id?: string
+          licoes_aprendidas?: string | null
+          modulos_implementados?: string[] | null
+          projeto_id: string
+          recomendacoes?: string | null
+          tags?: string[] | null
+          tempo_estimado_dias?: number | null
+          tempo_real_dias?: number | null
+          tipo_projeto?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          dificuldades?: string | null
+          erp_utilizado?: string | null
+          horas_estimadas?: number | null
+          horas_reais?: number | null
+          id?: string
+          licoes_aprendidas?: string | null
+          modulos_implementados?: string[] | null
+          projeto_id?: string
+          recomendacoes?: string | null
+          tags?: string[] | null
+          tempo_estimado_dias?: number | null
+          tempo_real_dias?: number | null
+          tipo_projeto?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "projeto_aprendizados_projeto_id_fkey"
+            columns: ["projeto_id"]
+            isOneToOne: false
+            referencedRelation: "projetos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       projeto_fases: {
         Row: {
           created_at: string
           descricao: string | null
+          horas_estimadas: number | null
+          horas_executadas: number | null
           id: string
           nome: string
           ordem: number
@@ -322,6 +430,8 @@ export type Database = {
         Insert: {
           created_at?: string
           descricao?: string | null
+          horas_estimadas?: number | null
+          horas_executadas?: number | null
           id?: string
           nome: string
           ordem?: number
@@ -334,6 +444,8 @@ export type Database = {
         Update: {
           created_at?: string
           descricao?: string | null
+          horas_estimadas?: number | null
+          horas_executadas?: number | null
           id?: string
           nome?: string
           ordem?: number
