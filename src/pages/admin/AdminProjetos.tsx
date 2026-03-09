@@ -154,9 +154,15 @@ const AdminProjetos = () => {
               >
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-3.5 min-w-0">
-                    <div className="icon-container icon-container-md bg-primary/8 flex-shrink-0">
-                      <FolderKanban size={18} className="text-primary" />
-                    </div>
+                    {(() => {
+                      const health = calculateHealthScore(projeto.fases || [], projeto.prazo_estimado, projeto.status);
+                      const sc = getScoreColor(health.score);
+                      return (
+                        <div className={`w-10 h-10 rounded-xl ${sc.bg} flex items-center justify-center ring-2 ${sc.ring} flex-shrink-0`}>
+                          <span className={`font-display font-bold text-sm ${sc.text}`}>{health.score}</span>
+                        </div>
+                      );
+                    })()}
                     <div className="min-w-0">
                       <p className="text-sm font-medium text-foreground truncate">{projeto.nome}</p>
                       <p className="text-xs text-muted-foreground truncate">
