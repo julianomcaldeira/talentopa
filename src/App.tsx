@@ -76,6 +76,8 @@ const App = () => (
               <Route path="financeiro" element={<AdminFinanceiro />} />
               <Route path="inteligencia" element={<AdminInteligencia />} />
               <Route path="base-conhecimento" element={<AdminBaseConhecimento />} />
+              <Route path="ai-project-manager" element={<AdminAIProjectManager />} />
+              <Route path="erp-knowledge" element={<AdminERPKnowledgeAI />} />
             </Route>
 
             {/* Consultor */}
