@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Puzzle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { PageHeader, DataCard, EmptyState, LoadingState } from "@/components/dashboard/DashboardComponents";
 
 const AdminModulos = () => {
   const [modulos, setModulos] = useState<any[]>([]);
@@ -52,73 +53,73 @@ const AdminModulos = () => {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-display font-bold text-foreground">Módulos</h1>
-          <p className="text-muted-foreground mt-1">Gerencie módulos dos softwares ERP</p>
-        </div>
-        <Button onClick={() => { setEditing(null); setForm({ nome: "", descricao: "", software_id: "" }); setDialogOpen(true); }}>
-          <Plus size={16} className="mr-2" /> Novo Módulo
-        </Button>
-      </div>
+      <PageHeader
+        title="Módulos"
+        description="Gerencie módulos dos softwares ERP"
+        action={
+          <Button onClick={() => { setEditing(null); setForm({ nome: "", descricao: "", software_id: "" }); setDialogOpen(true); }}>
+            <Plus size={16} /> Novo Módulo
+          </Button>
+        }
+      />
 
-      <div className="bg-card rounded-xl shadow-card border border-border">
-        {loading ? (
-          <div className="p-8 text-center text-muted-foreground">Carregando...</div>
-        ) : modulos.length === 0 ? (
-          <div className="p-8 text-center text-muted-foreground">Nenhum módulo cadastrado</div>
+      <DataCard noPadding>
+        {loading ? <LoadingState /> : modulos.length === 0 ? (
+          <EmptyState message="Nenhum módulo cadastrado" icon={Puzzle} />
         ) : (
-          <div className="divide-y divide-border">
+          <div className="divide-y divide-border/60">
             {modulos.map((mod) => (
-              <div key={mod.id} className="flex items-center justify-between p-4 hover:bg-muted/30 transition-colors">
-                <div>
-                  <p className="font-medium text-foreground">{mod.nome}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {mod.softwares?.nome} {mod.descricao && `• ${mod.descricao}`}
-                  </p>
+              <div key={mod.id} className="flex items-center justify-between p-4 px-5 table-row-interactive">
+                <div className="flex items-center gap-3.5">
+                  <div className="icon-container icon-container-md bg-accent/8">
+                    <Puzzle size={18} className="text-accent" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-foreground">{mod.nome}</p>
+                    <p className="text-xs text-muted-foreground">
+                      <span className="font-medium text-foreground/70">{mod.softwares?.nome}</span>
+                      {mod.descricao && ` · ${mod.descricao}`}
+                    </p>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Button variant="ghost" size="icon" onClick={() => {
-                    setEditing(mod);
-                    setForm({ nome: mod.nome, descricao: mod.descricao || "", software_id: mod.software_id });
-                    setDialogOpen(true);
+                <div className="flex items-center gap-1">
+                  <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={() => {
+                    setEditing(mod); setForm({ nome: mod.nome, descricao: mod.descricao || "", software_id: mod.software_id }); setDialogOpen(true);
                   }}>
-                    <Pencil size={16} />
+                    <Pencil size={14} />
                   </Button>
-                  <Button variant="ghost" size="icon" onClick={() => handleDelete(mod.id)}>
-                    <Trash2 size={16} className="text-destructive" />
+                  <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => handleDelete(mod.id)}>
+                    <Trash2 size={14} />
                   </Button>
                 </div>
               </div>
             ))}
           </div>
         )}
-      </div>
+      </DataCard>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="font-display">{editing ? "Editar Módulo" : "Novo Módulo"}</DialogTitle>
+            <DialogTitle className="font-display text-lg">{editing ? "Editar Módulo" : "Novo Módulo"}</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className="space-y-4 pt-2">
             <div className="space-y-2">
-              <Label>Software ERP</Label>
+              <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Software ERP</Label>
               <Select value={form.software_id} onValueChange={(v) => setForm({ ...form, software_id: v })}>
                 <SelectTrigger><SelectValue placeholder="Selecione o software" /></SelectTrigger>
                 <SelectContent>
-                  {softwares.map((sw) => (
-                    <SelectItem key={sw.id} value={sw.id}>{sw.nome}</SelectItem>
-                  ))}
+                  {softwares.map((sw) => <SelectItem key={sw.id} value={sw.id}>{sw.nome}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Nome do Módulo</Label>
+              <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Nome</Label>
               <Input value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} placeholder="Ex: Financeiro" />
             </div>
             <div className="space-y-2">
-              <Label>Descrição</Label>
-              <Textarea value={form.descricao} onChange={(e) => setForm({ ...form, descricao: e.target.value })} />
+              <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Descrição</Label>
+              <Textarea value={form.descricao} onChange={(e) => setForm({ ...form, descricao: e.target.value })} rows={3} />
             </div>
             <Button className="w-full" onClick={handleSave} disabled={!form.nome || !form.software_id}>
               {editing ? "Salvar" : "Criar módulo"}

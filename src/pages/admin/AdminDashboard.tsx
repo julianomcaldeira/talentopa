@@ -1,81 +1,95 @@
-import { Building2, Users, FolderKanban, DollarSign, TrendingUp, AlertCircle } from "lucide-react";
-
-const stats = [
-  { label: "Consultores ativos", value: "342", icon: Users, change: "+12%" },
-  { label: "Empresas cadastradas", value: "89", icon: Building2, change: "+8%" },
-  { label: "Projetos em andamento", value: "47", icon: FolderKanban, change: "+15%" },
-  { label: "Receita do mês", value: "R$ 128.4k", icon: DollarSign, change: "+22%" },
-];
+import { Building2, Users, FolderKanban, DollarSign, TrendingUp, AlertCircle, ArrowUpRight, Clock } from "lucide-react";
+import { StatCard, StatusBadge, PageHeader, DataCard, SectionTitle } from "@/components/dashboard/DashboardComponents";
 
 const AdminDashboard = () => {
   return (
     <div>
-      <div className="mb-8">
-        <h1 className="text-2xl font-display font-bold text-foreground">Painel Administrativo</h1>
-        <p className="text-muted-foreground mt-1">Visão geral da plataforma TalentOps</p>
-      </div>
+      <PageHeader
+        title="Painel Administrativo"
+        description="Visão geral da plataforma TalentOps"
+      />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        {stats.map((stat, i) => (
-          <div key={i} className="bg-card rounded-xl p-5 shadow-card border border-border">
-            <div className="flex items-center justify-between mb-3">
-              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                <stat.icon className="h-5 w-5 text-primary" />
-              </div>
-              <span className="text-xs font-medium text-success flex items-center gap-1">
-                <TrendingUp size={12} /> {stat.change}
-              </span>
-            </div>
-            <p className="text-2xl font-display font-bold text-foreground">{stat.value}</p>
-            <p className="text-sm text-muted-foreground">{stat.label}</p>
-          </div>
-        ))}
+        <StatCard icon={Users} label="Consultores ativos" value="342" change="+12%" changeType="positive" iconColor="text-primary" iconBg="bg-primary/10" />
+        <StatCard icon={Building2} label="Empresas cadastradas" value="89" change="+8%" changeType="positive" iconColor="text-accent" iconBg="bg-accent/10" />
+        <StatCard icon={FolderKanban} label="Projetos em andamento" value="47" change="+15%" changeType="positive" iconColor="text-info" iconBg="bg-info/10" />
+        <StatCard icon={DollarSign} label="Receita do mês" value="R$ 128.4k" change="+22%" changeType="positive" iconColor="text-success" iconBg="bg-success/10" />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-card rounded-xl p-6 shadow-card border border-border">
-          <h3 className="font-display font-semibold text-foreground mb-4">Projetos recentes</h3>
-          <div className="space-y-3">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Recent projects */}
+        <DataCard className="lg:col-span-2" noPadding>
+          <div className="p-5 pb-3 border-b border-border/60">
+            <div className="flex items-center justify-between">
+              <SectionTitle>Projetos recentes</SectionTitle>
+              <button className="text-xs text-primary font-medium hover:underline flex items-center gap-1">
+                Ver todos <ArrowUpRight size={12} />
+              </button>
+            </div>
+          </div>
+          <div className="divide-y divide-border/60">
             {[
-              { name: "Implantação TOTVS Protheus - Financeiro", status: "Em andamento", company: "ABC Ltda" },
-              { name: "Migração SAP - Módulo Fiscal", status: "Aguardando consultor", company: "XYZ S.A." },
-              { name: "Customização Oracle - RH", status: "Concluído", company: "Tech Corp" },
+              { name: "Implantação TOTVS Protheus - Financeiro", status: "em_andamento", company: "ABC Ltda", date: "Há 2 dias" },
+              { name: "Migração SAP - Módulo Fiscal", status: "publicado", company: "XYZ S.A.", date: "Há 5 dias" },
+              { name: "Customização Oracle - RH", status: "concluido", company: "Tech Corp", date: "Há 1 semana" },
+              { name: "Fluig - Automação de Processos", status: "em_selecao", company: "Indústria BR", date: "Há 3 dias" },
             ].map((project, i) => (
-              <div key={i} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                <div>
-                  <p className="text-sm font-medium text-foreground">{project.name}</p>
-                  <p className="text-xs text-muted-foreground">{project.company}</p>
+              <div key={i} className="flex items-center justify-between p-4 px-5 table-row-interactive cursor-pointer">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="icon-container icon-container-sm bg-muted/60 flex-shrink-0">
+                    <FolderKanban size={14} className="text-muted-foreground" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-foreground truncate">{project.name}</p>
+                    <p className="text-xs text-muted-foreground">{project.company} • {project.date}</p>
+                  </div>
                 </div>
-                <span className={`text-xs px-2 py-1 rounded-full font-medium ${
-                  project.status === "Concluído" ? "bg-success/10 text-success" :
-                  project.status === "Em andamento" ? "bg-primary/10 text-primary" :
-                  "bg-warning/10 text-warning"
-                }`}>
-                  {project.status}
-                </span>
+                <StatusBadge status={project.status} />
               </div>
             ))}
           </div>
-        </div>
+        </DataCard>
 
-        <div className="bg-card rounded-xl p-6 shadow-card border border-border">
-          <h3 className="font-display font-semibold text-foreground mb-4">Alertas</h3>
-          <div className="space-y-3">
-            {[
-              { text: "3 projetos aguardando mediação", type: "warning" },
-              { text: "5 novos consultores pendentes de aprovação", type: "info" },
-              { text: "Pagamento pendente - Projeto #1247", type: "warning" },
-            ].map((alert, i) => (
-              <div key={i} className={`flex items-center gap-3 p-3 rounded-lg ${
-                alert.type === "warning" ? "bg-warning/10" : "bg-info/10"
-              }`}>
-                <AlertCircle className={`h-4 w-4 flex-shrink-0 ${
-                  alert.type === "warning" ? "text-warning" : "text-info"
-                }`} />
-                <p className="text-sm text-foreground">{alert.text}</p>
-              </div>
-            ))}
-          </div>
+        {/* Alerts + Activity */}
+        <div className="space-y-6">
+          <DataCard>
+            <SectionTitle>Alertas</SectionTitle>
+            <div className="space-y-3">
+              {[
+                { text: "3 projetos aguardando mediação", type: "warning", icon: AlertCircle },
+                { text: "5 novos consultores pendentes", type: "info", icon: Users },
+                { text: "Pagamento pendente - #1247", type: "warning", icon: Clock },
+              ].map((alert, i) => (
+                <div key={i} className={`flex items-start gap-3 p-3.5 rounded-xl ${
+                  alert.type === "warning" ? "bg-warning/5 border border-warning/10" : "bg-info/5 border border-info/10"
+                }`}>
+                  <alert.icon className={`h-4 w-4 flex-shrink-0 mt-0.5 ${
+                    alert.type === "warning" ? "text-warning" : "text-info"
+                  }`} />
+                  <p className="text-[13px] text-foreground leading-snug">{alert.text}</p>
+                </div>
+              ))}
+            </div>
+          </DataCard>
+
+          <DataCard>
+            <SectionTitle>Atividade recente</SectionTitle>
+            <div className="space-y-4">
+              {[
+                { text: "João Silva se candidatou ao projeto #1285", time: "Há 15 min" },
+                { text: "Empresa ABC aprovou fase 2", time: "Há 1 hora" },
+                { text: "Novo consultor registrado", time: "Há 3 horas" },
+              ].map((item, i) => (
+                <div key={i} className="flex items-start gap-3">
+                  <div className="w-2 h-2 rounded-full bg-primary mt-1.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-[13px] text-foreground leading-snug">{item.text}</p>
+                    <p className="text-[11px] text-muted-foreground mt-0.5">{item.time}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </DataCard>
         </div>
       </div>
     </div>
