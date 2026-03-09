@@ -17,6 +17,9 @@ import AdminSoftwares from "./pages/admin/AdminSoftwares";
 import AdminModulos from "./pages/admin/AdminModulos";
 import AdminFuncionalidades from "./pages/admin/AdminFuncionalidades";
 import AdminTemplates from "./pages/admin/AdminTemplates";
+import AdminEmpresas from "./pages/admin/AdminEmpresas";
+import AdminProjetos from "./pages/admin/AdminProjetos";
+import AdminFinanceiro from "./pages/admin/AdminFinanceiro";
 import ConsultorDashboard from "./pages/consultor/ConsultorDashboard";
 import ConsultorPerfil from "./pages/consultor/ConsultorPerfil";
 import ConsultorHabilidades from "./pages/consultor/ConsultorHabilidades";
@@ -60,9 +63,9 @@ const App = () => (
               <Route path="funcionalidades" element={<AdminFuncionalidades />} />
               <Route path="templates" element={<AdminTemplates />} />
               <Route path="consultores" element={<PlaceholderPage title="Consultores" description="Gerencie consultores da plataforma" />} />
-              <Route path="empresas" element={<PlaceholderPage title="Empresas" description="Gerencie empresas cadastradas" />} />
-              <Route path="projetos" element={<PlaceholderPage title="Projetos" description="Todos os projetos da plataforma" />} />
-              <Route path="financeiro" element={<PlaceholderPage title="Financeiro" description="Painel financeiro da plataforma" />} />
+              <Route path="empresas" element={<AdminEmpresas />} />
+              <Route path="projetos" element={<AdminProjetos />} />
+              <Route path="financeiro" element={<AdminFinanceiro />} />
             </Route>
 
             {/* Consultor */}
