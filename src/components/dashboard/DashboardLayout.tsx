@@ -3,7 +3,7 @@ import { Link, useLocation, Outlet, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, Server, Puzzle, Cog, FileText, Users, Building2,
   FolderKanban, DollarSign, LogOut, Menu, X, ChevronRight, Bell, Search, 
-  Star, Settings, BarChart3, BookOpen, Brain, Sparkles, MessageSquare
+  Star, Settings, BarChart3, BookOpen, Brain, Sparkles, MessageSquare, Trophy, Bot
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
@@ -185,6 +185,7 @@ const adminLinks = [
   { to: "/admin/base-conhecimento", icon: BookOpen, label: "Base de Conhecimento" },
   { to: "/admin/ai-project-manager", icon: Brain, label: "AI Project Manager" },
   { to: "/admin/erp-knowledge", icon: MessageSquare, label: "ERP Knowledge AI" },
+  { to: "/admin/consultant-intelligence", icon: Trophy, label: "Consultant Intelligence" },
 ];
 
 export const AdminLayout = () => <DashboardLayout links={adminLinks} title="Administração" />;
@@ -196,6 +197,7 @@ const consultorLinks = [
   { to: "/consultor/projetos", icon: FolderKanban, label: "Projetos Disponíveis" },
   { to: "/consultor/meus-projetos", icon: FileText, label: "Meus Projetos" },
   { to: "/consultor/financeiro", icon: DollarSign, label: "Financeiro" },
+  { to: "/consultor/copilot", icon: Bot, label: "Copiloto IA" },
 ];
 
 export const ConsultorLayout = () => <DashboardLayout links={consultorLinks} title="Consultor" />;

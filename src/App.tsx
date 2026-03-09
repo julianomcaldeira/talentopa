@@ -27,6 +27,8 @@ import AdminProjetoDetalhe from "./pages/admin/AdminProjetoDetalhe";
 import AdminAIProjectManager from "./pages/admin/AdminAIProjectManager";
 import AdminERPKnowledgeAI from "./pages/admin/AdminERPKnowledgeAI";
 import EmpresaProjectScopeAI from "./pages/empresa/EmpresaProjectScopeAI";
+import AdminConsultantIntelligence from "./pages/admin/AdminConsultantIntelligence";
+import ConsultorCopilot from "./pages/consultor/ConsultorCopilot";
 import ConsultorDashboard from "./pages/consultor/ConsultorDashboard";
 import ConsultorPerfil from "./pages/consultor/ConsultorPerfil";
 import ConsultorHabilidades from "./pages/consultor/ConsultorHabilidades";
@@ -78,6 +80,7 @@ const App = () => (
               <Route path="base-conhecimento" element={<AdminBaseConhecimento />} />
               <Route path="ai-project-manager" element={<AdminAIProjectManager />} />
               <Route path="erp-knowledge" element={<AdminERPKnowledgeAI />} />
+              <Route path="consultant-intelligence" element={<AdminConsultantIntelligence />} />
             </Route>
 
             {/* Consultor */}
@@ -88,6 +91,7 @@ const App = () => (
               <Route path="projetos" element={<ConsultorProjetos />} />
               <Route path="meus-projetos" element={<PlaceholderPage title="Meus Projetos" description="Projetos que você participa" />} />
               <Route path="financeiro" element={<PlaceholderPage title="Financeiro" description="Seus ganhos e pagamentos" />} />
+              <Route path="copilot" element={<ConsultorCopilot />} />
             </Route>
 
             {/* Empresa */}
