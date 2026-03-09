@@ -183,6 +183,8 @@ const adminLinks = [
   { to: "/admin/financeiro", icon: DollarSign, label: "Financeiro" },
   { to: "/admin/inteligencia", icon: BarChart3, label: "Inteligência" },
   { to: "/admin/base-conhecimento", icon: BookOpen, label: "Base de Conhecimento" },
+  { to: "/admin/ai-project-manager", icon: Brain, label: "AI Project Manager" },
+  { to: "/admin/erp-knowledge", icon: MessageSquare, label: "ERP Knowledge AI" },
 ];
 
 export const AdminLayout = () => <DashboardLayout links={adminLinks} title="Administração" />;
