@@ -69,7 +69,10 @@ const App = () => (
               <Route path="consultores" element={<AdminConsultores />} />
               <Route path="empresas" element={<AdminEmpresas />} />
               <Route path="projetos" element={<AdminProjetos />} />
+              <Route path="projetos/:id" element={<AdminProjetoDetalhe />} />
               <Route path="financeiro" element={<AdminFinanceiro />} />
+              <Route path="inteligencia" element={<AdminInteligencia />} />
+              <Route path="base-conhecimento" element={<AdminBaseConhecimento />} />
             </Route>
 
             {/* Consultor */}
