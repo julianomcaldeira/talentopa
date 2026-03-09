@@ -149,7 +149,7 @@ const AdminProjetos = () => {
               <div
                 key={projeto.id}
                 className="p-4 px-5 table-row-interactive cursor-pointer"
-                onClick={() => { setSelectedProjeto(projeto); setDetailOpen(true); }}
+                onClick={() => navigate(`/admin/projetos/${projeto.id}`)}
               >
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-3.5 min-w-0">
