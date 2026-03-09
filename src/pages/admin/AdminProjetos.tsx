@@ -30,6 +30,7 @@ interface ProjetoRow {
 }
 
 const AdminProjetos = () => {
+  const navigate = useNavigate();
   const [projetos, setProjetos] = useState<ProjetoRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
