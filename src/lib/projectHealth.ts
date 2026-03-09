@@ -4,7 +4,7 @@ export interface FaseData {
   id: string;
   nome: string;
   status: string;
-  prazo: string | null;
+  prazo?: string | null;
   ordem: number;
   horas_estimadas?: number;
   horas_executadas?: number;
