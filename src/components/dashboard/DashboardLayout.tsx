@@ -181,6 +181,8 @@ const adminLinks = [
   { to: "/admin/empresas", icon: Building2, label: "Empresas" },
   { to: "/admin/projetos", icon: FolderKanban, label: "Projetos" },
   { to: "/admin/financeiro", icon: DollarSign, label: "Financeiro" },
+  { to: "/admin/inteligencia", icon: BarChart3, label: "Inteligência" },
+  { to: "/admin/base-conhecimento", icon: BookOpen, label: "Base de Conhecimento" },
 ];
 
 export const AdminLayout = () => <DashboardLayout links={adminLinks} title="Administração" />;
