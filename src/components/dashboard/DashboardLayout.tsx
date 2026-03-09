@@ -203,6 +203,7 @@ export const ConsultorLayout = () => <DashboardLayout links={consultorLinks} tit
 const empresaLinks = [
   { to: "/empresa", icon: LayoutDashboard, label: "Dashboard" },
   { to: "/empresa/perfil", icon: Building2, label: "Perfil da Empresa" },
+  { to: "/empresa/diagnostico-ia", icon: Sparkles, label: "Diagnóstico IA" },
   { to: "/empresa/novo-projeto", icon: FileText, label: "Novo Projeto" },
   { to: "/empresa/projetos", icon: FolderKanban, label: "Meus Projetos" },
   { to: "/empresa/financeiro", icon: DollarSign, label: "Financeiro" },
