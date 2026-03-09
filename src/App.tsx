@@ -91,6 +91,7 @@ const App = () => (
               <Route path="projetos" element={<ConsultorProjetos />} />
               <Route path="meus-projetos" element={<PlaceholderPage title="Meus Projetos" description="Projetos que você participa" />} />
               <Route path="financeiro" element={<PlaceholderPage title="Financeiro" description="Seus ganhos e pagamentos" />} />
+              <Route path="copilot" element={<ConsultorCopilot />} />
             </Route>
 
             {/* Empresa */}
