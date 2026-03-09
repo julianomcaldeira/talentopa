@@ -27,6 +27,8 @@ import AdminProjetoDetalhe from "./pages/admin/AdminProjetoDetalhe";
 import AdminAIProjectManager from "./pages/admin/AdminAIProjectManager";
 import AdminERPKnowledgeAI from "./pages/admin/AdminERPKnowledgeAI";
 import EmpresaProjectScopeAI from "./pages/empresa/EmpresaProjectScopeAI";
+import AdminConsultantIntelligence from "./pages/admin/AdminConsultantIntelligence";
+import ConsultorCopilot from "./pages/consultor/ConsultorCopilot";
 import ConsultorDashboard from "./pages/consultor/ConsultorDashboard";
 import ConsultorPerfil from "./pages/consultor/ConsultorPerfil";
 import ConsultorHabilidades from "./pages/consultor/ConsultorHabilidades";
