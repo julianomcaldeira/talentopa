@@ -24,6 +24,9 @@ import AdminConsultores from "./pages/admin/AdminConsultores";
 import AdminInteligencia from "./pages/admin/AdminInteligencia";
 import AdminBaseConhecimento from "./pages/admin/AdminBaseConhecimento";
 import AdminProjetoDetalhe from "./pages/admin/AdminProjetoDetalhe";
+import AdminAIProjectManager from "./pages/admin/AdminAIProjectManager";
+import AdminERPKnowledgeAI from "./pages/admin/AdminERPKnowledgeAI";
+import EmpresaProjectScopeAI from "./pages/empresa/EmpresaProjectScopeAI";
 import ConsultorDashboard from "./pages/consultor/ConsultorDashboard";
 import ConsultorPerfil from "./pages/consultor/ConsultorPerfil";
 import ConsultorHabilidades from "./pages/consultor/ConsultorHabilidades";
@@ -73,6 +76,8 @@ const App = () => (
               <Route path="financeiro" element={<AdminFinanceiro />} />
               <Route path="inteligencia" element={<AdminInteligencia />} />
               <Route path="base-conhecimento" element={<AdminBaseConhecimento />} />
+              <Route path="ai-project-manager" element={<AdminAIProjectManager />} />
+              <Route path="erp-knowledge" element={<AdminERPKnowledgeAI />} />
             </Route>
 
             {/* Consultor */}
@@ -90,6 +95,7 @@ const App = () => (
               <Route index element={<EmpresaDashboard />} />
               <Route path="perfil" element={<EmpresaPerfil />} />
               <Route path="novo-projeto" element={<EmpresaNovoProjeto />} />
+              <Route path="diagnostico-ia" element={<EmpresaProjectScopeAI />} />
               <Route path="projetos" element={<EmpresaProjetos />} />
               <Route path="financeiro" element={<PlaceholderPage title="Financeiro" description="Pagamentos e faturamento" />} />
             </Route>

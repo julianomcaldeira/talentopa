@@ -3,7 +3,7 @@ import { Link, useLocation, Outlet, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, Server, Puzzle, Cog, FileText, Users, Building2,
   FolderKanban, DollarSign, LogOut, Menu, X, ChevronRight, Bell, Search, 
-  Star, Settings, BarChart3, BookOpen
+  Star, Settings, BarChart3, BookOpen, Brain, Sparkles, MessageSquare
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
@@ -183,6 +183,8 @@ const adminLinks = [
   { to: "/admin/financeiro", icon: DollarSign, label: "Financeiro" },
   { to: "/admin/inteligencia", icon: BarChart3, label: "Inteligência" },
   { to: "/admin/base-conhecimento", icon: BookOpen, label: "Base de Conhecimento" },
+  { to: "/admin/ai-project-manager", icon: Brain, label: "AI Project Manager" },
+  { to: "/admin/erp-knowledge", icon: MessageSquare, label: "ERP Knowledge AI" },
 ];
 
 export const AdminLayout = () => <DashboardLayout links={adminLinks} title="Administração" />;
@@ -201,6 +203,7 @@ export const ConsultorLayout = () => <DashboardLayout links={consultorLinks} tit
 const empresaLinks = [
   { to: "/empresa", icon: LayoutDashboard, label: "Dashboard" },
   { to: "/empresa/perfil", icon: Building2, label: "Perfil da Empresa" },
+  { to: "/empresa/diagnostico-ia", icon: Sparkles, label: "Diagnóstico IA" },
   { to: "/empresa/novo-projeto", icon: FileText, label: "Novo Projeto" },
   { to: "/empresa/projetos", icon: FolderKanban, label: "Meus Projetos" },
   { to: "/empresa/financeiro", icon: DollarSign, label: "Financeiro" },
