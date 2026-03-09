@@ -3,6 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { PageHeader, DataCard, StatusBadge, EmptyState, LoadingState, SectionTitle } from "@/components/dashboard/DashboardComponents";
+import { FolderKanban, Eye, MapPin, Clock, DollarSign, User } from "lucide-react";
 
 const EmpresaProjetos = () => {
   const { user } = useAuth();
@@ -43,87 +45,100 @@ const EmpresaProjetos = () => {
       await supabase.from("projetos").update({ status: "em_andamento" as const }).eq("id", selectedProjeto.id);
     }
     setDialogOpen(false);
-    // Refresh
     const { data } = await supabase.from("projetos").select("*, softwares(nome), projeto_fases(id, nome, status, valor)").eq("empresa_user_id", user!.id).order("created_at", { ascending: false });
     if (data) setProjetos(data);
   };
 
-  const statusLabels: Record<string, string> = {
-    rascunho: "Rascunho", publicado: "Publicado", em_selecao: "Em seleção",
-    em_andamento: "Em andamento", concluido: "Concluído", cancelado: "Cancelado",
-  };
-  const statusColors: Record<string, string> = {
-    rascunho: "bg-muted text-muted-foreground", publicado: "bg-primary/10 text-primary",
-    em_selecao: "bg-warning/10 text-warning", em_andamento: "bg-info/10 text-info",
-    concluido: "bg-success/10 text-success", cancelado: "bg-destructive/10 text-destructive",
-  };
-
   return (
     <div>
-      <h1 className="text-2xl font-display font-bold text-foreground mb-2">Meus Projetos</h1>
-      <p className="text-muted-foreground mb-6">Acompanhe todos os seus projetos</p>
+      <PageHeader title="Meus Projetos" description="Acompanhe e gerencie todos os seus projetos" />
 
-      {loading ? (
-        <div className="p-8 text-center text-muted-foreground">Carregando...</div>
-      ) : projetos.length === 0 ? (
-        <div className="bg-card rounded-xl p-12 shadow-card border border-border text-center text-muted-foreground">
-          Nenhum projeto criado ainda
-        </div>
+      {loading ? <DataCard><LoadingState /></DataCard> : projetos.length === 0 ? (
+        <DataCard><EmptyState message="Nenhum projeto criado ainda" icon={FolderKanban} /></DataCard>
       ) : (
         <div className="space-y-4">
           {projetos.map((p) => (
-            <div key={p.id} className="bg-card rounded-xl p-5 shadow-card border border-border">
-              <div className="flex items-start justify-between mb-2">
-                <div>
-                  <h3 className="font-display font-semibold text-foreground">{p.nome}</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {p.softwares?.nome} • {p.protocolo}
-                  </p>
+            <DataCard key={p.id}>
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex items-start gap-3.5">
+                  <div className="icon-container icon-container-md bg-primary/10 mt-0.5">
+                    <FolderKanban size={18} className="text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-display font-semibold text-foreground text-[15px]">{p.nome}</h3>
+                    <p className="text-xs text-muted-foreground mt-0.5">{p.softwares?.nome} · {p.protocolo}</p>
+                  </div>
                 </div>
-                <span className={`text-xs px-2 py-1 rounded-full font-medium ${statusColors[p.status] || ""}`}>
-                  {statusLabels[p.status] || p.status}
-                </span>
+                <StatusBadge status={p.status} />
               </div>
+
               {p.projeto_fases && p.projeto_fases.length > 0 && (
-                <div className="flex gap-1 mt-3 mb-3">
-                  {p.projeto_fases.map((f: any) => (
-                    <div key={f.id} className={`flex-1 h-1.5 rounded-full ${
-                      f.status === "aprovada" ? "bg-success" : f.status === "em_andamento" ? "bg-primary" : "bg-muted"
-                    }`} title={f.nome} />
-                  ))}
+                <div className="ml-[54px] mb-4">
+                  <div className="flex gap-1.5">
+                    {p.projeto_fases.map((f: any) => (
+                      <div key={f.id} className="flex-1">
+                        <div className={`h-2 rounded-full mb-1 ${
+                          f.status === "aprovada" ? "bg-success" : f.status === "em_andamento" ? "bg-primary" : "bg-border"
+                        }`} />
+                        <p className="text-[10px] text-muted-foreground truncate">{f.nome}</p>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
+
               {(p.status === "publicado" || p.status === "em_selecao") && (
-                <Button size="sm" variant="outline" onClick={() => viewPropostas(p)}>
-                  Ver propostas
-                </Button>
+                <div className="ml-[54px]">
+                  <Button size="sm" variant="outline" onClick={() => viewPropostas(p)}>
+                    <Eye size={14} /> Ver propostas
+                  </Button>
+                </div>
               )}
-            </div>
+            </DataCard>
           ))}
         </div>
       )}
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto custom-scrollbar">
           <DialogHeader>
-            <DialogTitle className="font-display">Propostas - {selectedProjeto?.nome}</DialogTitle>
+            <DialogTitle className="font-display text-lg">Propostas — {selectedProjeto?.nome}</DialogTitle>
           </DialogHeader>
           {propostas.length === 0 ? (
-            <p className="text-muted-foreground text-center py-4">Nenhuma proposta recebida</p>
+            <EmptyState message="Nenhuma proposta recebida ainda" icon={User} />
           ) : (
             <div className="space-y-3">
               {propostas.map((prop) => (
-                <div key={prop.id} className="border border-border rounded-lg p-4">
+                <div key={prop.id} className="border border-border/60 rounded-xl p-4 bg-muted/10">
                   <div className="flex items-center justify-between mb-2">
-                    <p className="font-medium text-foreground">{prop.consultor?.nome}</p>
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${
-                      prop.status === "aceita" ? "bg-success/10 text-success" : "bg-muted text-muted-foreground"
-                    }`}>{prop.status}</span>
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary/60 to-accent/60 flex items-center justify-center text-primary-foreground text-xs font-semibold">
+                        {prop.consultor?.nome?.charAt(0) || "C"}
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-foreground">{prop.consultor?.nome}</p>
+                        {prop.consultor?.cidade && (
+                          <p className="text-[11px] text-muted-foreground flex items-center gap-1">
+                            <MapPin size={10} /> {prop.consultor.cidade}{prop.consultor.estado && `, ${prop.consultor.estado}`}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    <StatusBadge status={prop.status} />
                   </div>
-                  <p className="text-sm text-muted-foreground">{prop.consultor?.cidade}, {prop.consultor?.estado}</p>
-                  {prop.estimativa_horas && <p className="text-sm text-foreground mt-1">Horas: {prop.estimativa_horas}h</p>}
-                  {prop.valor_proposta && <p className="text-sm text-foreground">Valor: R$ {Number(prop.valor_proposta).toLocaleString("pt-BR")}</p>}
-                  {prop.comentarios && <p className="text-sm text-muted-foreground mt-1">{prop.comentarios}</p>}
+                  <div className="flex items-center gap-4 mt-3 mb-2">
+                    {prop.estimativa_horas && (
+                      <span className="text-xs text-muted-foreground flex items-center gap-1">
+                        <Clock size={12} /> {prop.estimativa_horas}h
+                      </span>
+                    )}
+                    {prop.valor_proposta && (
+                      <span className="text-xs text-foreground font-medium flex items-center gap-1">
+                        <DollarSign size={12} /> R$ {Number(prop.valor_proposta).toLocaleString("pt-BR")}
+                      </span>
+                    )}
+                  </div>
+                  {prop.comentarios && <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{prop.comentarios}</p>}
                   {prop.status === "enviada" && (
                     <Button size="sm" className="mt-3" onClick={() => acceptProposal(prop.id)}>
                       Aceitar proposta
