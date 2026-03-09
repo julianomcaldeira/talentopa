@@ -63,9 +63,9 @@ const App = () => (
               <Route path="funcionalidades" element={<AdminFuncionalidades />} />
               <Route path="templates" element={<AdminTemplates />} />
               <Route path="consultores" element={<PlaceholderPage title="Consultores" description="Gerencie consultores da plataforma" />} />
-              <Route path="empresas" element={<PlaceholderPage title="Empresas" description="Gerencie empresas cadastradas" />} />
-              <Route path="projetos" element={<PlaceholderPage title="Projetos" description="Todos os projetos da plataforma" />} />
-              <Route path="financeiro" element={<PlaceholderPage title="Financeiro" description="Painel financeiro da plataforma" />} />
+              <Route path="empresas" element={<AdminEmpresas />} />
+              <Route path="projetos" element={<AdminProjetos />} />
+              <Route path="financeiro" element={<AdminFinanceiro />} />
             </Route>
 
             {/* Consultor */}
