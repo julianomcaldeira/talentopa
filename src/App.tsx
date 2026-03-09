@@ -95,6 +95,7 @@ const App = () => (
               <Route index element={<EmpresaDashboard />} />
               <Route path="perfil" element={<EmpresaPerfil />} />
               <Route path="novo-projeto" element={<EmpresaNovoProjeto />} />
+              <Route path="diagnostico-ia" element={<EmpresaProjectScopeAI />} />
               <Route path="projetos" element={<EmpresaProjetos />} />
               <Route path="financeiro" element={<PlaceholderPage title="Financeiro" description="Pagamentos e faturamento" />} />
             </Route>
