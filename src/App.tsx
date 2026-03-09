@@ -21,6 +21,9 @@ import AdminEmpresas from "./pages/admin/AdminEmpresas";
 import AdminProjetos from "./pages/admin/AdminProjetos";
 import AdminFinanceiro from "./pages/admin/AdminFinanceiro";
 import AdminConsultores from "./pages/admin/AdminConsultores";
+import AdminInteligencia from "./pages/admin/AdminInteligencia";
+import AdminBaseConhecimento from "./pages/admin/AdminBaseConhecimento";
+import AdminProjetoDetalhe from "./pages/admin/AdminProjetoDetalhe";
 import ConsultorDashboard from "./pages/consultor/ConsultorDashboard";
 import ConsultorPerfil from "./pages/consultor/ConsultorPerfil";
 import ConsultorHabilidades from "./pages/consultor/ConsultorHabilidades";
@@ -66,7 +69,10 @@ const App = () => (
               <Route path="consultores" element={<AdminConsultores />} />
               <Route path="empresas" element={<AdminEmpresas />} />
               <Route path="projetos" element={<AdminProjetos />} />
+              <Route path="projetos/:id" element={<AdminProjetoDetalhe />} />
               <Route path="financeiro" element={<AdminFinanceiro />} />
+              <Route path="inteligencia" element={<AdminInteligencia />} />
+              <Route path="base-conhecimento" element={<AdminBaseConhecimento />} />
             </Route>
 
             {/* Consultor */}

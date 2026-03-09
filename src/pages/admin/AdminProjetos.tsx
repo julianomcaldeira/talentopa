@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
-import { FolderKanban, Search, Calendar, Building2, Users, Filter, Eye, ArrowUpDown } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
+import { FolderKanban, Search, Calendar, Building2, Users, Filter, Eye, ArrowUpDown, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -8,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { PageHeader, DataCard, EmptyState, LoadingState, StatusBadge, SectionTitle, StatCard } from "@/components/dashboard/DashboardComponents";
 import { Badge } from "@/components/ui/badge";
+import { calculateHealthScore, getScoreColor } from "@/lib/projectHealth";
 
 interface ProjetoRow {
   id: string;
@@ -28,6 +30,7 @@ interface ProjetoRow {
 }
 
 const AdminProjetos = () => {
+  const navigate = useNavigate();
   const [projetos, setProjetos] = useState<ProjetoRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -147,13 +150,19 @@ const AdminProjetos = () => {
               <div
                 key={projeto.id}
                 className="p-4 px-5 table-row-interactive cursor-pointer"
-                onClick={() => { setSelectedProjeto(projeto); setDetailOpen(true); }}
+                onClick={() => navigate(`/admin/projetos/${projeto.id}`)}
               >
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-3.5 min-w-0">
-                    <div className="icon-container icon-container-md bg-primary/8 flex-shrink-0">
-                      <FolderKanban size={18} className="text-primary" />
-                    </div>
+                    {(() => {
+                      const health = calculateHealthScore(projeto.fases || [], projeto.prazo_estimado, projeto.status);
+                      const sc = getScoreColor(health.score);
+                      return (
+                        <div className={`w-10 h-10 rounded-xl ${sc.bg} flex items-center justify-center ring-2 ${sc.ring} flex-shrink-0`}>
+                          <span className={`font-display font-bold text-sm ${sc.text}`}>{health.score}</span>
+                        </div>
+                      );
+                    })()}
                     <div className="min-w-0">
                       <p className="text-sm font-medium text-foreground truncate">{projeto.nome}</p>
                       <p className="text-xs text-muted-foreground truncate">
