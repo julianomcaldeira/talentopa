@@ -7,6 +7,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { PageHeader, DataCard, StatusBadge, EmptyState, LoadingState, SectionTitle } from "@/components/dashboard/DashboardComponents";
+import { FolderKanban, Send, Calendar, Target } from "lucide-react";
 
 const ConsultorProjetos = () => {
   const { user } = useAuth();
@@ -33,16 +35,12 @@ const ConsultorProjetos = () => {
   const handleProposal = async () => {
     if (!user || !selectedProjeto) return;
     const { error } = await supabase.from("propostas").insert({
-      projeto_id: selectedProjeto.id,
-      consultor_user_id: user.id,
+      projeto_id: selectedProjeto.id, consultor_user_id: user.id,
       estimativa_horas: Number(proposalForm.estimativa_horas) || null,
       valor_proposta: Number(proposalForm.valor_proposta) || null,
       comentarios: proposalForm.comentarios || null,
     });
-    if (error) {
-      toast({ title: "Erro", description: error.message === '23505' ? "Você já enviou proposta para este projeto" : error.message, variant: "destructive" });
-      return;
-    }
+    if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
     toast({ title: "Proposta enviada com sucesso!" });
     setProposalDialog(false);
     setProposalForm({ estimativa_horas: "", valor_proposta: "", comentarios: "" });
@@ -50,65 +48,81 @@ const ConsultorProjetos = () => {
 
   return (
     <div>
-      <h1 className="text-2xl font-display font-bold text-foreground mb-2">Projetos Disponíveis</h1>
-      <p className="text-muted-foreground mb-6">Projetos compatíveis com seu perfil técnico</p>
+      <PageHeader title="Projetos Disponíveis" description="Encontre projetos compatíveis com seu perfil técnico" />
 
-      {loading ? (
-        <div className="p-8 text-center text-muted-foreground">Carregando...</div>
-      ) : projetos.length === 0 ? (
-        <div className="bg-card rounded-xl p-12 shadow-card border border-border text-center text-muted-foreground">
-          Nenhum projeto disponível no momento
-        </div>
+      {loading ? <DataCard><LoadingState /></DataCard> : projetos.length === 0 ? (
+        <DataCard><EmptyState message="Nenhum projeto disponível no momento" icon={FolderKanban} /></DataCard>
       ) : (
         <div className="space-y-4">
           {projetos.map((p) => (
-            <div key={p.id} className="bg-card rounded-xl p-6 shadow-card border border-border">
-              <div className="flex items-start justify-between mb-3">
-                <div>
-                  <h3 className="font-display font-semibold text-foreground text-lg">{p.nome}</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {p.softwares?.nome} • {p.empresa?.nome} • Protocolo: {p.protocolo}
-                  </p>
+            <DataCard key={p.id}>
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex items-start gap-3.5">
+                  <div className="icon-container icon-container-md bg-primary/10 mt-0.5">
+                    <FolderKanban size={18} className="text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-display font-semibold text-foreground text-base">{p.nome}</h3>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {p.softwares?.nome} · {p.empresa?.nome} · {p.protocolo}
+                    </p>
+                  </div>
                 </div>
-                <span className={`text-xs px-2 py-1 rounded-full font-medium ${
-                  p.status === "publicado" ? "bg-primary/10 text-primary" : "bg-warning/10 text-warning"
-                }`}>
-                  {p.status === "publicado" ? "Aberto" : "Em seleção"}
-                </span>
+                <StatusBadge status={p.status} labels={{ publicado: "Aberto", em_selecao: "Em seleção" }} />
               </div>
-              {p.descricao && <p className="text-sm text-muted-foreground mb-3">{p.descricao}</p>}
-              {p.objetivo && <p className="text-sm text-foreground mb-3"><strong>Objetivo:</strong> {p.objetivo}</p>}
-              {p.prazo_estimado && <p className="text-sm text-muted-foreground mb-4">Prazo: {new Date(p.prazo_estimado).toLocaleDateString("pt-BR")}</p>}
-              <Button onClick={() => { setSelectedProjeto(p); setProposalDialog(true); }}>
-                Enviar proposta
-              </Button>
-            </div>
+
+              {p.descricao && <p className="text-sm text-muted-foreground mb-3 pl-[54px]">{p.descricao}</p>}
+
+              <div className="flex flex-wrap gap-3 pl-[54px] mb-4">
+                {p.objetivo && (
+                  <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/60 px-2.5 py-1 rounded-lg">
+                    <Target size={12} /> {p.objetivo.substring(0, 60)}{p.objetivo.length > 60 ? "..." : ""}
+                  </span>
+                )}
+                {p.prazo_estimado && (
+                  <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/60 px-2.5 py-1 rounded-lg">
+                    <Calendar size={12} /> {new Date(p.prazo_estimado).toLocaleDateString("pt-BR")}
+                  </span>
+                )}
+              </div>
+
+              <div className="pl-[54px]">
+                <Button onClick={() => { setSelectedProjeto(p); setProposalDialog(true); }}>
+                  <Send size={14} /> Enviar proposta
+                </Button>
+              </div>
+            </DataCard>
           ))}
         </div>
       )}
 
       <Dialog open={proposalDialog} onOpenChange={setProposalDialog}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="font-display">Enviar proposta</DialogTitle>
+            <DialogTitle className="font-display text-lg">Enviar Proposta</DialogTitle>
           </DialogHeader>
-          <p className="text-sm text-muted-foreground mb-4">{selectedProjeto?.nome}</p>
+          <div className="bg-muted/40 rounded-xl p-3 mb-2">
+            <p className="text-sm font-medium text-foreground">{selectedProjeto?.nome}</p>
+            <p className="text-xs text-muted-foreground">{selectedProjeto?.softwares?.nome}</p>
+          </div>
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Estimativa de horas</Label>
-                <Input type="number" value={proposalForm.estimativa_horas} onChange={(e) => setProposalForm({ ...proposalForm, estimativa_horas: e.target.value })} />
+                <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Estimativa de horas</Label>
+                <Input type="number" value={proposalForm.estimativa_horas} onChange={(e) => setProposalForm({ ...proposalForm, estimativa_horas: e.target.value })} placeholder="120" />
               </div>
               <div className="space-y-2">
-                <Label>Valor da proposta (R$)</Label>
-                <Input type="number" value={proposalForm.valor_proposta} onChange={(e) => setProposalForm({ ...proposalForm, valor_proposta: e.target.value })} />
+                <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Valor (R$)</Label>
+                <Input type="number" value={proposalForm.valor_proposta} onChange={(e) => setProposalForm({ ...proposalForm, valor_proposta: e.target.value })} placeholder="36000" />
               </div>
             </div>
             <div className="space-y-2">
-              <Label>Comentários técnicos</Label>
-              <Textarea value={proposalForm.comentarios} onChange={(e) => setProposalForm({ ...proposalForm, comentarios: e.target.value })} rows={3} placeholder="Descreva sua abordagem..." />
+              <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Comentários técnicos</Label>
+              <Textarea value={proposalForm.comentarios} onChange={(e) => setProposalForm({ ...proposalForm, comentarios: e.target.value })} rows={4} placeholder="Descreva sua abordagem, experiência relevante e diferenciais..." />
             </div>
-            <Button className="w-full" onClick={handleProposal}>Enviar proposta</Button>
+            <Button className="w-full" onClick={handleProposal}>
+              <Send size={14} /> Enviar proposta
+            </Button>
           </div>
         </DialogContent>
       </Dialog>

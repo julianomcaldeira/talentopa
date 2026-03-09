@@ -2,98 +2,169 @@ import { useState } from "react";
 import { Link, useLocation, Outlet, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, Server, Puzzle, Cog, FileText, Users, Building2,
-  FolderKanban, DollarSign, LogOut, Menu, X, ChevronDown
+  FolderKanban, DollarSign, LogOut, Menu, X, ChevronRight, Bell, Search, 
+  Star, Settings
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { motion, AnimatePresence } from "framer-motion";
 
 const DashboardLayout = ({
   links,
   title,
+  accent,
 }: {
   links: { to: string; icon: React.ElementType; label: string }[];
   title: string;
+  accent?: string;
 }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { profile, signOut } = useAuth();
+  const { profile, role, signOut } = useAuth();
 
   const handleSignOut = async () => {
     await signOut();
     navigate("/");
   };
 
+  const initials = profile?.nome
+    ? profile.nome.split(" ").map(n => n[0]).slice(0, 2).join("").toUpperCase()
+    : "U";
+
   return (
     <div className="min-h-screen flex bg-background">
+      {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-sidebar text-sidebar-foreground transform transition-transform duration-200 lg:translate-x-0 lg:static ${
+        className={`fixed inset-y-0 left-0 z-50 w-[260px] sidebar-gradient text-sidebar-foreground flex flex-col transform transition-transform duration-300 ease-out lg:translate-x-0 lg:static ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        <div className="flex items-center justify-between h-16 px-4 border-b border-sidebar-border">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-md bg-sidebar-primary flex items-center justify-center">
-              <span className="font-display font-bold text-sidebar-primary-foreground text-xs">TO</span>
-            </div>
-            <span className="font-display font-semibold text-sm">{title}</span>
-          </Link>
-          <button className="lg:hidden text-sidebar-foreground" onClick={() => setSidebarOpen(false)}>
-            <X size={20} />
+        {/* Logo */}
+        <div className="flex items-center gap-3 h-[72px] px-5 border-b border-sidebar-border/50">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg">
+            <span className="font-display font-bold text-primary-foreground text-xs tracking-wider">TO</span>
+          </div>
+          <div className="flex-1 min-w-0">
+            <span className="font-display font-semibold text-sm text-sidebar-accent-foreground block">TalentOps</span>
+            <span className="text-[11px] text-sidebar-foreground/50 capitalize">{title}</span>
+          </div>
+          <button className="lg:hidden text-sidebar-foreground/60 hover:text-sidebar-foreground" onClick={() => setSidebarOpen(false)}>
+            <X size={18} />
           </button>
         </div>
 
-        <nav className="p-3 space-y-1">
+        {/* Nav */}
+        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto custom-scrollbar">
+          <p className="text-[10px] uppercase tracking-[0.12em] text-sidebar-foreground/40 font-semibold px-3 mb-2">
+            Menu principal
+          </p>
           {links.map((link) => {
             const isActive = location.pathname === link.to;
             return (
               <Link
                 key={link.to}
                 to={link.to}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
+                className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] transition-all duration-200 relative ${
                   isActive
-                    ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
-                    : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+                    ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium shadow-sm"
+                    : "text-sidebar-foreground/60 hover:bg-sidebar-accent/40 hover:text-sidebar-foreground"
                 }`}
                 onClick={() => setSidebarOpen(false)}
               >
-                <link.icon size={18} />
-                {link.label}
+                {isActive && (
+                  <motion.div
+                    layoutId="activeNav"
+                    className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-full bg-primary"
+                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                  />
+                )}
+                <link.icon size={18} className={isActive ? "text-primary" : "text-sidebar-foreground/40 group-hover:text-sidebar-foreground/60"} />
+                <span>{link.label}</span>
+                {isActive && <ChevronRight size={14} className="ml-auto text-sidebar-foreground/30" />}
               </Link>
             );
           })}
         </nav>
 
-        <div className="absolute bottom-0 left-0 right-0 p-3 border-t border-sidebar-border">
+        {/* User section */}
+        <div className="p-3 border-t border-sidebar-border/50">
+          <div className="flex items-center gap-3 px-3 py-3 rounded-xl bg-sidebar-accent/30">
+            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary/80 to-accent/80 flex items-center justify-center text-primary-foreground font-semibold text-xs shadow-md">
+              {initials}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-sidebar-accent-foreground truncate">{profile?.nome || "Usuário"}</p>
+              <p className="text-[11px] text-sidebar-foreground/40 truncate capitalize">{role || ""}</p>
+            </div>
+          </div>
           <button
             onClick={handleSignOut}
-            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-sidebar-foreground/70 hover:bg-sidebar-accent/50 transition-colors w-full"
+            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] text-sidebar-foreground/50 hover:bg-sidebar-accent/30 hover:text-sidebar-foreground transition-all w-full mt-1"
           >
-            <LogOut size={18} />
-            Sair
+            <LogOut size={16} />
+            Sair da conta
           </button>
         </div>
       </aside>
 
-      {sidebarOpen && (
-        <div className="fixed inset-0 z-40 bg-foreground/20 lg:hidden" onClick={() => setSidebarOpen(false)} />
-      )}
+      {/* Backdrop */}
+      <AnimatePresence>
+        {sidebarOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-40 bg-foreground/30 backdrop-blur-sm lg:hidden"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
+      </AnimatePresence>
 
-      <div className="flex-1 flex flex-col min-h-screen">
-        <header className="h-16 border-b border-border bg-card flex items-center px-4 gap-4">
-          <button className="lg:hidden text-foreground" onClick={() => setSidebarOpen(true)}>
+      {/* Main content */}
+      <div className="flex-1 flex flex-col min-h-screen min-w-0">
+        {/* Top bar */}
+        <header className="h-[72px] border-b border-border bg-card/80 backdrop-blur-xl flex items-center px-4 md:px-6 gap-4 sticky top-0 z-30">
+          <button className="lg:hidden text-foreground/60 hover:text-foreground p-2 rounded-xl hover:bg-muted transition-colors" onClick={() => setSidebarOpen(true)}>
             <Menu size={20} />
           </button>
-          <div className="flex-1" />
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-xs">
-              {profile?.nome?.charAt(0)?.toUpperCase() || "U"}
+
+          {/* Search bar */}
+          <div className="hidden md:flex items-center flex-1 max-w-md">
+            <div className="relative w-full">
+              <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/60" />
+              <input
+                type="text"
+                placeholder="Buscar..."
+                className="w-full h-10 pl-10 pr-4 rounded-xl bg-muted/60 border-0 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+              />
             </div>
-            <span className="hidden sm:inline">{profile?.nome || "Usuário"}</span>
+          </div>
+
+          <div className="flex-1 md:hidden" />
+
+          {/* Right side */}
+          <div className="flex items-center gap-2">
+            <button className="relative p-2.5 rounded-xl hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
+              <Bell size={18} />
+              <span className="absolute top-2 right-2 w-2 h-2 bg-destructive rounded-full" />
+            </button>
+            <div className="hidden sm:flex items-center gap-3 pl-3 ml-1 border-l border-border">
+              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary/80 to-accent/80 flex items-center justify-center text-primary-foreground font-semibold text-xs shadow-md">
+                {initials}
+              </div>
+              <div className="hidden lg:block">
+                <p className="text-sm font-medium text-foreground leading-tight">{profile?.nome || "Usuário"}</p>
+                <p className="text-[11px] text-muted-foreground capitalize">{role}</p>
+              </div>
+            </div>
           </div>
         </header>
 
+        {/* Page content */}
         <main className="flex-1 p-4 md:p-6 lg:p-8 overflow-auto">
-          <Outlet />
+          <div className="page-enter">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>
@@ -112,12 +183,12 @@ const adminLinks = [
   { to: "/admin/financeiro", icon: DollarSign, label: "Financeiro" },
 ];
 
-export const AdminLayout = () => <DashboardLayout links={adminLinks} title="Admin" />;
+export const AdminLayout = () => <DashboardLayout links={adminLinks} title="Administração" />;
 
 const consultorLinks = [
   { to: "/consultor", icon: LayoutDashboard, label: "Dashboard" },
   { to: "/consultor/perfil", icon: Users, label: "Meu Perfil" },
-  { to: "/consultor/habilidades", icon: Cog, label: "Habilidades" },
+  { to: "/consultor/habilidades", icon: Star, label: "Habilidades" },
   { to: "/consultor/projetos", icon: FolderKanban, label: "Projetos Disponíveis" },
   { to: "/consultor/meus-projetos", icon: FileText, label: "Meus Projetos" },
   { to: "/consultor/financeiro", icon: DollarSign, label: "Financeiro" },

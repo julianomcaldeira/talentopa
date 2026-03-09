@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
-import { FolderKanban, DollarSign, Star, Clock } from "lucide-react";
+import { FolderKanban, DollarSign, Star, Clock, ArrowUpRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { StatCard, StatusBadge, PageHeader, DataCard, SectionTitle, LoadingState } from "@/components/dashboard/DashboardComponents";
+import { Link } from "react-router-dom";
 
 const ConsultorDashboard = () => {
   const { user, profile } = useAuth();
@@ -24,50 +26,48 @@ const ConsultorDashboard = () => {
 
   return (
     <div>
-      <div className="mb-8">
-        <h1 className="text-2xl font-display font-bold text-foreground">Olá, {profile?.nome || "Consultor"}!</h1>
-        <p className="text-muted-foreground mt-1">Confira seus projetos e oportunidades</p>
-      </div>
+      <PageHeader
+        title={`Olá, ${profile?.nome?.split(" ")[0] || "Consultor"}!`}
+        description="Confira seus projetos e oportunidades disponíveis"
+      />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        {[
-          { label: "Projetos disponíveis", value: projetos.length.toString(), icon: FolderKanban },
-          { label: "Concluídos", value: "0", icon: Clock },
-          { label: "Receita total", value: "R$ 0", icon: DollarSign },
-          { label: "Avaliação", value: "-", icon: Star },
-        ].map((stat, i) => (
-          <div key={i} className="bg-card rounded-xl p-5 shadow-card border border-border">
-            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mb-3">
-              <stat.icon className="h-5 w-5 text-primary" />
-            </div>
-            <p className="text-2xl font-display font-bold text-foreground">{stat.value}</p>
-            <p className="text-sm text-muted-foreground">{stat.label}</p>
-          </div>
-        ))}
+        <StatCard icon={FolderKanban} label="Projetos disponíveis" value={projetos.length.toString()} iconColor="text-primary" iconBg="bg-primary/10" />
+        <StatCard icon={Clock} label="Concluídos" value="0" iconColor="text-success" iconBg="bg-success/10" />
+        <StatCard icon={DollarSign} label="Receita total" value="R$ 0" iconColor="text-accent" iconBg="bg-accent/10" />
+        <StatCard icon={Star} label="Avaliação média" value="—" iconColor="text-warning" iconBg="bg-warning/10" />
       </div>
 
-      <div className="bg-card rounded-xl p-6 shadow-card border border-border">
-        <h3 className="font-display font-semibold text-foreground mb-4">Projetos disponíveis</h3>
-        {loading ? (
-          <p className="text-muted-foreground">Carregando...</p>
-        ) : projetos.length === 0 ? (
-          <p className="text-muted-foreground">Nenhum projeto disponível no momento</p>
+      <DataCard noPadding>
+        <div className="p-5 pb-3 border-b border-border/60">
+          <div className="flex items-center justify-between">
+            <SectionTitle>Projetos disponíveis</SectionTitle>
+            <Link to="/consultor/projetos" className="text-xs text-primary font-medium hover:underline flex items-center gap-1">
+              Ver todos <ArrowUpRight size={12} />
+            </Link>
+          </div>
+        </div>
+        {loading ? <LoadingState /> : projetos.length === 0 ? (
+          <div className="p-8 text-center text-muted-foreground text-sm">Nenhum projeto disponível no momento</div>
         ) : (
-          <div className="space-y-3">
+          <div className="divide-y divide-border/60">
             {projetos.map((p) => (
-              <div key={p.id} className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
-                <div>
-                  <p className="text-sm font-medium text-foreground">{p.nome}</p>
-                  <p className="text-xs text-muted-foreground">{p.softwares?.nome} • {p.protocolo}</p>
+              <div key={p.id} className="flex items-center justify-between p-4 px-5 table-row-interactive cursor-pointer">
+                <div className="flex items-center gap-3.5">
+                  <div className="icon-container icon-container-sm bg-muted/60">
+                    <FolderKanban size={14} className="text-muted-foreground" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-foreground">{p.nome}</p>
+                    <p className="text-xs text-muted-foreground">{p.softwares?.nome} · {p.protocolo}</p>
+                  </div>
                 </div>
-                <span className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary font-medium">
-                  Aberto
-                </span>
+                <StatusBadge status={p.status} labels={{ publicado: "Aberto", em_selecao: "Em seleção" }} />
               </div>
             ))}
           </div>
         )}
-      </div>
+      </DataCard>
     </div>
   );
 };
