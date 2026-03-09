@@ -197,6 +197,7 @@ const consultorLinks = [
   { to: "/consultor/projetos", icon: FolderKanban, label: "Projetos Disponíveis" },
   { to: "/consultor/meus-projetos", icon: FileText, label: "Meus Projetos" },
   { to: "/consultor/financeiro", icon: DollarSign, label: "Financeiro" },
+  { to: "/consultor/copilot", icon: Bot, label: "Copiloto IA" },
 ];
 
 export const ConsultorLayout = () => <DashboardLayout links={consultorLinks} title="Consultor" />;
