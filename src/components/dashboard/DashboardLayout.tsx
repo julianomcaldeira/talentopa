@@ -1,21 +1,10 @@
 import { useState } from "react";
-import { Link, useLocation, Outlet } from "react-router-dom";
+import { Link, useLocation, Outlet, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, Server, Puzzle, Cog, FileText, Users, Building2,
   FolderKanban, DollarSign, LogOut, Menu, X, ChevronDown
 } from "lucide-react";
-
-const adminLinks = [
-  { to: "/admin", icon: LayoutDashboard, label: "Dashboard" },
-  { to: "/admin/softwares", icon: Server, label: "Softwares ERP" },
-  { to: "/admin/modulos", icon: Puzzle, label: "Módulos" },
-  { to: "/admin/funcionalidades", icon: Cog, label: "Funcionalidades" },
-  { to: "/admin/templates", icon: FileText, label: "Templates" },
-  { to: "/admin/consultores", icon: Users, label: "Consultores" },
-  { to: "/admin/empresas", icon: Building2, label: "Empresas" },
-  { to: "/admin/projetos", icon: FolderKanban, label: "Projetos" },
-  { to: "/admin/financeiro", icon: DollarSign, label: "Financeiro" },
-];
+import { useAuth } from "@/contexts/AuthContext";
 
 const DashboardLayout = ({
   links,
@@ -26,10 +15,16 @@ const DashboardLayout = ({
 }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { profile, signOut } = useAuth();
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/");
+  };
 
   return (
     <div className="min-h-screen flex bg-background">
-      {/* Sidebar */}
       <aside
         className={`fixed inset-y-0 left-0 z-50 w-64 bg-sidebar text-sidebar-foreground transform transition-transform duration-200 lg:translate-x-0 lg:static ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
@@ -69,22 +64,20 @@ const DashboardLayout = ({
         </nav>
 
         <div className="absolute bottom-0 left-0 right-0 p-3 border-t border-sidebar-border">
-          <Link
-            to="/"
-            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-sidebar-foreground/70 hover:bg-sidebar-accent/50 transition-colors"
+          <button
+            onClick={handleSignOut}
+            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-sidebar-foreground/70 hover:bg-sidebar-accent/50 transition-colors w-full"
           >
             <LogOut size={18} />
             Sair
-          </Link>
+          </button>
         </div>
       </aside>
 
-      {/* Backdrop */}
       {sidebarOpen && (
         <div className="fixed inset-0 z-40 bg-foreground/20 lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
 
-      {/* Main */}
       <div className="flex-1 flex flex-col min-h-screen">
         <header className="h-16 border-b border-border bg-card flex items-center px-4 gap-4">
           <button className="lg:hidden text-foreground" onClick={() => setSidebarOpen(true)}>
@@ -93,10 +86,9 @@ const DashboardLayout = ({
           <div className="flex-1" />
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-xs">
-              U
+              {profile?.nome?.charAt(0)?.toUpperCase() || "U"}
             </div>
-            <span className="hidden sm:inline">Usuário</span>
-            <ChevronDown size={14} />
+            <span className="hidden sm:inline">{profile?.nome || "Usuário"}</span>
           </div>
         </header>
 
@@ -108,12 +100,24 @@ const DashboardLayout = ({
   );
 };
 
-// Export pre-configured layouts
+const adminLinks = [
+  { to: "/admin", icon: LayoutDashboard, label: "Dashboard" },
+  { to: "/admin/softwares", icon: Server, label: "Softwares ERP" },
+  { to: "/admin/modulos", icon: Puzzle, label: "Módulos" },
+  { to: "/admin/funcionalidades", icon: Cog, label: "Funcionalidades" },
+  { to: "/admin/templates", icon: FileText, label: "Templates" },
+  { to: "/admin/consultores", icon: Users, label: "Consultores" },
+  { to: "/admin/empresas", icon: Building2, label: "Empresas" },
+  { to: "/admin/projetos", icon: FolderKanban, label: "Projetos" },
+  { to: "/admin/financeiro", icon: DollarSign, label: "Financeiro" },
+];
+
 export const AdminLayout = () => <DashboardLayout links={adminLinks} title="Admin" />;
 
 const consultorLinks = [
   { to: "/consultor", icon: LayoutDashboard, label: "Dashboard" },
   { to: "/consultor/perfil", icon: Users, label: "Meu Perfil" },
+  { to: "/consultor/habilidades", icon: Cog, label: "Habilidades" },
   { to: "/consultor/projetos", icon: FolderKanban, label: "Projetos Disponíveis" },
   { to: "/consultor/meus-projetos", icon: FileText, label: "Meus Projetos" },
   { to: "/consultor/financeiro", icon: DollarSign, label: "Financeiro" },

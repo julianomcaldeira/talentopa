@@ -4,14 +4,27 @@ import { ArrowLeft, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const { resetPassword } = useAuth();
+  const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSent(true);
+    setIsLoading(true);
+    try {
+      await resetPassword(email);
+      setSent(true);
+    } catch (error: any) {
+      toast({ title: "Erro", description: error.message, variant: "destructive" });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -27,21 +40,13 @@ const ForgotPassword = () => {
             <p className="text-muted-foreground mb-8">
               Informe seu e-mail e enviaremos instruções para redefinir sua senha.
             </p>
-
             <form onSubmit={handleSubmit} className="space-y-5">
               <div className="space-y-2">
                 <Label htmlFor="email">E-mail</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="seu@email.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
+                <Input id="email" type="email" placeholder="seu@email.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
               </div>
-              <Button type="submit" className="w-full" size="lg">
-                Enviar instruções
+              <Button type="submit" className="w-full" size="lg" disabled={isLoading}>
+                {isLoading ? "Enviando..." : "Enviar instruções"}
               </Button>
             </form>
           </>
