@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
-import { FolderKanban, Search, Calendar, Building2, Users, Filter, Eye, ArrowUpDown } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
+import { FolderKanban, Search, Calendar, Building2, Users, Filter, Eye, ArrowUpDown, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -8,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { PageHeader, DataCard, EmptyState, LoadingState, StatusBadge, SectionTitle, StatCard } from "@/components/dashboard/DashboardComponents";
 import { Badge } from "@/components/ui/badge";
+import { calculateHealthScore, getScoreColor } from "@/lib/projectHealth";
 
 interface ProjetoRow {
   id: string;
