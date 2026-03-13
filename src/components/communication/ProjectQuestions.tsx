@@ -72,10 +72,24 @@ export const ProjectQuestions = ({ projetoId, isEmpresa }: ProjectQuestionsProps
       const pergIds = pergs.map(p => p.id);
       const { data: resps } = await supabase
         .from("consultor_respostas")
-        .select("*, consultor:profiles!consultor_respostas_consultor_user_id_fkey(nome)")
+        .select("*")
         .in("pergunta_id", pergIds);
 
-      if (resps) setExistingRespostas(resps as any);
+      if (resps && resps.length > 0) {
+        // Fetch consultant names separately
+        const consultorIds = [...new Set(resps.map(r => r.consultor_user_id))];
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("user_id, nome")
+          .in("user_id", consultorIds);
+        
+        const profileMap = new Map(profiles?.map(p => [p.user_id, p.nome]) || []);
+        const enriched = resps.map(r => ({
+          ...r,
+          consultor: { nome: profileMap.get(r.consultor_user_id) || "Consultor" },
+        }));
+        setExistingRespostas(enriched as any);
+      }
     }
 
     setLoading(false);
