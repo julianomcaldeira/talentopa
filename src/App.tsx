@@ -33,7 +33,9 @@ import EmpresaDashboard from "./pages/empresa/EmpresaDashboard";
 import EmpresaPerfil from "./pages/empresa/EmpresaPerfil";
 import EmpresaNovoProjeto from "./pages/empresa/EmpresaNovoProjeto";
 import EmpresaProjetos from "./pages/empresa/EmpresaProjetos";
-
+import AdminRelatorios from "./pages/admin/AdminRelatorios";
+import ConsultorRelatorios from "./pages/consultor/ConsultorRelatorios";
+import EmpresaRelatorios from "./pages/empresa/EmpresaRelatorios";
 const queryClient = new QueryClient();
 
 const AuthRedirect = () => {
