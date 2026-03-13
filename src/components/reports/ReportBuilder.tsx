@@ -10,6 +10,8 @@ import { Download, Filter, RotateCcw, FileSpreadsheet } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
 import { ReportFilters, ReportFiltersState } from "./ReportFilters";
+import { PresetReports, type PresetReport } from "./PresetReports";
+import { Separator } from "@/components/ui/separator";
 
 type UserScope = "admin" | "consultor" | "empresa";
 
@@ -186,6 +188,7 @@ export const ReportBuilder = ({ userScope }: ReportBuilderProps) => {
   const [loading, setLoading] = useState(false);
   const [hasQueried, setHasQueried] = useState(false);
   const [filters, setFilters] = useState<ReportFiltersState>({});
+  const [autoRun, setAutoRun] = useState(false);
 
   const availableTables = ALL_TABLES.filter((t) => t.scope.includes(userScope));
   const currentTable = availableTables.find((t) => t.name === selectedTable);
@@ -207,6 +210,16 @@ export const ReportBuilder = ({ userScope }: ReportBuilderProps) => {
     if (!currentTable) return;
     setSelectedColumns(currentTable.columns.map((c) => c.key));
   };
+  const applyPreset = (preset: PresetReport) => {
+    setSelectedTable(preset.table);
+    // Need to defer these since selectedTable change resets them
+    setTimeout(() => {
+      setSelectedColumns(preset.columns);
+      setFilters(preset.filters);
+      setAutoRun(true);
+    }, 50);
+  };
+
 
   const generateReport = async () => {
     if (!selectedTable || selectedColumns.length === 0 || !user) return;
@@ -252,6 +265,15 @@ export const ReportBuilder = ({ userScope }: ReportBuilderProps) => {
     }
   };
 
+  // Auto-run report after preset is applied
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (autoRun && selectedColumns.length > 0 && selectedTable) {
+      setAutoRun(false);
+      generateReport();
+    }
+  }, [autoRun, selectedColumns, selectedTable]);
+
   const exportCSV = () => {
     if (data.length === 0 || !currentTable) return;
     const cols = selectedColumns;
@@ -293,6 +315,11 @@ export const ReportBuilder = ({ userScope }: ReportBuilderProps) => {
 
   return (
     <div className="space-y-6">
+      {/* Pre-configured Reports */}
+      <PresetReports userScope={userScope} onSelectPreset={applyPreset} />
+
+      <Separator />
+
       <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg">
