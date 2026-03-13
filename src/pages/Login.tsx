@@ -148,44 +148,6 @@ const Login = () => {
               Cadastre-se
             </Link>
           </p>
-
-          {/* Demo Accounts Section */}
-          <div className="mt-10 pt-8 border-t border-border/60">
-            <div className="flex items-center gap-2 mb-4">
-              <Play size={14} className="text-primary" />
-              <h3 className="font-display font-semibold text-sm text-foreground">Modo Demonstração</h3>
-              <Badge variant="secondary" className="text-[10px] px-1.5 py-0">DEMO</Badge>
-            </div>
-            <p className="text-xs text-muted-foreground mb-4">
-              Acesse com um perfil de demonstração para explorar o sistema completo
-            </p>
-            <div className="space-y-2.5">
-              {demoAccounts.map((account) => {
-                const Icon = account.icon;
-                return (
-                  <button
-                    key={account.email}
-                    onClick={() => handleDemoLogin(account)}
-                    disabled={!!demoLoading}
-                    className={`w-full flex items-start gap-3 p-3.5 rounded-xl border transition-all hover:shadow-sm hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 ${account.color}`}
-                  >
-                    <div className="mt-0.5">
-                      <Icon size={18} />
-                    </div>
-                    <div className="flex-1 text-left">
-                      <div className="flex items-center gap-2">
-                        <span className="font-display font-semibold text-sm">{account.label}</span>
-                        {demoLoading === account.email && (
-                          <span className="text-[10px] animate-pulse">Entrando...</span>
-                        )}
-                      </div>
-                      <p className="text-[11px] opacity-70 mt-0.5 leading-relaxed">{account.description}</p>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
         </div>
       </div>
 
