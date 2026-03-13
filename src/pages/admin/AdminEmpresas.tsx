@@ -144,11 +144,47 @@ const AdminEmpresas = () => {
       e.profile?.email.toLowerCase().includes(term);
   });
 
+  const handleCreateEmpresa = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setCreating(true);
+    try {
+      const res = await supabase.functions.invoke("admin-create-user", {
+        body: {
+          email: newEmpresa.email,
+          password: newEmpresa.password,
+          nome: newEmpresa.nome,
+          tipo_usuario: "empresa",
+          extra: {
+            cnpj: newEmpresa.cnpj,
+            nome_fantasia: newEmpresa.nome_fantasia,
+            segmento: newEmpresa.segmento,
+            endereco: newEmpresa.endereco,
+            numero_funcionarios: newEmpresa.numero_funcionarios ? parseInt(newEmpresa.numero_funcionarios) : null,
+          },
+        },
+      });
+      if (res.data?.error) throw new Error(res.data.error);
+      toast({ title: "Empresa cadastrada com sucesso!" });
+      setCreateOpen(false);
+      setNewEmpresa({ nome: "", email: "", password: "", nome_fantasia: "", cnpj: "", segmento: "", endereco: "", numero_funcionarios: "" });
+      window.location.reload();
+    } catch (err: any) {
+      toast({ title: "Erro ao cadastrar", description: err.message, variant: "destructive" });
+    } finally {
+      setCreating(false);
+    }
+  };
+
   return (
     <div>
       <PageHeader
         title="Empresas"
         description="Gerencie empresas cadastradas na plataforma"
+        action={
+          <Button onClick={() => setCreateOpen(true)} className="gap-2">
+            <UserPlus size={16} /> Nova Empresa
+          </Button>
+        }
       />
 
       {/* Search */}
