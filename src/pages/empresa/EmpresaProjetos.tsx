@@ -4,7 +4,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { PageHeader, DataCard, StatusBadge, EmptyState, LoadingState, SectionTitle } from "@/components/dashboard/DashboardComponents";
-import { FolderKanban, Eye, MapPin, Clock, DollarSign, User } from "lucide-react";
+import { FolderKanban, Eye, MapPin, Clock, DollarSign, User, Zap } from "lucide-react";
+import { ConsultorMatchList } from "@/components/matching/ConsultorMatchList";
 
 const EmpresaProjetos = () => {
   const { user } = useAuth();
@@ -88,10 +89,16 @@ const EmpresaProjetos = () => {
               )}
 
               {(p.status === "publicado" || p.status === "em_selecao") && (
-                <div className="ml-[54px]">
+                <div className="ml-[54px] flex items-center gap-2">
                   <Button size="sm" variant="outline" onClick={() => viewPropostas(p)}>
                     <Eye size={14} /> Ver propostas
                   </Button>
+                </div>
+              )}
+
+              {(p.status === "publicado" || p.status === "em_selecao") && (
+                <div className="ml-[54px]">
+                  <ConsultorMatchList projetoId={p.id} softwareId={p.software_id} />
                 </div>
               )}
             </DataCard>
