@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Star, MapPin, Award, Zap, ChevronDown, ChevronUp, Trophy } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
 
 interface ConsultorMatch {
   user_id: string;
