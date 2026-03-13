@@ -3,7 +3,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { DataCard, LoadingState, EmptyState } from "@/components/dashboard/DashboardComponents";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Star, MapPin, Award, Zap, ChevronDown, ChevronUp } from "lucide-react";
+import { Star, MapPin, Award, Zap, ChevronDown, ChevronUp, Trophy } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface ConsultorMatch {
