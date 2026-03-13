@@ -210,6 +210,23 @@ export const ReportBuilder = ({ userScope }: ReportBuilderProps) => {
     if (!currentTable) return;
     setSelectedColumns(currentTable.columns.map((c) => c.key));
   };
+  const applyPreset = (preset: PresetReport) => {
+    setSelectedTable(preset.table);
+    // Need to defer these since selectedTable change resets them
+    setTimeout(() => {
+      setSelectedColumns(preset.columns);
+      setFilters(preset.filters);
+      setAutoRun(true);
+    }, 50);
+  };
+
+  // Auto-run report after preset is applied
+  useEffect(() => {
+    if (autoRun && selectedColumns.length > 0 && selectedTable) {
+      setAutoRun(false);
+      generateReport();
+    }
+  }, [autoRun, selectedColumns, selectedTable]);
 
   const generateReport = async () => {
     if (!selectedTable || selectedColumns.length === 0 || !user) return;
