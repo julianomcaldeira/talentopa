@@ -218,7 +218,7 @@ export const ReportBuilder = ({ userScope }: ReportBuilderProps) => {
         .select(selectStr);
 
       if (error) throw error;
-      setData((result as Record<string, unknown>[]) || []);
+      setData((result as unknown as Record<string, unknown>[]) || []);
     } catch (err) {
       console.error("Report error:", err);
       setData([]);
