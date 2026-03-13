@@ -131,7 +131,7 @@ const ConsultorProjetos = () => {
                     <div>
                       <h3 className="font-display font-semibold text-foreground text-base">{p.nome}</h3>
                       <p className="text-xs text-muted-foreground mt-0.5">
-                        {p.softwares?.nome} · {p.empresa?.nome} · {p.protocolo}
+                        {p.softwares?.nome} · {p.empresa_nome || "Empresa"} · {p.protocolo}
                       </p>
                     </div>
                   </div>
