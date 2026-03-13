@@ -196,9 +196,46 @@ const AdminConsultores = () => {
   const totalComHabilidades = consultores.filter((c) => c.habilidades.length > 0).length;
   const totalAvaliados = consultores.filter((c) => c.avaliacoes.length > 0).length;
 
+  const handleCreateConsultor = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setCreating(true);
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
+      const res = await supabase.functions.invoke("admin-create-user", {
+        body: {
+          email: newUser.email,
+          password: newUser.password,
+          nome: newUser.nome,
+          tipo_usuario: "consultor",
+          extra: { telefone: newUser.telefone, cidade: newUser.cidade, estado: newUser.estado },
+        },
+      });
+      if (res.data?.error) throw new Error(res.data.error);
+      toast({ title: "Consultor cadastrado com sucesso!" });
+      setCreateOpen(false);
+      setNewUser({ nome: "", email: "", password: "", telefone: "", cidade: "", estado: "" });
+      setLoading(true);
+      // re-fetch (simplified: reload page data)
+      window.location.reload();
+    } catch (err: any) {
+      toast({ title: "Erro ao cadastrar", description: err.message, variant: "destructive" });
+    } finally {
+      setCreating(false);
+    }
+  };
+
   return (
     <div>
-      <PageHeader title="Consultores" description="Gerencie consultores da plataforma" />
+      <PageHeader
+        title="Consultores"
+        description="Gerencie consultores da plataforma"
+        action={
+          <Button onClick={() => setCreateOpen(true)} className="gap-2">
+            <UserPlus size={16} /> Novo Consultor
+          </Button>
+        }
+      />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <StatCard icon={Users} label="Total de consultores" value={consultores.length.toString()} iconColor="text-primary" iconBg="bg-primary/10" />
