@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Download, Filter, RotateCcw, FileSpreadsheet } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
+import { ReportFilters, ReportFiltersState } from "./ReportFilters";
 
 type UserScope = "admin" | "consultor" | "empresa";
 
@@ -184,6 +185,7 @@ export const ReportBuilder = ({ userScope }: ReportBuilderProps) => {
   const [data, setData] = useState<Record<string, unknown>[]>([]);
   const [loading, setLoading] = useState(false);
   const [hasQueried, setHasQueried] = useState(false);
+  const [filters, setFilters] = useState<ReportFiltersState>({});
 
   const availableTables = ALL_TABLES.filter((t) => t.scope.includes(userScope));
   const currentTable = availableTables.find((t) => t.name === selectedTable);
@@ -192,6 +194,7 @@ export const ReportBuilder = ({ userScope }: ReportBuilderProps) => {
     setSelectedColumns([]);
     setData([]);
     setHasQueried(false);
+    setFilters({});
   }, [selectedTable]);
 
   const toggleColumn = (col: string) => {
@@ -212,11 +215,33 @@ export const ReportBuilder = ({ userScope }: ReportBuilderProps) => {
 
     try {
       const selectStr = selectedColumns.join(", ");
-      // RLS handles filtering automatically based on user role
-      const { data: result, error } = await supabase
-        .from(selectedTable as any)
-        .select(selectStr);
+      let query = supabase.from(selectedTable as any).select(selectStr);
 
+      // Apply date filters (all tables have created_at)
+      if (filters.dateFrom) {
+        query = query.gte("created_at", filters.dateFrom.toISOString());
+      }
+      if (filters.dateTo) {
+        const endOfDay = new Date(filters.dateTo);
+        endOfDay.setHours(23, 59, 59, 999);
+        query = query.lte("created_at", endOfDay.toISOString());
+      }
+
+      // Apply status filter
+      if (filters.status && ["projetos", "propostas", "projeto_fases"].includes(selectedTable)) {
+        query = query.eq("status", filters.status);
+      }
+
+      // Apply software filter
+      if (filters.softwareId) {
+        if (selectedTable === "projetos") {
+          query = query.eq("software_id", filters.softwareId);
+        } else if (selectedTable === "consultor_habilidades") {
+          query = query.eq("software_id", filters.softwareId);
+        }
+      }
+
+      const { data: result, error } = await query;
       if (error) throw error;
       setData((result as unknown as Record<string, unknown>[]) || []);
     } catch (err) {
@@ -323,6 +348,15 @@ export const ReportBuilder = ({ userScope }: ReportBuilderProps) => {
             </motion.div>
           )}
 
+          {/* Advanced Filters */}
+          {currentTable && selectedColumns.length > 0 && (
+            <ReportFilters
+              tableName={selectedTable}
+              filters={filters}
+              onFiltersChange={setFilters}
+            />
+          )}
+
           {/* Actions */}
           {currentTable && selectedColumns.length > 0 && (
             <motion.div
@@ -340,6 +374,7 @@ export const ReportBuilder = ({ userScope }: ReportBuilderProps) => {
                   setSelectedColumns([]);
                   setData([]);
                   setHasQueried(false);
+                  setFilters({});
                 }}
               >
                 <RotateCcw size={16} className="mr-2" />
