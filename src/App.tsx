@@ -20,6 +20,7 @@ import AdminFinanceiro from "./pages/admin/AdminFinanceiro";
 import AdminConsultores from "./pages/admin/AdminConsultores";
 import AdminBaseConhecimento from "./pages/admin/AdminBaseConhecimento";
 import AdminProjetoDetalhe from "./pages/admin/AdminProjetoDetalhe";
+import AdminModeracao from "./pages/admin/AdminModeracao";
 import ConsultorDashboard from "./pages/consultor/ConsultorDashboard";
 import ConsultorPerfil from "./pages/consultor/ConsultorPerfil";
 import ConsultorHabilidades from "./pages/consultor/ConsultorHabilidades";
@@ -72,6 +73,7 @@ const App = () => (
               <Route path="empresas" element={<AdminEmpresas />} />
               <Route path="financeiro" element={<AdminFinanceiro />} />
               <Route path="catalogo" element={<AdminCatalogo />} />
+              <Route path="moderacao" element={<AdminModeracao />} />
               <Route path="base-conhecimento" element={<AdminBaseConhecimento />} />
             </Route>
 
