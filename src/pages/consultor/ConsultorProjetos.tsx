@@ -8,7 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { PageHeader, DataCard, StatusBadge, EmptyState, LoadingState } from "@/components/dashboard/DashboardComponents";
-import { FolderKanban, Send, Calendar, Target, Star } from "lucide-react";
+import { FolderKanban, Send, Calendar, Target, Star, MessageSquare } from "lucide-react";
+import { ProjectCommunication } from "@/components/communication/ProjectCommunication";
 
 const ConsultorProjetos = () => {
   const { user } = useAuth();
