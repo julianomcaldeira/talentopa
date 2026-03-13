@@ -203,6 +203,7 @@ const empresaLinks = [
   { to: "/empresa/projetos", icon: FolderKanban, label: "Meus Projetos" },
   { to: "/empresa/novo-projeto", icon: FileText, label: "Novo Projeto" },
   { to: "/empresa/perfil", icon: Building2, label: "Perfil da Empresa" },
+  { to: "/empresa/relatorios", icon: FileSpreadsheet, label: "Relatórios" },
 ];
 
 export const EmpresaLayout = () => <DashboardLayout links={empresaLinks} title="Empresa" />;
