@@ -45,8 +45,15 @@ const AuthRedirect = () => {
   const { session, role, loading } = useAuth();
   if (loading) return null;
   if (!session) return <Navigate to="/login" replace />;
+  if (!role) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
   const redirectMap: Record<string, string> = { admin: "/admin", consultor: "/consultor", empresa: "/empresa" };
-  return <Navigate to={redirectMap[role || ""] || "/login"} replace />;
+  return <Navigate to={redirectMap[role] || "/login"} replace />;
 };
 
 const App = () => (
