@@ -155,11 +155,21 @@ const ConsultorProjetos = () => {
                   )}
                 </div>
 
-                <div className="pl-[54px]">
+                <div className="pl-[54px] flex gap-2">
                   <Button onClick={() => { setSelectedProjeto(p); setProposalDialog(true); }}>
                     <Send size={14} /> Enviar proposta
                   </Button>
+                  {myPropostas.has(p.id) && (
+                    <Button variant="outline" onClick={() => setChatProjeto(chatProjeto?.id === p.id ? null : p)}>
+                      <MessageSquare size={14} /> Comunicação
+                    </Button>
+                  )}
                 </div>
+                {chatProjeto?.id === p.id && (
+                  <div className="pl-[54px] mt-3">
+                    <ProjectCommunication projetoId={p.id} projetoNome={p.nome} isEmpresa={false} />
+                  </div>
+                )}
               </DataCard>
             );
           })}
