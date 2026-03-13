@@ -222,7 +222,12 @@ export const ConsultorMatchList = ({ projetoId, softwareId, onInvite }: Props) =
                         {/* Info */}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between mb-1">
-                            <h4 className="font-display font-semibold text-foreground text-sm truncate">{m.nome}</h4>
+                            <div className="flex items-center gap-2">
+                              <h4 className="font-display font-semibold text-foreground text-sm truncate">{m.nome}</h4>
+                              <Link to={`/consultor/portfolio/${m.user_id}`} className="text-[10px] text-primary hover:underline flex items-center gap-0.5">
+                                <Trophy size={10} /> Portfólio
+                              </Link>
+                            </div>
                             <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs font-bold ${scoreBg(m.score)} ${scoreColor(m.score)}`}>
                               <Star size={12} />
                               {m.score}%
