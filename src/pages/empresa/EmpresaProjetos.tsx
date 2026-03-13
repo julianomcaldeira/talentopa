@@ -15,6 +15,7 @@ const EmpresaProjetos = () => {
   const [selectedProjeto, setSelectedProjeto] = useState<any>(null);
   const [propostas, setPropostas] = useState<any[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [chatProjeto, setChatProjeto] = useState<any>(null);
 
   useEffect(() => {
     if (!user) return;
