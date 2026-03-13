@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Download, Filter, RotateCcw, FileSpreadsheet } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
+import { ReportFilters, ReportFiltersState } from "./ReportFilters";
 
 type UserScope = "admin" | "consultor" | "empresa";
 
