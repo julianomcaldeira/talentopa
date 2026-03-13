@@ -64,6 +64,9 @@ const AdminEmpresas = () => {
   const [cnpjData, setCnpjData] = useState<CnpjData | null>(null);
   const [cnpjLoading, setCnpjLoading] = useState(false);
   const [detailOpen, setDetailOpen] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [newEmpresa, setNewEmpresa] = useState({ nome: "", email: "", password: "", nome_fantasia: "", cnpj: "", segmento: "", endereco: "", numero_funcionarios: "" });
   const { toast } = useToast();
 
   const fetchEmpresas = async () => {
