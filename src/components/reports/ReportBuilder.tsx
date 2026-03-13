@@ -215,11 +215,33 @@ export const ReportBuilder = ({ userScope }: ReportBuilderProps) => {
 
     try {
       const selectStr = selectedColumns.join(", ");
-      // RLS handles filtering automatically based on user role
-      const { data: result, error } = await supabase
-        .from(selectedTable as any)
-        .select(selectStr);
+      let query = supabase.from(selectedTable as any).select(selectStr);
 
+      // Apply date filters (all tables have created_at)
+      if (filters.dateFrom) {
+        query = query.gte("created_at", filters.dateFrom.toISOString());
+      }
+      if (filters.dateTo) {
+        const endOfDay = new Date(filters.dateTo);
+        endOfDay.setHours(23, 59, 59, 999);
+        query = query.lte("created_at", endOfDay.toISOString());
+      }
+
+      // Apply status filter
+      if (filters.status && ["projetos", "propostas", "projeto_fases"].includes(selectedTable)) {
+        query = query.eq("status", filters.status);
+      }
+
+      // Apply software filter
+      if (filters.softwareId) {
+        if (selectedTable === "projetos") {
+          query = query.eq("software_id", filters.softwareId);
+        } else if (selectedTable === "consultor_habilidades") {
+          query = query.eq("software_id", filters.softwareId);
+        }
+      }
+
+      const { data: result, error } = await query;
       if (error) throw error;
       setData((result as unknown as Record<string, unknown>[]) || []);
     } catch (err) {
