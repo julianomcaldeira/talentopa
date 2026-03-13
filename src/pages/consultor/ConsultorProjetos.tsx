@@ -21,6 +21,8 @@ const ConsultorProjetos = () => {
   const [proposalForm, setProposalForm] = useState({ estimativa_horas: "", valor_proposta: "", comentarios: "" });
   const [mySkills, setMySkills] = useState<any[]>([]);
   const [projetoScopes, setProjetoScopes] = useState<Map<string, { modulos: string[]; funcs: string[] }>>(new Map());
+  const [chatProjeto, setChatProjeto] = useState<any>(null);
+  const [myPropostas, setMyPropostas] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (!user) return;
