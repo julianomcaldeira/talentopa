@@ -193,6 +193,7 @@ const consultorLinks = [
   { to: "/consultor/habilidades", icon: Star, label: "Habilidades" },
   { to: "/consultor/score", icon: Trophy, label: "Score & Portfólio" },
   { to: "/consultor/copilot", icon: Bot, label: "Copiloto IA" },
+  { to: "/consultor/relatorios", icon: FileSpreadsheet, label: "Relatórios" },
 ];
 
 export const ConsultorLayout = () => <DashboardLayout links={consultorLinks} title="Consultor" />;
