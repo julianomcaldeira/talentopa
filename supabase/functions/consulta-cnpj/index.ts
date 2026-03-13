@@ -19,7 +19,32 @@ Deno.serve(async (req) => {
 
     const cleanCnpj = cnpj.replace(/\D/g, '');
     if (cleanCnpj.length !== 14) {
-      return new Response(JSON.stringify({ error: 'CNPJ inválido' }), {
+      return new Response(JSON.stringify({ error: `CNPJ ${cnpj} inválido. Verifique se possui 14 dígitos.` }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Basic CNPJ validation (reject all-same-digit CNPJs)
+    if (/^(\d)\1+$/.test(cleanCnpj)) {
+      return new Response(JSON.stringify({ error: `CNPJ ${cnpj} inválido.` }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Validate CNPJ check digits
+    const calcDigit = (str: string, weights: number[]) => {
+      const sum = weights.reduce((s, w, i) => s + parseInt(str[i]) * w, 0);
+      const rem = sum % 11;
+      return rem < 2 ? 0 : 11 - rem;
+    };
+    const w1 = [5,4,3,2,9,8,7,6,5,4,3,2];
+    const w2 = [6,5,4,3,2,9,8,7,6,5,4,3,2];
+    const d1 = calcDigit(cleanCnpj, w1);
+    const d2 = calcDigit(cleanCnpj, w2);
+    if (parseInt(cleanCnpj[12]) !== d1 || parseInt(cleanCnpj[13]) !== d2) {
+      return new Response(JSON.stringify({ error: `CNPJ ${cnpj} inválido. Os dígitos verificadores não conferem.` }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
