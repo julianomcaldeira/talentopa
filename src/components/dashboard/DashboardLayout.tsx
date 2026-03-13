@@ -173,30 +173,22 @@ const DashboardLayout = ({
 
 const adminLinks = [
   { to: "/admin", icon: LayoutDashboard, label: "Dashboard" },
-  { to: "/admin/softwares", icon: Server, label: "Softwares ERP" },
-  { to: "/admin/modulos", icon: Puzzle, label: "Módulos" },
-  { to: "/admin/funcionalidades", icon: Cog, label: "Funcionalidades" },
-  { to: "/admin/templates", icon: FileText, label: "Templates" },
+  { to: "/admin/projetos", icon: FolderKanban, label: "Projetos" },
   { to: "/admin/consultores", icon: Users, label: "Consultores" },
   { to: "/admin/empresas", icon: Building2, label: "Empresas" },
-  { to: "/admin/projetos", icon: FolderKanban, label: "Projetos" },
   { to: "/admin/financeiro", icon: DollarSign, label: "Financeiro" },
-  { to: "/admin/inteligencia", icon: BarChart3, label: "Inteligência" },
+  { to: "/admin/catalogo", icon: Server, label: "Catálogo ERP" },
   { to: "/admin/base-conhecimento", icon: BookOpen, label: "Base de Conhecimento" },
-  { to: "/admin/ai-project-manager", icon: Brain, label: "AI Project Manager" },
-  { to: "/admin/erp-knowledge", icon: MessageSquare, label: "ERP Knowledge AI" },
-  { to: "/admin/consultant-intelligence", icon: Trophy, label: "Consultant Intelligence" },
 ];
 
 export const AdminLayout = () => <DashboardLayout links={adminLinks} title="Administração" />;
 
 const consultorLinks = [
   { to: "/consultor", icon: LayoutDashboard, label: "Dashboard" },
+  { to: "/consultor/projetos", icon: FolderKanban, label: "Encontrar Projetos" },
+  { to: "/consultor/minhas-propostas", icon: FileText, label: "Minhas Propostas" },
   { to: "/consultor/perfil", icon: Users, label: "Meu Perfil" },
   { to: "/consultor/habilidades", icon: Star, label: "Habilidades" },
-  { to: "/consultor/projetos", icon: FolderKanban, label: "Projetos Disponíveis" },
-  { to: "/consultor/meus-projetos", icon: FileText, label: "Meus Projetos" },
-  { to: "/consultor/financeiro", icon: DollarSign, label: "Financeiro" },
   { to: "/consultor/copilot", icon: Bot, label: "Copiloto IA" },
 ];
 
@@ -204,11 +196,9 @@ export const ConsultorLayout = () => <DashboardLayout links={consultorLinks} tit
 
 const empresaLinks = [
   { to: "/empresa", icon: LayoutDashboard, label: "Dashboard" },
-  { to: "/empresa/perfil", icon: Building2, label: "Perfil da Empresa" },
-  { to: "/empresa/diagnostico-ia", icon: Sparkles, label: "Diagnóstico IA" },
-  { to: "/empresa/novo-projeto", icon: FileText, label: "Novo Projeto" },
   { to: "/empresa/projetos", icon: FolderKanban, label: "Meus Projetos" },
-  { to: "/empresa/financeiro", icon: DollarSign, label: "Financeiro" },
+  { to: "/empresa/novo-projeto", icon: FileText, label: "Novo Projeto" },
+  { to: "/empresa/perfil", icon: Building2, label: "Perfil da Empresa" },
 ];
 
 export const EmpresaLayout = () => <DashboardLayout links={empresaLinks} title="Empresa" />;
