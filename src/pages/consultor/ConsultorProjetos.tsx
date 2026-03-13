@@ -46,15 +46,21 @@ const ConsultorProjetos = () => {
 
       if (projs.length > 0) {
         const projIds = projs.map(p => p.id);
-        const [modRes, funcRes] = await Promise.all([
+        const empresaIds = [...new Set(projs.map(p => p.empresa_user_id))];
+        const [modRes, funcRes, empRes] = await Promise.all([
           supabase.from("projeto_modulos").select("projeto_id, modulo_id").in("projeto_id", projIds),
           supabase.from("projeto_funcionalidades").select("projeto_id, funcionalidade_id").in("projeto_id", projIds),
+          supabase.from("profiles").select("user_id, nome").in("user_id", empresaIds),
         ]);
         const scopeMap = new Map<string, { modulos: string[]; funcs: string[] }>();
         projIds.forEach(id => scopeMap.set(id, { modulos: [], funcs: [] }));
         (modRes.data || []).forEach(m => scopeMap.get(m.projeto_id)?.modulos.push(m.modulo_id));
         (funcRes.data || []).forEach(f => scopeMap.get(f.projeto_id)?.funcs.push(f.funcionalidade_id));
         setProjetoScopes(scopeMap);
+
+        // Attach empresa name to projects
+        const empMap = new Map((empRes.data || []).map(e => [e.user_id, e.nome]));
+        projs.forEach(p => { (p as any).empresa_nome = empMap.get(p.empresa_user_id) || "Empresa"; });
       }
 
       setProjetos(projs);
