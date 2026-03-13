@@ -7,8 +7,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { PageHeader, DataCard, StatusBadge, EmptyState, LoadingState, SectionTitle } from "@/components/dashboard/DashboardComponents";
-import { FolderKanban, Send, Calendar, Target } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { PageHeader, DataCard, StatusBadge, EmptyState, LoadingState } from "@/components/dashboard/DashboardComponents";
+import { FolderKanban, Send, Calendar, Target, Star } from "lucide-react";
 
 const ConsultorProjetos = () => {
   const { user } = useAuth();
@@ -18,19 +19,44 @@ const ConsultorProjetos = () => {
   const [proposalDialog, setProposalDialog] = useState(false);
   const [selectedProjeto, setSelectedProjeto] = useState<any>(null);
   const [proposalForm, setProposalForm] = useState({ estimativa_horas: "", valor_proposta: "", comentarios: "" });
+  const [mySkills, setMySkills] = useState<any[]>([]);
+  const [projetoScopes, setProjetoScopes] = useState<Map<string, { modulos: string[]; funcs: string[] }>>(new Map());
 
   useEffect(() => {
-    const fetch = async () => {
-      const { data } = await supabase
-        .from("projetos")
-        .select("*, softwares(nome), empresa:profiles!projetos_empresa_user_id_fkey(nome)")
-        .in("status", ["publicado", "em_selecao"])
-        .order("created_at", { ascending: false });
-      if (data) setProjetos(data);
+    if (!user) return;
+    const fetchAll = async () => {
+      const [projRes, skillsRes] = await Promise.all([
+        supabase.from("projetos")
+          .select("*, softwares(nome), empresa:profiles!projetos_empresa_user_id_fkey(nome)")
+          .in("status", ["publicado", "em_selecao"])
+          .order("created_at", { ascending: false }),
+        supabase.from("consultor_habilidades")
+          .select("software_id, modulo_id, funcionalidade_id, nivel")
+          .eq("user_id", user.id),
+      ]);
+
+      const projs = projRes.data || [];
+      if (skillsRes.data) setMySkills(skillsRes.data);
+
+      // Fetch scopes for all projects
+      if (projs.length > 0) {
+        const projIds = projs.map(p => p.id);
+        const [modRes, funcRes] = await Promise.all([
+          supabase.from("projeto_modulos").select("projeto_id, modulo_id").in("projeto_id", projIds),
+          supabase.from("projeto_funcionalidades").select("projeto_id, funcionalidade_id").in("projeto_id", projIds),
+        ]);
+        const scopeMap = new Map<string, { modulos: string[]; funcs: string[] }>();
+        projIds.forEach(id => scopeMap.set(id, { modulos: [], funcs: [] }));
+        (modRes.data || []).forEach(m => scopeMap.get(m.projeto_id)?.modulos.push(m.modulo_id));
+        (funcRes.data || []).forEach(f => scopeMap.get(f.projeto_id)?.funcs.push(f.funcionalidade_id));
+        setProjetoScopes(scopeMap);
+      }
+
+      setProjetos(projs);
       setLoading(false);
     };
-    fetch();
-  }, []);
+    fetchAll();
+  }, [user]);
 
   const handleProposal = async () => {
     if (!user || !selectedProjeto) return;
