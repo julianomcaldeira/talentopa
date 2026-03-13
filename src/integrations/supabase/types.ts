@@ -340,6 +340,62 @@ export type Database = {
           },
         ]
       }
+      portfolio_cases: {
+        Row: {
+          consultor_user_id: string
+          created_at: string
+          depoimento_empresa: string | null
+          descricao: string | null
+          horas_trabalhadas: number | null
+          id: string
+          modulos_implementados: string[] | null
+          nota_recebida: number | null
+          projeto_id: string
+          publicado: boolean
+          software_nome: string | null
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          consultor_user_id: string
+          created_at?: string
+          depoimento_empresa?: string | null
+          descricao?: string | null
+          horas_trabalhadas?: number | null
+          id?: string
+          modulos_implementados?: string[] | null
+          nota_recebida?: number | null
+          projeto_id: string
+          publicado?: boolean
+          software_nome?: string | null
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          consultor_user_id?: string
+          created_at?: string
+          depoimento_empresa?: string | null
+          descricao?: string | null
+          horas_trabalhadas?: number | null
+          id?: string
+          modulos_implementados?: string[] | null
+          nota_recebida?: number | null
+          projeto_id?: string
+          publicado?: boolean
+          software_nome?: string | null
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portfolio_cases_projeto_id_fkey"
+            columns: ["projeto_id"]
+            isOneToOne: false
+            referencedRelation: "projetos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null

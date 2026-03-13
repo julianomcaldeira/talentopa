@@ -190,6 +190,7 @@ const consultorLinks = [
   { to: "/consultor/minhas-propostas", icon: FileText, label: "Minhas Propostas" },
   { to: "/consultor/perfil", icon: Users, label: "Meu Perfil" },
   { to: "/consultor/habilidades", icon: Star, label: "Habilidades" },
+  { to: "/consultor/score", icon: Trophy, label: "Score & Portfólio" },
   { to: "/consultor/copilot", icon: Bot, label: "Copiloto IA" },
 ];
 
