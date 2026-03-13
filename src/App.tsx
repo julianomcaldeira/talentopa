@@ -94,6 +94,7 @@ const App = () => (
               <Route path="copilot" element={<ConsultorCopilot />} />
               <Route path="score" element={<ConsultorScore />} />
               <Route path="portfolio/:userId" element={<ConsultorPortfolioPublico />} />
+              <Route path="relatorios" element={<ConsultorRelatorios />} />
             </Route>
 
             {/* Empresa */}
