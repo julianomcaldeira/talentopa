@@ -81,6 +81,9 @@ const AdminConsultores = () => {
   const [nivelFilter, setNivelFilter] = useState("todos");
   const [selectedConsultor, setSelectedConsultor] = useState<ConsultorRow | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [newUser, setNewUser] = useState({ nome: "", email: "", password: "", telefone: "", cidade: "", estado: "" });
   const { toast } = useToast();
 
   useEffect(() => {
