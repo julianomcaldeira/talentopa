@@ -87,6 +87,8 @@ const App = () => (
               <Route path="perfil" element={<ConsultorPerfil />} />
               <Route path="habilidades" element={<ConsultorHabilidades />} />
               <Route path="copilot" element={<ConsultorCopilot />} />
+              <Route path="score" element={<ConsultorScore />} />
+              <Route path="portfolio/:userId" element={<ConsultorPortfolioPublico />} />
             </Route>
 
             {/* Empresa */}
