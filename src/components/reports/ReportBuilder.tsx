@@ -194,6 +194,7 @@ export const ReportBuilder = ({ userScope }: ReportBuilderProps) => {
     setSelectedColumns([]);
     setData([]);
     setHasQueried(false);
+    setFilters({});
   }, [selectedTable]);
 
   const toggleColumn = (col: string) => {
