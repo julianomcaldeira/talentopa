@@ -348,6 +348,15 @@ export const ReportBuilder = ({ userScope }: ReportBuilderProps) => {
             </motion.div>
           )}
 
+          {/* Advanced Filters */}
+          {currentTable && selectedColumns.length > 0 && (
+            <ReportFilters
+              tableName={selectedTable}
+              filters={filters}
+              onFiltersChange={setFilters}
+            />
+          )}
+
           {/* Actions */}
           {currentTable && selectedColumns.length > 0 && (
             <motion.div
