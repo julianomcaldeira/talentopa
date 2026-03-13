@@ -29,7 +29,7 @@ const ConsultorProjetos = () => {
     const fetchAll = async () => {
       const [projRes, skillsRes, propRes] = await Promise.all([
         supabase.from("projetos")
-          .select("*, softwares(nome), empresa:profiles!projetos_empresa_user_id_fkey(nome)")
+          .select("*, softwares(nome)")
           .in("status", ["publicado", "em_selecao"])
           .order("created_at", { ascending: false }),
         supabase.from("consultor_habilidades")
