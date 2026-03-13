@@ -255,14 +255,6 @@ export const ReportBuilder = ({ userScope }: ReportBuilderProps) => {
     }
   };
 
-  // Auto-run report after preset is applied
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => {
-    if (autoRun && selectedColumns.length > 0 && selectedTable) {
-      setAutoRun(false);
-      generateReport();
-    }
-  }, [autoRun, selectedColumns, selectedTable]);
 
   const exportCSV = () => {
     if (data.length === 0 || !currentTable) return;
