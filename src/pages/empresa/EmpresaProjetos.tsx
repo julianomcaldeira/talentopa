@@ -89,10 +89,16 @@ const EmpresaProjetos = () => {
               )}
 
               {(p.status === "publicado" || p.status === "em_selecao") && (
-                <div className="ml-[54px]">
+                <div className="ml-[54px] flex items-center gap-2">
                   <Button size="sm" variant="outline" onClick={() => viewPropostas(p)}>
                     <Eye size={14} /> Ver propostas
                   </Button>
+                </div>
+              )}
+
+              {(p.status === "publicado" || p.status === "em_selecao") && (
+                <div className="ml-[54px]">
+                  <ConsultorMatchList projetoId={p.id} softwareId={p.software_id} />
                 </div>
               )}
             </DataCard>
