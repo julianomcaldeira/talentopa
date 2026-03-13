@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
-import { Building2, Search, MapPin, Phone, Mail, Globe, Users, Calendar, Eye, RefreshCw } from "lucide-react";
+import { Building2, Search, MapPin, Phone, Mail, Globe, Users, Calendar, Eye, RefreshCw, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
