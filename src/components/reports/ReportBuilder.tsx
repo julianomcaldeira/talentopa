@@ -315,11 +315,6 @@ export const ReportBuilder = ({ userScope }: ReportBuilderProps) => {
 
   return (
     <div className="space-y-6">
-      {/* Pre-configured Reports */}
-      <PresetReports userScope={userScope} onSelectPreset={applyPreset} />
-
-      <Separator />
-
       <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg">
