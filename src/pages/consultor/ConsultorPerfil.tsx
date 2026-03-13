@@ -7,13 +7,16 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { PageHeader, DataCard, LoadingState, SectionTitle } from "@/components/dashboard/DashboardComponents";
-import { User, MapPin, Linkedin } from "lucide-react";
+import { MapPin, Linkedin } from "lucide-react";
+import AvatarUpload from "@/components/profile/AvatarUpload";
+import ChangePasswordCard from "@/components/profile/ChangePasswordCard";
 
 const ConsultorPerfil = () => {
   const { user, profile } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [profileForm, setProfileForm] = useState({
     nome: "", telefone: "", cidade: "", estado: "", linkedin: "", bio_profissional: "",
   });
@@ -27,6 +30,7 @@ const ConsultorPerfil = () => {
         cidade: profile?.cidade || "", estado: profile?.estado || "",
         linkedin: cp?.linkedin || "", bio_profissional: cp?.bio_profissional || "",
       });
+      setAvatarUrl(profile?.avatar_url || null);
       setLoading(false);
     };
     fetch();
@@ -47,29 +51,22 @@ const ConsultorPerfil = () => {
 
   if (loading) return <DataCard><LoadingState /></DataCard>;
 
-  const initials = profileForm.nome ? profileForm.nome.split(" ").map(n => n[0]).slice(0, 2).join("").toUpperCase() : "U";
-
   return (
     <div>
       <PageHeader title="Meu Perfil" description="Mantenha seu perfil atualizado para melhores oportunidades" />
 
       <div className="max-w-3xl space-y-6">
-        {/* Avatar + basic info */}
         <DataCard>
           <div className="flex items-center gap-5 mb-6">
-            <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary/80 to-accent/80 flex items-center justify-center text-primary-foreground font-display font-bold text-xl shadow-lg">
-              {initials}
-            </div>
+            <AvatarUpload currentUrl={avatarUrl} nome={profileForm.nome} onUploaded={setAvatarUrl} />
             <div>
               <h3 className="font-display font-bold text-lg text-foreground">{profileForm.nome || "Seu nome"}</h3>
               <p className="text-sm text-muted-foreground">{profile?.email}</p>
-              <div className="flex items-center gap-3 mt-1.5">
-                {profileForm.cidade && (
-                  <span className="text-xs text-muted-foreground flex items-center gap-1">
-                    <MapPin size={12} /> {profileForm.cidade}{profileForm.estado && `, ${profileForm.estado}`}
-                  </span>
-                )}
-              </div>
+              {profileForm.cidade && (
+                <span className="text-xs text-muted-foreground flex items-center gap-1 mt-1.5">
+                  <MapPin size={12} /> {profileForm.cidade}{profileForm.estado && `, ${profileForm.estado}`}
+                </span>
+              )}
             </div>
           </div>
 
@@ -109,6 +106,8 @@ const ConsultorPerfil = () => {
             </div>
           </div>
         </DataCard>
+
+        <ChangePasswordCard />
 
         <div className="flex justify-end">
           <Button onClick={handleSave} disabled={saving} size="lg">
