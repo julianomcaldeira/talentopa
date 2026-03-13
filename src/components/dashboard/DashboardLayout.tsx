@@ -180,6 +180,7 @@ const adminLinks = [
   { to: "/admin/financeiro", icon: DollarSign, label: "Financeiro" },
   { to: "/admin/catalogo", icon: Server, label: "Catálogo ERP" },
   { to: "/admin/base-conhecimento", icon: BookOpen, label: "Base de Conhecimento" },
+  { to: "/admin/relatorios", icon: FileSpreadsheet, label: "Relatórios" },
 ];
 
 export const AdminLayout = () => <DashboardLayout links={adminLinks} title="Administração" />;
