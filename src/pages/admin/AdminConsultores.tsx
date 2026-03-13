@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
-import { Users, Search, Star, FolderKanban, Eye, MapPin, Mail, Phone, Briefcase, Award, Calendar, Linkedin, FileText } from "lucide-react";
+import { Users, Search, Star, FolderKanban, Eye, MapPin, Mail, Phone, Briefcase, Award, Calendar, Linkedin, FileText, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -80,6 +81,9 @@ const AdminConsultores = () => {
   const [nivelFilter, setNivelFilter] = useState("todos");
   const [selectedConsultor, setSelectedConsultor] = useState<ConsultorRow | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [newUser, setNewUser] = useState({ nome: "", email: "", password: "", telefone: "", cidade: "", estado: "" });
   const { toast } = useToast();
 
   useEffect(() => {
@@ -192,9 +196,46 @@ const AdminConsultores = () => {
   const totalComHabilidades = consultores.filter((c) => c.habilidades.length > 0).length;
   const totalAvaliados = consultores.filter((c) => c.avaliacoes.length > 0).length;
 
+  const handleCreateConsultor = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setCreating(true);
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
+      const res = await supabase.functions.invoke("admin-create-user", {
+        body: {
+          email: newUser.email,
+          password: newUser.password,
+          nome: newUser.nome,
+          tipo_usuario: "consultor",
+          extra: { telefone: newUser.telefone, cidade: newUser.cidade, estado: newUser.estado },
+        },
+      });
+      if (res.data?.error) throw new Error(res.data.error);
+      toast({ title: "Consultor cadastrado com sucesso!" });
+      setCreateOpen(false);
+      setNewUser({ nome: "", email: "", password: "", telefone: "", cidade: "", estado: "" });
+      setLoading(true);
+      // re-fetch (simplified: reload page data)
+      window.location.reload();
+    } catch (err: any) {
+      toast({ title: "Erro ao cadastrar", description: err.message, variant: "destructive" });
+    } finally {
+      setCreating(false);
+    }
+  };
+
   return (
     <div>
-      <PageHeader title="Consultores" description="Gerencie consultores da plataforma" />
+      <PageHeader
+        title="Consultores"
+        description="Gerencie consultores da plataforma"
+        action={
+          <Button onClick={() => setCreateOpen(true)} className="gap-2">
+            <UserPlus size={16} /> Novo Consultor
+          </Button>
+        }
+      />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <StatCard icon={Users} label="Total de consultores" value={consultores.length.toString()} iconColor="text-primary" iconBg="bg-primary/10" />
@@ -399,6 +440,50 @@ const AdminConsultores = () => {
               </Tabs>
             </>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Create Consultor Dialog */}
+      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-display flex items-center gap-2">
+              <UserPlus size={18} className="text-primary" />
+              Cadastrar Consultor
+            </DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleCreateConsultor} className="space-y-4 pt-2">
+            <div className="space-y-2">
+              <Label htmlFor="c-nome">Nome completo *</Label>
+              <Input id="c-nome" required value={newUser.nome} onChange={(e) => setNewUser({ ...newUser, nome: e.target.value })} placeholder="Nome do consultor" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="c-email">E-mail *</Label>
+              <Input id="c-email" type="email" required value={newUser.email} onChange={(e) => setNewUser({ ...newUser, email: e.target.value })} placeholder="consultor@email.com" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="c-password">Senha *</Label>
+              <Input id="c-password" type="password" required minLength={6} value={newUser.password} onChange={(e) => setNewUser({ ...newUser, password: e.target.value })} placeholder="Mínimo 6 caracteres" />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="c-tel">Telefone</Label>
+                <Input id="c-tel" value={newUser.telefone} onChange={(e) => setNewUser({ ...newUser, telefone: e.target.value })} placeholder="(11) 99999-9999" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="c-cidade">Cidade</Label>
+                <Input id="c-cidade" value={newUser.cidade} onChange={(e) => setNewUser({ ...newUser, cidade: e.target.value })} placeholder="São Paulo" />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="c-estado">Estado</Label>
+              <Input id="c-estado" value={newUser.estado} onChange={(e) => setNewUser({ ...newUser, estado: e.target.value })} placeholder="SP" />
+            </div>
+            <div className="flex justify-end gap-3 pt-2">
+              <Button type="button" variant="outline" onClick={() => setCreateOpen(false)}>Cancelar</Button>
+              <Button type="submit" disabled={creating}>{creating ? "Cadastrando..." : "Cadastrar"}</Button>
+            </div>
+          </form>
         </DialogContent>
       </Dialog>
     </div>
