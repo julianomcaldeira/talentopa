@@ -27,6 +27,8 @@ import ConsultorHabilidades from "./pages/consultor/ConsultorHabilidades";
 import ConsultorProjetos from "./pages/consultor/ConsultorProjetos";
 import ConsultorMinhasPropostas from "./pages/consultor/ConsultorMinhasPropostas";
 import ConsultorCopilot from "./pages/consultor/ConsultorCopilot";
+import ConsultorScore from "./pages/consultor/ConsultorScore";
+import ConsultorPortfolioPublico from "./pages/consultor/ConsultorPortfolioPublico";
 import EmpresaDashboard from "./pages/empresa/EmpresaDashboard";
 import EmpresaPerfil from "./pages/empresa/EmpresaPerfil";
 import EmpresaNovoProjeto from "./pages/empresa/EmpresaNovoProjeto";
