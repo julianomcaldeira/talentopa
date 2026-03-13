@@ -79,8 +79,39 @@ const ConsultorProjetos = () => {
       {loading ? <DataCard><LoadingState /></DataCard> : projetos.length === 0 ? (
         <DataCard><EmptyState message="Nenhum projeto disponível no momento" icon={FolderKanban} /></DataCard>
       ) : (
+  const getMatchScore = (projeto: any): number => {
+    if (!projeto.software_id || mySkills.length === 0) return 0;
+    const relevantSkills = mySkills.filter(s => s.software_id === projeto.software_id);
+    if (relevantSkills.length === 0) return 0;
+
+    let score = 20;
+    const scope = projetoScopes.get(projeto.id);
+    if (scope) {
+      if (scope.modulos.length > 0) {
+        const matched = relevantSkills.filter(s => s.modulo_id && scope.modulos.includes(s.modulo_id)).length;
+        score += Math.round((matched / scope.modulos.length) * 40);
+      }
+      if (scope.funcs.length > 0) {
+        const matched = relevantSkills.filter(s => s.funcionalidade_id && scope.funcs.includes(s.funcionalidade_id)).length;
+        score += Math.round((matched / scope.funcs.length) * 30);
+      }
+    }
+    const nivelW: Record<string, number> = { junior: 1, pleno: 2, senior: 3, especialista: 4 };
+    const maxN = Math.max(...relevantSkills.map(s => nivelW[s.nivel] || 1));
+    score += Math.round((maxN / 4) * 10);
+    return Math.min(score, 100);
+  };
+
+  const scoreColor = (s: number) => s >= 75 ? "text-success" : s >= 50 ? "text-warning" : "text-muted-foreground";
+  const scoreBg = (s: number) => s >= 75 ? "bg-success/10 border-success/20" : s >= 50 ? "bg-warning/10 border-warning/20" : "bg-muted/50 border-border";
+
+  // Sort by match score
+  const sortedProjetos = [...projetos].sort((a, b) => getMatchScore(b) - getMatchScore(a));
+
         <div className="space-y-4">
-          {projetos.map((p) => (
+          {sortedProjetos.map((p) => {
+            const score = getMatchScore(p);
+            return (
             <DataCard key={p.id}>
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-start gap-3.5">
@@ -94,7 +125,15 @@ const ConsultorProjetos = () => {
                     </p>
                   </div>
                 </div>
-                <StatusBadge status={p.status} labels={{ publicado: "Aberto", em_selecao: "Em seleção" }} />
+                <div className="flex items-center gap-2">
+                  {score > 0 && (
+                    <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs font-bold ${scoreBg(score)} ${scoreColor(score)}`}>
+                      <Star size={12} />
+                      {score}%
+                    </div>
+                  )}
+                  <StatusBadge status={p.status} labels={{ publicado: "Aberto", em_selecao: "Em seleção" }} />
+                </div>
               </div>
 
               {p.descricao && <p className="text-sm text-muted-foreground mb-3 pl-[54px]">{p.descricao}</p>}
