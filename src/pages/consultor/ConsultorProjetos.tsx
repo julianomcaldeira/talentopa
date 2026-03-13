@@ -8,7 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { PageHeader, DataCard, StatusBadge, EmptyState, LoadingState } from "@/components/dashboard/DashboardComponents";
-import { FolderKanban, Send, Calendar, Target, Star } from "lucide-react";
+import { FolderKanban, Send, Calendar, Target, Star, MessageSquare } from "lucide-react";
+import { ProjectCommunication } from "@/components/communication/ProjectCommunication";
 
 const ConsultorProjetos = () => {
   const { user } = useAuth();
@@ -20,11 +21,13 @@ const ConsultorProjetos = () => {
   const [proposalForm, setProposalForm] = useState({ estimativa_horas: "", valor_proposta: "", comentarios: "" });
   const [mySkills, setMySkills] = useState<any[]>([]);
   const [projetoScopes, setProjetoScopes] = useState<Map<string, { modulos: string[]; funcs: string[] }>>(new Map());
+  const [chatProjeto, setChatProjeto] = useState<any>(null);
+  const [myPropostas, setMyPropostas] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (!user) return;
     const fetchAll = async () => {
-      const [projRes, skillsRes] = await Promise.all([
+      const [projRes, skillsRes, propRes] = await Promise.all([
         supabase.from("projetos")
           .select("*, softwares(nome), empresa:profiles!projetos_empresa_user_id_fkey(nome)")
           .in("status", ["publicado", "em_selecao"])
@@ -32,10 +35,14 @@ const ConsultorProjetos = () => {
         supabase.from("consultor_habilidades")
           .select("software_id, modulo_id, funcionalidade_id, nivel")
           .eq("user_id", user.id),
+        supabase.from("propostas")
+          .select("projeto_id")
+          .eq("consultor_user_id", user.id),
       ]);
 
       const projs = projRes.data || [];
       if (skillsRes.data) setMySkills(skillsRes.data);
+      if (propRes.data) setMyPropostas(new Set(propRes.data.map(p => p.projeto_id)));
 
       if (projs.length > 0) {
         const projIds = projs.map(p => p.id);
@@ -148,11 +155,21 @@ const ConsultorProjetos = () => {
                   )}
                 </div>
 
-                <div className="pl-[54px]">
+                <div className="pl-[54px] flex gap-2">
                   <Button onClick={() => { setSelectedProjeto(p); setProposalDialog(true); }}>
                     <Send size={14} /> Enviar proposta
                   </Button>
+                  {myPropostas.has(p.id) && (
+                    <Button variant="outline" onClick={() => setChatProjeto(chatProjeto?.id === p.id ? null : p)}>
+                      <MessageSquare size={14} /> Comunicação
+                    </Button>
+                  )}
                 </div>
+                {chatProjeto?.id === p.id && (
+                  <div className="pl-[54px] mt-3">
+                    <ProjectCommunication projetoId={p.id} projetoNome={p.nome} isEmpresa={false} />
+                  </div>
+                )}
               </DataCard>
             );
           })}

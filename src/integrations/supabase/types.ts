@@ -143,6 +143,38 @@ export type Database = {
         }
         Relationships: []
       }
+      consultor_respostas: {
+        Row: {
+          consultor_user_id: string
+          created_at: string
+          id: string
+          pergunta_id: string
+          resposta: string
+        }
+        Insert: {
+          consultor_user_id: string
+          created_at?: string
+          id?: string
+          pergunta_id: string
+          resposta: string
+        }
+        Update: {
+          consultor_user_id?: string
+          created_at?: string
+          id?: string
+          pergunta_id?: string
+          resposta?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "consultor_respostas_pergunta_id_fkey"
+            columns: ["pergunta_id"]
+            isOneToOne: false
+            referencedRelation: "projeto_perguntas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       empresa_perfil: {
         Row: {
           cnpj: string | null
@@ -225,6 +257,50 @@ export type Database = {
             columns: ["modulo_id"]
             isOneToOne: false
             referencedRelation: "modulos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mensagens: {
+        Row: {
+          bloqueado: boolean
+          conteudo: string
+          created_at: string
+          id: string
+          moderado: boolean
+          motivo_bloqueio: string | null
+          projeto_id: string
+          sender_user_id: string
+          tipo: string
+        }
+        Insert: {
+          bloqueado?: boolean
+          conteudo: string
+          created_at?: string
+          id?: string
+          moderado?: boolean
+          motivo_bloqueio?: string | null
+          projeto_id: string
+          sender_user_id: string
+          tipo?: string
+        }
+        Update: {
+          bloqueado?: boolean
+          conteudo?: string
+          created_at?: string
+          id?: string
+          moderado?: boolean
+          motivo_bloqueio?: string | null
+          projeto_id?: string
+          sender_user_id?: string
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mensagens_projeto_id_fkey"
+            columns: ["projeto_id"]
+            isOneToOne: false
+            referencedRelation: "projetos"
             referencedColumns: ["id"]
           },
         ]
@@ -530,6 +606,41 @@ export type Database = {
           },
           {
             foreignKeyName: "projeto_modulos_projeto_id_fkey"
+            columns: ["projeto_id"]
+            isOneToOne: false
+            referencedRelation: "projetos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      projeto_perguntas: {
+        Row: {
+          created_at: string
+          id: string
+          obrigatoria: boolean
+          ordem: number
+          pergunta: string
+          projeto_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          obrigatoria?: boolean
+          ordem?: number
+          pergunta: string
+          projeto_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          obrigatoria?: boolean
+          ordem?: number
+          pergunta?: string
+          projeto_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "projeto_perguntas_projeto_id_fkey"
             columns: ["projeto_id"]
             isOneToOne: false
             referencedRelation: "projetos"
