@@ -27,7 +27,7 @@ const ConsultorProjetos = () => {
   useEffect(() => {
     if (!user) return;
     const fetchAll = async () => {
-      const [projRes, skillsRes] = await Promise.all([
+      const [projRes, skillsRes, propRes] = await Promise.all([
         supabase.from("projetos")
           .select("*, softwares(nome), empresa:profiles!projetos_empresa_user_id_fkey(nome)")
           .in("status", ["publicado", "em_selecao"])
@@ -35,10 +35,14 @@ const ConsultorProjetos = () => {
         supabase.from("consultor_habilidades")
           .select("software_id, modulo_id, funcionalidade_id, nivel")
           .eq("user_id", user.id),
+        supabase.from("propostas")
+          .select("projeto_id")
+          .eq("consultor_user_id", user.id),
       ]);
 
       const projs = projRes.data || [];
       if (skillsRes.data) setMySkills(skillsRes.data);
+      if (propRes.data) setMyPropostas(new Set(propRes.data.map(p => p.projeto_id)));
 
       if (projs.length > 0) {
         const projIds = projs.map(p => p.id);
