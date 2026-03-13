@@ -3,7 +3,7 @@ import { Link, useLocation, Outlet, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, Server, Puzzle, Cog, FileText, Users, Building2,
   FolderKanban, DollarSign, LogOut, Menu, X, ChevronRight, Bell, Search, 
-  Star, Settings, BarChart3, BookOpen, Brain, Sparkles, MessageSquare, Trophy, Bot
+  Star, Settings, BarChart3, BookOpen, Brain, Sparkles, MessageSquare, Trophy, Bot, FileSpreadsheet
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
@@ -180,6 +180,7 @@ const adminLinks = [
   { to: "/admin/financeiro", icon: DollarSign, label: "Financeiro" },
   { to: "/admin/catalogo", icon: Server, label: "Catálogo ERP" },
   { to: "/admin/base-conhecimento", icon: BookOpen, label: "Base de Conhecimento" },
+  { to: "/admin/relatorios", icon: FileSpreadsheet, label: "Relatórios" },
 ];
 
 export const AdminLayout = () => <DashboardLayout links={adminLinks} title="Administração" />;
@@ -192,6 +193,7 @@ const consultorLinks = [
   { to: "/consultor/habilidades", icon: Star, label: "Habilidades" },
   { to: "/consultor/score", icon: Trophy, label: "Score & Portfólio" },
   { to: "/consultor/copilot", icon: Bot, label: "Copiloto IA" },
+  { to: "/consultor/relatorios", icon: FileSpreadsheet, label: "Relatórios" },
 ];
 
 export const ConsultorLayout = () => <DashboardLayout links={consultorLinks} title="Consultor" />;
@@ -201,6 +203,7 @@ const empresaLinks = [
   { to: "/empresa/projetos", icon: FolderKanban, label: "Meus Projetos" },
   { to: "/empresa/novo-projeto", icon: FileText, label: "Novo Projeto" },
   { to: "/empresa/perfil", icon: Building2, label: "Perfil da Empresa" },
+  { to: "/empresa/relatorios", icon: FileSpreadsheet, label: "Relatórios" },
 ];
 
 export const EmpresaLayout = () => <DashboardLayout links={empresaLinks} title="Empresa" />;

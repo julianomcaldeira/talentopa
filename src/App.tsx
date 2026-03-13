@@ -33,7 +33,9 @@ import EmpresaDashboard from "./pages/empresa/EmpresaDashboard";
 import EmpresaPerfil from "./pages/empresa/EmpresaPerfil";
 import EmpresaNovoProjeto from "./pages/empresa/EmpresaNovoProjeto";
 import EmpresaProjetos from "./pages/empresa/EmpresaProjetos";
-
+import AdminRelatorios from "./pages/admin/AdminRelatorios";
+import ConsultorRelatorios from "./pages/consultor/ConsultorRelatorios";
+import EmpresaRelatorios from "./pages/empresa/EmpresaRelatorios";
 const queryClient = new QueryClient();
 
 const AuthRedirect = () => {
@@ -79,6 +81,7 @@ const App = () => (
               <Route path="catalogo" element={<AdminCatalogo />} />
               <Route path="moderacao" element={<AdminModeracao />} />
               <Route path="base-conhecimento" element={<AdminBaseConhecimento />} />
+              <Route path="relatorios" element={<AdminRelatorios />} />
             </Route>
 
             {/* Consultor */}
@@ -91,6 +94,7 @@ const App = () => (
               <Route path="copilot" element={<ConsultorCopilot />} />
               <Route path="score" element={<ConsultorScore />} />
               <Route path="portfolio/:userId" element={<ConsultorPortfolioPublico />} />
+              <Route path="relatorios" element={<ConsultorRelatorios />} />
             </Route>
 
             {/* Empresa */}
@@ -99,6 +103,7 @@ const App = () => (
               <Route path="projetos" element={<EmpresaProjetos />} />
               <Route path="novo-projeto" element={<EmpresaNovoProjeto />} />
               <Route path="perfil" element={<EmpresaPerfil />} />
+              <Route path="relatorios" element={<EmpresaRelatorios />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />
