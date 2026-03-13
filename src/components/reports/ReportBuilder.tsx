@@ -10,8 +10,6 @@ import { Download, Filter, RotateCcw, FileSpreadsheet } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
 import { ReportFilters, ReportFiltersState } from "./ReportFilters";
-import { PresetReports, type PresetReport } from "./PresetReports";
-import { Separator } from "@/components/ui/separator";
 
 type UserScope = "admin" | "consultor" | "empresa";
 
