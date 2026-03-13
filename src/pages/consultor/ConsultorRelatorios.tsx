@@ -1,7 +1,8 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ReportBuilder } from "@/components/reports/ReportBuilder";
+import { PresetReportRunner } from "@/components/reports/PresetReportRunner";
 import { BenchmarkingSection } from "@/components/reports/BenchmarkingSection";
-import { FileSpreadsheet, BarChart3 } from "lucide-react";
+import { FileSpreadsheet, BarChart3, LayoutTemplate } from "lucide-react";
 
 const ConsultorRelatorios = () => (
   <div className="space-y-6">
@@ -9,12 +10,16 @@ const ConsultorRelatorios = () => (
       <h1 className="text-2xl font-bold text-foreground">Relatórios</h1>
       <p className="text-muted-foreground text-sm mt-1">Acompanhe seus dados e compare com o mercado.</p>
     </div>
-    <Tabs defaultValue="relatorios">
+    <Tabs defaultValue="padrao">
       <TabsList>
-        <TabsTrigger value="relatorios" className="gap-2"><FileSpreadsheet size={16} />Meus Relatórios</TabsTrigger>
+        <TabsTrigger value="padrao" className="gap-2"><LayoutTemplate size={16} />Relatórios Padrão</TabsTrigger>
+        <TabsTrigger value="custom" className="gap-2"><FileSpreadsheet size={16} />Personalizado</TabsTrigger>
         <TabsTrigger value="benchmarking" className="gap-2"><BarChart3 size={16} />Benchmarking</TabsTrigger>
       </TabsList>
-      <TabsContent value="relatorios" className="mt-4">
+      <TabsContent value="padrao" className="mt-4">
+        <PresetReportRunner userScope="consultor" />
+      </TabsContent>
+      <TabsContent value="custom" className="mt-4">
         <ReportBuilder userScope="consultor" />
       </TabsContent>
       <TabsContent value="benchmarking" className="mt-4">
