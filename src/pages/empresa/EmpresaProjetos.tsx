@@ -4,7 +4,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { PageHeader, DataCard, StatusBadge, EmptyState, LoadingState, SectionTitle } from "@/components/dashboard/DashboardComponents";
-import { FolderKanban, Eye, MapPin, Clock, DollarSign, User } from "lucide-react";
+import { FolderKanban, Eye, MapPin, Clock, DollarSign, User, Zap } from "lucide-react";
+import { ConsultorMatchList } from "@/components/matching/ConsultorMatchList";
 
 const EmpresaProjetos = () => {
   const { user } = useAuth();
