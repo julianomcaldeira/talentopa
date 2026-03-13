@@ -185,6 +185,7 @@ export const ReportBuilder = ({ userScope }: ReportBuilderProps) => {
   const [data, setData] = useState<Record<string, unknown>[]>([]);
   const [loading, setLoading] = useState(false);
   const [hasQueried, setHasQueried] = useState(false);
+  const [filters, setFilters] = useState<ReportFiltersState>({});
 
   const availableTables = ALL_TABLES.filter((t) => t.scope.includes(userScope));
   const currentTable = availableTables.find((t) => t.name === selectedTable);
