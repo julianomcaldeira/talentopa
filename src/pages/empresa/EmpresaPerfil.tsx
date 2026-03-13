@@ -6,7 +6,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { PageHeader, DataCard, LoadingState, SectionTitle } from "@/components/dashboard/DashboardComponents";
-import { Building2, MapPin, FileText } from "lucide-react";
+import { MapPin } from "lucide-react";
+import AvatarUpload from "@/components/profile/AvatarUpload";
+import ChangePasswordCard from "@/components/profile/ChangePasswordCard";
 
 const SectionLabel = ({ children }: { children: React.ReactNode }) => (
   <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{children}</Label>
@@ -17,6 +19,7 @@ const EmpresaPerfil = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [form, setForm] = useState({
     nome: "", telefone: "", cidade: "", estado: "",
     razao_social: "", nome_fantasia: "", cnpj: "", segmento: "",
@@ -35,6 +38,7 @@ const EmpresaPerfil = () => {
         numero_funcionarios: ep?.numero_funcionarios?.toString() || "",
         endereco: ep?.endereco || "", inscricao_estadual: ep?.inscricao_estadual || "",
       });
+      setAvatarUrl(profile?.avatar_url || null);
       setLoading(false);
     };
     fetch();
@@ -64,9 +68,7 @@ const EmpresaPerfil = () => {
       <div className="max-w-3xl space-y-6">
         <DataCard>
           <div className="flex items-center gap-4 mb-6">
-            <div className="icon-container icon-container-lg bg-gradient-to-br from-primary/20 to-accent/20">
-              <Building2 size={24} className="text-primary" />
-            </div>
+            <AvatarUpload currentUrl={avatarUrl} nome={form.razao_social || form.nome} onUploaded={setAvatarUrl} />
             <div>
               <h3 className="font-display font-bold text-lg text-foreground">{form.razao_social || "Nome da empresa"}</h3>
               {form.nome_fantasia && <p className="text-sm text-muted-foreground">{form.nome_fantasia}</p>}
@@ -96,6 +98,8 @@ const EmpresaPerfil = () => {
             <div className="space-y-2"><SectionLabel>Inscrição Estadual</SectionLabel><Input value={form.inscricao_estadual} onChange={(e) => setForm({ ...form, inscricao_estadual: e.target.value })} /></div>
           </div>
         </DataCard>
+
+        <ChangePasswordCard />
 
         <div className="flex justify-end">
           <Button onClick={handleSave} disabled={saving} size="lg">
