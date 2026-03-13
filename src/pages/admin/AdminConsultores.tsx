@@ -442,6 +442,50 @@ const AdminConsultores = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Create Consultor Dialog */}
+      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-display flex items-center gap-2">
+              <UserPlus size={18} className="text-primary" />
+              Cadastrar Consultor
+            </DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleCreateConsultor} className="space-y-4 pt-2">
+            <div className="space-y-2">
+              <Label htmlFor="c-nome">Nome completo *</Label>
+              <Input id="c-nome" required value={newUser.nome} onChange={(e) => setNewUser({ ...newUser, nome: e.target.value })} placeholder="Nome do consultor" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="c-email">E-mail *</Label>
+              <Input id="c-email" type="email" required value={newUser.email} onChange={(e) => setNewUser({ ...newUser, email: e.target.value })} placeholder="consultor@email.com" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="c-password">Senha *</Label>
+              <Input id="c-password" type="password" required minLength={6} value={newUser.password} onChange={(e) => setNewUser({ ...newUser, password: e.target.value })} placeholder="Mínimo 6 caracteres" />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="c-tel">Telefone</Label>
+                <Input id="c-tel" value={newUser.telefone} onChange={(e) => setNewUser({ ...newUser, telefone: e.target.value })} placeholder="(11) 99999-9999" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="c-cidade">Cidade</Label>
+                <Input id="c-cidade" value={newUser.cidade} onChange={(e) => setNewUser({ ...newUser, cidade: e.target.value })} placeholder="São Paulo" />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="c-estado">Estado</Label>
+              <Input id="c-estado" value={newUser.estado} onChange={(e) => setNewUser({ ...newUser, estado: e.target.value })} placeholder="SP" />
+            </div>
+            <div className="flex justify-end gap-3 pt-2">
+              <Button type="button" variant="outline" onClick={() => setCreateOpen(false)}>Cancelar</Button>
+              <Button type="submit" disabled={creating}>{creating ? "Cadastrando..." : "Cadastrar"}</Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
