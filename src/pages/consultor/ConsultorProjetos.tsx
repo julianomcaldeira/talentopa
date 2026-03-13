@@ -7,7 +7,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { PageHeader, DataCard, StatusBadge, EmptyState, LoadingState } from "@/components/dashboard/DashboardComponents";
 import { FolderKanban, Send, Calendar, Target, Star } from "lucide-react";
 
@@ -38,7 +37,6 @@ const ConsultorProjetos = () => {
       const projs = projRes.data || [];
       if (skillsRes.data) setMySkills(skillsRes.data);
 
-      // Fetch scopes for all projects
       if (projs.length > 0) {
         const projIds = projs.map(p => p.id);
         const [modRes, funcRes] = await Promise.all([
@@ -72,13 +70,6 @@ const ConsultorProjetos = () => {
     setProposalForm({ estimativa_horas: "", valor_proposta: "", comentarios: "" });
   };
 
-  return (
-    <div>
-      <PageHeader title="Projetos Disponíveis" description="Encontre projetos compatíveis com seu perfil técnico" />
-
-      {loading ? <DataCard><LoadingState /></DataCard> : projetos.length === 0 ? (
-        <DataCard><EmptyState message="Nenhum projeto disponível no momento" icon={FolderKanban} /></DataCard>
-      ) : (
   const getMatchScore = (projeto: any): number => {
     if (!projeto.software_id || mySkills.length === 0) return 0;
     const relevantSkills = mySkills.filter(s => s.software_id === projeto.software_id);
@@ -105,59 +96,66 @@ const ConsultorProjetos = () => {
   const scoreColor = (s: number) => s >= 75 ? "text-success" : s >= 50 ? "text-warning" : "text-muted-foreground";
   const scoreBg = (s: number) => s >= 75 ? "bg-success/10 border-success/20" : s >= 50 ? "bg-warning/10 border-warning/20" : "bg-muted/50 border-border";
 
-  // Sort by match score
   const sortedProjetos = [...projetos].sort((a, b) => getMatchScore(b) - getMatchScore(a));
 
+  return (
+    <div>
+      <PageHeader title="Projetos Disponíveis" description="Encontre projetos compatíveis com seu perfil técnico" />
+
+      {loading ? <DataCard><LoadingState /></DataCard> : projetos.length === 0 ? (
+        <DataCard><EmptyState message="Nenhum projeto disponível no momento" icon={FolderKanban} /></DataCard>
+      ) : (
         <div className="space-y-4">
           {sortedProjetos.map((p) => {
             const score = getMatchScore(p);
             return (
-            <DataCard key={p.id}>
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-start gap-3.5">
-                  <div className="icon-container icon-container-md bg-primary/10 mt-0.5">
-                    <FolderKanban size={18} className="text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="font-display font-semibold text-foreground text-base">{p.nome}</h3>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      {p.softwares?.nome} · {p.empresa?.nome} · {p.protocolo}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  {score > 0 && (
-                    <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs font-bold ${scoreBg(score)} ${scoreColor(score)}`}>
-                      <Star size={12} />
-                      {score}%
+              <DataCard key={p.id}>
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-start gap-3.5">
+                    <div className="icon-container icon-container-md bg-primary/10 mt-0.5">
+                      <FolderKanban size={18} className="text-primary" />
                     </div>
-                  )}
-                  <StatusBadge status={p.status} labels={{ publicado: "Aberto", em_selecao: "Em seleção" }} />
+                    <div>
+                      <h3 className="font-display font-semibold text-foreground text-base">{p.nome}</h3>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {p.softwares?.nome} · {p.empresa?.nome} · {p.protocolo}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {score > 0 && (
+                      <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs font-bold ${scoreBg(score)} ${scoreColor(score)}`}>
+                        <Star size={12} />
+                        {score}% match
+                      </div>
+                    )}
+                    <StatusBadge status={p.status} labels={{ publicado: "Aberto", em_selecao: "Em seleção" }} />
+                  </div>
                 </div>
-              </div>
 
-              {p.descricao && <p className="text-sm text-muted-foreground mb-3 pl-[54px]">{p.descricao}</p>}
+                {p.descricao && <p className="text-sm text-muted-foreground mb-3 pl-[54px]">{p.descricao}</p>}
 
-              <div className="flex flex-wrap gap-3 pl-[54px] mb-4">
-                {p.objetivo && (
-                  <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/60 px-2.5 py-1 rounded-lg">
-                    <Target size={12} /> {p.objetivo.substring(0, 60)}{p.objetivo.length > 60 ? "..." : ""}
-                  </span>
-                )}
-                {p.prazo_estimado && (
-                  <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/60 px-2.5 py-1 rounded-lg">
-                    <Calendar size={12} /> {new Date(p.prazo_estimado).toLocaleDateString("pt-BR")}
-                  </span>
-                )}
-              </div>
+                <div className="flex flex-wrap gap-3 pl-[54px] mb-4">
+                  {p.objetivo && (
+                    <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/60 px-2.5 py-1 rounded-lg">
+                      <Target size={12} /> {p.objetivo.substring(0, 60)}{p.objetivo.length > 60 ? "..." : ""}
+                    </span>
+                  )}
+                  {p.prazo_estimado && (
+                    <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/60 px-2.5 py-1 rounded-lg">
+                      <Calendar size={12} /> {new Date(p.prazo_estimado).toLocaleDateString("pt-BR")}
+                    </span>
+                  )}
+                </div>
 
-              <div className="pl-[54px]">
-                <Button onClick={() => { setSelectedProjeto(p); setProposalDialog(true); }}>
-                  <Send size={14} /> Enviar proposta
-                </Button>
-              </div>
-            </DataCard>
-          ))}
+                <div className="pl-[54px]">
+                  <Button onClick={() => { setSelectedProjeto(p); setProposalDialog(true); }}>
+                    <Send size={14} /> Enviar proposta
+                  </Button>
+                </div>
+              </DataCard>
+            );
+          })}
         </div>
       )}
 
