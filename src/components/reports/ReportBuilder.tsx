@@ -220,13 +220,6 @@ export const ReportBuilder = ({ userScope }: ReportBuilderProps) => {
     }, 50);
   };
 
-  // Auto-run report after preset is applied
-  useEffect(() => {
-    if (autoRun && selectedColumns.length > 0 && selectedTable) {
-      setAutoRun(false);
-      generateReport();
-    }
-  }, [autoRun, selectedColumns, selectedTable]);
 
   const generateReport = async () => {
     if (!selectedTable || selectedColumns.length === 0 || !user) return;
