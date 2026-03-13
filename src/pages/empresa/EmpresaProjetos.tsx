@@ -90,11 +90,20 @@ const EmpresaProjetos = () => {
                 </div>
               )}
 
-              {(p.status === "publicado" || p.status === "em_selecao") && (
+              {(p.status === "publicado" || p.status === "em_selecao" || p.status === "em_andamento") && (
                 <div className="ml-[54px] flex items-center gap-2">
                   <Button size="sm" variant="outline" onClick={() => viewPropostas(p)}>
                     <Eye size={14} /> Ver propostas
                   </Button>
+                  <Button size="sm" variant="outline" onClick={() => setChatProjeto(chatProjeto?.id === p.id ? null : p)}>
+                    <MessageSquare size={14} /> Comunicação
+                  </Button>
+                </div>
+              )}
+
+              {chatProjeto?.id === p.id && (
+                <div className="ml-[54px] mt-3">
+                  <ProjectCommunication projetoId={p.id} projetoNome={p.nome} isEmpresa={true} />
                 </div>
               )}
 
