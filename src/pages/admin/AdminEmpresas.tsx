@@ -374,6 +374,62 @@ const AdminEmpresas = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Create Empresa Dialog */}
+      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-display flex items-center gap-2">
+              <UserPlus size={18} className="text-primary" />
+              Cadastrar Empresa
+            </DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleCreateEmpresa} className="space-y-4 pt-2">
+            <div className="space-y-2">
+              <Label htmlFor="e-nome">Razão Social *</Label>
+              <Input id="e-nome" required value={newEmpresa.nome} onChange={(e) => setNewEmpresa({ ...newEmpresa, nome: e.target.value })} placeholder="Razão social da empresa" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="e-fantasia">Nome Fantasia</Label>
+              <Input id="e-fantasia" value={newEmpresa.nome_fantasia} onChange={(e) => setNewEmpresa({ ...newEmpresa, nome_fantasia: e.target.value })} placeholder="Nome fantasia" />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="e-email">E-mail *</Label>
+                <Input id="e-email" type="email" required value={newEmpresa.email} onChange={(e) => setNewEmpresa({ ...newEmpresa, email: e.target.value })} placeholder="empresa@email.com" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="e-password">Senha *</Label>
+                <Input id="e-password" type="password" required minLength={6} value={newEmpresa.password} onChange={(e) => setNewEmpresa({ ...newEmpresa, password: e.target.value })} placeholder="Mínimo 6 chars" />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="e-cnpj">CNPJ</Label>
+                <Input id="e-cnpj" value={newEmpresa.cnpj} onChange={(e) => setNewEmpresa({ ...newEmpresa, cnpj: e.target.value })} placeholder="00.000.000/0000-00" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="e-segmento">Segmento</Label>
+                <Input id="e-segmento" value={newEmpresa.segmento} onChange={(e) => setNewEmpresa({ ...newEmpresa, segmento: e.target.value })} placeholder="Tecnologia" />
+              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              <div className="space-y-2 col-span-2">
+                <Label htmlFor="e-end">Endereço</Label>
+                <Input id="e-end" value={newEmpresa.endereco} onChange={(e) => setNewEmpresa({ ...newEmpresa, endereco: e.target.value })} placeholder="Endereço completo" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="e-func">Nº Funcionários</Label>
+                <Input id="e-func" type="number" value={newEmpresa.numero_funcionarios} onChange={(e) => setNewEmpresa({ ...newEmpresa, numero_funcionarios: e.target.value })} placeholder="50" />
+              </div>
+            </div>
+            <div className="flex justify-end gap-3 pt-2">
+              <Button type="button" variant="outline" onClick={() => setCreateOpen(false)}>Cancelar</Button>
+              <Button type="submit" disabled={creating}>{creating ? "Cadastrando..." : "Cadastrar"}</Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
