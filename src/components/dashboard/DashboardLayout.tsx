@@ -176,6 +176,7 @@ const adminLinks = [
   { to: "/admin/projetos", icon: FolderKanban, label: "Projetos" },
   { to: "/admin/consultores", icon: Users, label: "Consultores" },
   { to: "/admin/empresas", icon: Building2, label: "Empresas" },
+  { to: "/admin/moderacao", icon: MessageSquare, label: "Moderação" },
   { to: "/admin/financeiro", icon: DollarSign, label: "Financeiro" },
   { to: "/admin/catalogo", icon: Server, label: "Catálogo ERP" },
   { to: "/admin/base-conhecimento", icon: BookOpen, label: "Base de Conhecimento" },
