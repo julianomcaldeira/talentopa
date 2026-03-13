@@ -8,12 +8,40 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 
+const demoAccounts = [
+  {
+    label: "Empresa",
+    description: "ABC Indústria — 3 projetos ativos, propostas para avaliar, matching de consultores",
+    email: "contato@abcltda.com.br",
+    password: "Teste123@",
+    icon: Building2,
+    color: "bg-blue-500/10 text-blue-600 border-blue-500/20",
+  },
+  {
+    label: "Consultor",
+    description: "João Silva — Especialista SAP, propostas enviadas, score de compatibilidade",
+    email: "joao.silva@teste.com",
+    password: "Teste123@",
+    icon: UserCheck,
+    color: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
+  },
+  {
+    label: "Admin",
+    description: "Painel completo — gestão de projetos, consultores, empresas e inteligência",
+    email: "juliano@startgi.com.br",
+    password: "Teste123@",
+    icon: ShieldCheck,
+    color: "bg-purple-500/10 text-purple-600 border-purple-500/20",
+  },
+];
+
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { signIn, role } = useAuth();
+  const [demoLoading, setDemoLoading] = useState<string | null>(null);
+  const { signIn } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -34,6 +62,25 @@ const Login = () => {
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleDemoLogin = async (account: typeof demoAccounts[0]) => {
+    setDemoLoading(account.email);
+    try {
+      await signIn(account.email, account.password);
+      toast({ title: `Logado como ${account.label}`, description: `Bem-vindo ao modo demonstração` });
+      navigate("/dashboard");
+    } catch (error: any) {
+      toast({
+        title: "Erro no login demo",
+        description: error.message === "Invalid login credentials"
+          ? "Usuário de demo não encontrado. Verifique se os dados de teste foram criados."
+          : error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setDemoLoading(null);
     }
   };
 
@@ -101,6 +148,44 @@ const Login = () => {
               Cadastre-se
             </Link>
           </p>
+
+          {/* Demo Accounts Section */}
+          <div className="mt-10 pt-8 border-t border-border/60">
+            <div className="flex items-center gap-2 mb-4">
+              <Play size={14} className="text-primary" />
+              <h3 className="font-display font-semibold text-sm text-foreground">Modo Demonstração</h3>
+              <Badge variant="secondary" className="text-[10px] px-1.5 py-0">DEMO</Badge>
+            </div>
+            <p className="text-xs text-muted-foreground mb-4">
+              Acesse com um perfil de demonstração para explorar o sistema completo
+            </p>
+            <div className="space-y-2.5">
+              {demoAccounts.map((account) => {
+                const Icon = account.icon;
+                return (
+                  <button
+                    key={account.email}
+                    onClick={() => handleDemoLogin(account)}
+                    disabled={!!demoLoading}
+                    className={`w-full flex items-start gap-3 p-3.5 rounded-xl border transition-all hover:shadow-sm hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 ${account.color}`}
+                  >
+                    <div className="mt-0.5">
+                      <Icon size={18} />
+                    </div>
+                    <div className="flex-1 text-left">
+                      <div className="flex items-center gap-2">
+                        <span className="font-display font-semibold text-sm">{account.label}</span>
+                        {demoLoading === account.email && (
+                          <span className="text-[10px] animate-pulse">Entrando...</span>
+                        )}
+                      </div>
+                      <p className="text-[11px] opacity-70 mt-0.5 leading-relaxed">{account.description}</p>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         </div>
       </div>
 
