@@ -374,6 +374,7 @@ export const ReportBuilder = ({ userScope }: ReportBuilderProps) => {
                   setSelectedColumns([]);
                   setData([]);
                   setHasQueried(false);
+                  setFilters({});
                 }}
               >
                 <RotateCcw size={16} className="mr-2" />
