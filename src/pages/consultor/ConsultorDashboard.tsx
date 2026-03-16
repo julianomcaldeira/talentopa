@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import {
   FolderKanban, DollarSign, Send, CheckCircle2, ArrowUpRight,
-  Clock, TrendingUp, Briefcase, Target, Zap, ChevronRight, Star
+  Clock, TrendingUp, Briefcase, Target, Zap, ChevronRight, Star, BarChart3
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -10,6 +10,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { motion } from "framer-motion";
+import {
+  BarChart, Bar, PieChart, Pie, Cell, AreaChart, Area,
+  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
+} from "recharts";
 
 const formatCurrency = (val: number) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(val);
@@ -54,10 +58,39 @@ const ConsultorDashboard = () => {
 
   const propostasAceitas = minhasPropostas.filter((p) => p.status === "aceita");
   const propostasPendentes = minhasPropostas.filter((p) => p.status === "enviada");
+  const propostasRecusadas = minhasPropostas.filter((p) => p.status === "recusada");
   const receitaTotal = propostasAceitas.reduce((sum, p) => sum + (p.valor_proposta || 0), 0);
   const horasContratadas = propostasAceitas.reduce((sum, p) => sum + (p.estimativa_horas || 0), 0);
   const taxaAceitacao = minhasPropostas.length > 0
     ? Math.round((propostasAceitas.length / minhasPropostas.length) * 100) : 0;
+
+  // Chart data
+  const propostasPorStatus = [
+    { name: "Aceitas", value: propostasAceitas.length, color: "hsl(152, 56%, 40%)" },
+    { name: "Pendentes", value: propostasPendentes.length, color: "hsl(38, 92%, 50%)" },
+    { name: "Recusadas", value: propostasRecusadas.length, color: "hsl(0, 72%, 51%)" },
+  ].filter(d => d.value > 0);
+
+  // Revenue per project (bar chart)
+  const receitaPorProjeto = propostasAceitas.slice(0, 6).map((p) => ({
+    nome: p.projetos?.nome?.substring(0, 16) || "Projeto",
+    valor: p.valor_proposta || 0,
+    horas: p.estimativa_horas || 0,
+  }));
+
+  // Monthly trend from proposals
+  const monthMap = new Map<string, { receita: number; propostas: number }>();
+  minhasPropostas.forEach((p) => {
+    const d = new Date(p.created_at);
+    const key = `${d.toLocaleString("pt-BR", { month: "short" })}`;
+    const curr = monthMap.get(key) || { receita: 0, propostas: 0 };
+    curr.propostas += 1;
+    if (p.status === "aceita") curr.receita += (p.valor_proposta || 0) / 1000;
+    monthMap.set(key, curr);
+  });
+  const monthlyTrend = Array.from(monthMap.entries()).slice(-6).map(([month, data]) => ({
+    month, ...data,
+  }));
 
   if (loading) {
     return (
@@ -185,9 +218,167 @@ const ConsultorDashboard = () => {
         </div>
       </motion.div>
 
+      {/* Charts Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+        {/* Area Chart - Monthly Trend */}
+        <motion.div custom={5} variants={fadeUp} initial="hidden" animate="visible" className="lg:col-span-3">
+          <div className="bg-card rounded-2xl border border-border/60 shadow-card p-5">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                  <h3 className="font-display font-semibold text-foreground text-[15px]">Evolução Mensal</h3>
+                </div>
+                <p className="text-xs text-muted-foreground">Propostas enviadas e receita (R$ mil)</p>
+              </div>
+              <div className="flex items-center gap-4 text-xs">
+                <div className="flex items-center gap-1.5">
+                  <div className="w-2.5 h-2.5 rounded-full bg-primary" />
+                  <span className="text-muted-foreground">Propostas</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-2.5 h-2.5 rounded-full bg-accent" />
+                  <span className="text-muted-foreground">Receita</span>
+                </div>
+              </div>
+            </div>
+            {monthlyTrend.length > 0 ? (
+              <ResponsiveContainer width="100%" height={240}>
+                <AreaChart data={monthlyTrend} margin={{ top: 5, right: 5, left: -15, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="gradPropostasC" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="hsl(228, 76%, 52%)" stopOpacity={0.3} />
+                      <stop offset="100%" stopColor="hsl(228, 76%, 52%)" stopOpacity={0} />
+                    </linearGradient>
+                    <linearGradient id="gradReceitaC" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="hsl(168, 62%, 44%)" stopOpacity={0.3} />
+                      <stop offset="100%" stopColor="hsl(168, 62%, 44%)" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(225, 14%, 90%)" vertical={false} />
+                  <XAxis dataKey="month" tick={{ fontSize: 12, fill: "hsl(224, 10%, 48%)" }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fontSize: 12, fill: "hsl(224, 10%, 48%)" }} axisLine={false} tickLine={false} />
+                  <Tooltip
+                    contentStyle={{
+                      background: "hsl(0, 0%, 100%)",
+                      border: "1px solid hsl(225, 14%, 90%)",
+                      borderRadius: "12px",
+                      boxShadow: "0 8px 30px rgba(0,0,0,0.08)",
+                      fontSize: "13px",
+                    }}
+                  />
+                  <Area type="monotone" dataKey="propostas" stroke="hsl(228, 76%, 52%)" strokeWidth={2.5} fill="url(#gradPropostasC)" />
+                  <Area type="monotone" dataKey="receita" stroke="hsl(168, 62%, 44%)" strokeWidth={2.5} fill="url(#gradReceitaC)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-16 text-center">
+                <BarChart3 size={32} className="text-muted-foreground/30 mb-2" />
+                <p className="text-sm text-muted-foreground">Envie propostas para ver a evolução</p>
+              </div>
+            )}
+          </div>
+        </motion.div>
+
+        {/* Pie Chart - Proposals by status */}
+        <motion.div custom={6} variants={fadeUp} initial="hidden" animate="visible" className="lg:col-span-2">
+          <div className="bg-card rounded-2xl border border-border/60 shadow-card p-5">
+            <h3 className="font-display font-semibold text-foreground text-[15px] mb-4">Propostas por Status</h3>
+            {propostasPorStatus.length > 0 ? (
+              <>
+                <ResponsiveContainer width="100%" height={180}>
+                  <PieChart>
+                    <Pie
+                      data={propostasPorStatus}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={50}
+                      outerRadius={75}
+                      paddingAngle={3}
+                      dataKey="value"
+                      stroke="none"
+                    >
+                      {propostasPorStatus.map((entry, index) => (
+                        <Cell key={index} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      contentStyle={{
+                        background: "hsl(0, 0%, 100%)",
+                        border: "1px solid hsl(225, 14%, 90%)",
+                        borderRadius: "12px",
+                        fontSize: "13px",
+                      }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="space-y-2 mt-2">
+                  {propostasPorStatus.map((item, i) => (
+                    <div key={i} className="flex items-center justify-between text-sm">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2.5 h-2.5 rounded-full" style={{ background: item.color }} />
+                        <span className="text-muted-foreground text-xs">{item.name}</span>
+                      </div>
+                      <span className="font-semibold text-foreground text-xs">{item.value}</span>
+                    </div>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <BarChart3 size={32} className="text-muted-foreground/30 mb-2" />
+                <p className="text-sm text-muted-foreground">Nenhuma proposta registrada</p>
+              </div>
+            )}
+          </div>
+        </motion.div>
+      </div>
+
+      {/* Revenue per project bar chart */}
+      {receitaPorProjeto.length > 0 && (
+        <motion.div custom={7} variants={fadeUp} initial="hidden" animate="visible">
+          <div className="bg-card rounded-2xl border border-border/60 shadow-card p-5">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <DollarSign size={16} className="text-accent" />
+                  <h3 className="font-display font-semibold text-foreground text-[15px]">Receita por Projeto</h3>
+                </div>
+                <p className="text-xs text-muted-foreground">Valor contratado nos seus projetos ativos</p>
+              </div>
+            </div>
+            <ResponsiveContainer width="100%" height={220}>
+              <BarChart data={receitaPorProjeto} margin={{ top: 5, right: 5, left: -15, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="gradBarC" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="hsl(228, 76%, 52%)" stopOpacity={0.9} />
+                    <stop offset="100%" stopColor="hsl(168, 62%, 44%)" stopOpacity={0.7} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(225, 14%, 90%)" vertical={false} />
+                <XAxis dataKey="nome" tick={{ fontSize: 11, fill: "hsl(224, 10%, 48%)" }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 12, fill: "hsl(224, 10%, 48%)" }} axisLine={false} tickLine={false} />
+                <Tooltip
+                  formatter={(value: number) => [formatCurrency(value), "Valor"]}
+                  contentStyle={{
+                    background: "hsl(0, 0%, 100%)",
+                    border: "1px solid hsl(225, 14%, 90%)",
+                    borderRadius: "12px",
+                    boxShadow: "0 8px 30px rgba(0,0,0,0.08)",
+                    fontSize: "13px",
+                  }}
+                />
+                <Bar dataKey="valor" fill="url(#gradBarC)" radius={[8, 8, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Projects and Proposals Lists */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         {/* Available Projects - takes 3 cols */}
-        <motion.div custom={5} variants={fadeUp} initial="hidden" animate="visible" className="lg:col-span-3">
+        <motion.div custom={8} variants={fadeUp} initial="hidden" animate="visible" className="lg:col-span-3">
           <div className="bg-card rounded-2xl border border-border/60 shadow-card overflow-hidden">
             <div className="p-5 pb-3 border-b border-border/60 flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -208,7 +399,7 @@ const ConsultorDashboard = () => {
               </div>
             ) : (
               <div className="divide-y divide-border/40">
-                {projetosDisponiveis.map((p, idx) => (
+                {projetosDisponiveis.map((p) => (
                   <Link
                     key={p.id}
                     to="/consultor/projetos"
@@ -239,7 +430,7 @@ const ConsultorDashboard = () => {
         </motion.div>
 
         {/* Right Column - takes 2 cols */}
-        <motion.div custom={6} variants={fadeUp} initial="hidden" animate="visible" className="lg:col-span-2 space-y-6">
+        <motion.div custom={9} variants={fadeUp} initial="hidden" animate="visible" className="lg:col-span-2 space-y-6">
           {/* Pending proposals */}
           <div className="bg-card rounded-2xl border border-border/60 shadow-card overflow-hidden">
             <div className="p-5 pb-3 border-b border-border/60 flex items-center justify-between">
