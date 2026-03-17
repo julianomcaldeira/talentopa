@@ -84,6 +84,15 @@ const DashboardLayout = ({
               </Link>
             );
           })}
+          <div className="mt-2 pt-2 border-t border-sidebar-border/50">
+            <button
+              onClick={handleSignOut}
+              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] text-sidebar-foreground/50 hover:bg-sidebar-accent/30 hover:text-sidebar-foreground transition-all w-full"
+            >
+              <LogOut size={16} />
+              Sair da conta
+            </button>
+          </div>
         </nav>
 
         {/* User section */}
@@ -97,13 +106,6 @@ const DashboardLayout = ({
               <p className="text-[11px] text-sidebar-foreground/40 truncate capitalize">{role || ""}</p>
             </div>
           </div>
-          <button
-            onClick={handleSignOut}
-            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] text-sidebar-foreground/50 hover:bg-sidebar-accent/30 hover:text-sidebar-foreground transition-all w-full mt-1"
-          >
-            <LogOut size={16} />
-            Sair da conta
-          </button>
         </div>
       </aside>
 
