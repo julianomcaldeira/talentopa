@@ -33,12 +33,28 @@ const EmpresaProjetos = () => {
 
   const viewPropostas = async (projeto: any) => {
     setSelectedProjeto(projeto);
-    const { data } = await supabase
+    const { data: propostasData } = await supabase
       .from("propostas")
-      .select("*, consultor:profiles!propostas_consultor_user_id_fkey(nome, cidade, estado)")
+      .select("*")
       .eq("projeto_id", projeto.id)
       .order("created_at", { ascending: false });
-    if (data) setPropostas(data);
+    
+    if (propostasData && propostasData.length > 0) {
+      const consultorIds = [...new Set(propostasData.map(p => p.consultor_user_id))];
+      const { data: profilesData } = await supabase
+        .from("profiles")
+        .select("user_id, nome, cidade, estado")
+        .in("user_id", consultorIds);
+      
+      const profileMap = new Map(profilesData?.map(p => [p.user_id, p]) || []);
+      const enriched = propostasData.map(p => ({
+        ...p,
+        consultor: profileMap.get(p.consultor_user_id) || null,
+      }));
+      setPropostas(enriched);
+    } else {
+      setPropostas([]);
+    }
     setDialogOpen(true);
   };
 
