@@ -40,8 +40,8 @@ const CTASection = () => {
               </Button>
               <Button
                 size="lg"
-                variant="outline"
-                className="text-base px-10 py-7 rounded-xl border-primary-foreground/15 text-primary-foreground/80 hover:bg-primary-foreground/5"
+                variant="ghost"
+                className="text-base px-10 py-7 rounded-xl border border-primary-foreground/10 text-primary-foreground/70 hover:text-primary-foreground hover:bg-primary-foreground/[0.06] hover:border-primary-foreground/20 backdrop-blur-sm"
                 asChild
               >
                 <Link to="/login">Já tenho conta</Link>
