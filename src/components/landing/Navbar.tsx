@@ -78,12 +78,15 @@ const Navbar = () => {
             <a href="#features" className="block text-sm text-muted-foreground" onClick={() => setMobileOpen(false)}>Funcionalidades</a>
             <a href="#how-it-works" className="block text-sm text-muted-foreground" onClick={() => setMobileOpen(false)}>Como funciona</a>
             <a href="#pricing" className="block text-sm text-muted-foreground" onClick={() => setMobileOpen(false)}>Planos</a>
-            <div className="flex gap-2 pt-2">
-              <Button variant="ghost" asChild className="flex-1">
-                <Link to="/login">Entrar</Link>
+            <div className="flex flex-col gap-2 pt-2">
+              <Button variant="ghost" asChild>
+                <Link to="/register">Sou Empresa</Link>
               </Button>
-              <Button asChild className="flex-1">
-                <Link to="/register">Começar agora</Link>
+              <Button variant="ghost" asChild>
+                <Link to="/register">Sou Consultor</Link>
+              </Button>
+              <Button asChild className="shadow-lg shadow-primary/25">
+                <Link to="/login">Entrar</Link>
               </Button>
             </div>
           </motion.div>
