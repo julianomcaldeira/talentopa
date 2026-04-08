@@ -44,7 +44,7 @@ const FeaturesSection = () => {
             Tudo que você precisa em um só lugar
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Desde a publicação do projeto até a avaliação final, a TalentOps cuida de cada etapa.
+            Desde a publicação do projeto até a avaliação final, a Workz cuida de cada etapa.
           </p>
         </div>
 
