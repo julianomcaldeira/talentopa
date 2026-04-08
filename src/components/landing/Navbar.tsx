@@ -51,11 +51,14 @@ const Navbar = () => {
         </div>
 
         <div className="hidden md:flex items-center gap-3">
-          <Button variant="ghost" asChild className="text-sm">
-            <Link to="/login">Entrar</Link>
+          <Button variant="ghost" asChild className="text-sm text-muted-foreground hover:text-foreground">
+            <Link to="/register">Sou Empresa</Link>
           </Button>
-          <Button asChild className="text-sm shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-shadow">
-            <Link to="/register">Começar agora</Link>
+          <Button variant="ghost" asChild className="text-sm text-muted-foreground hover:text-foreground">
+            <Link to="/register">Sou Consultor</Link>
+          </Button>
+          <Button asChild className="text-sm px-6 shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-all">
+            <Link to="/login">Entrar</Link>
           </Button>
         </div>
 
