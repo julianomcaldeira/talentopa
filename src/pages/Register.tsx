@@ -50,9 +50,9 @@ const Register = () => {
         <div className="w-full max-w-md">
           <Link to="/" className="flex items-center gap-2 mb-10">
             <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-              <span className="font-display font-bold text-primary-foreground text-sm">TO</span>
+              <span className="font-display font-bold text-primary-foreground text-sm">W</span>
             </div>
-            <span className="font-display font-bold text-lg text-foreground">TalentOps</span>
+            <span className="font-display font-bold text-lg text-foreground">Workz</span>
           </Link>
 
           <h1 className="text-2xl font-display font-bold text-foreground mb-2">Criar conta</h1>
@@ -157,7 +157,7 @@ const Register = () => {
             Junte-se ao maior marketplace de ERP
           </h2>
           <p className="text-primary-foreground/60">
-            Milhares de empresas e consultores já confiam na TalentOps.
+            Milhares de empresas e consultores já confiam na Workz.
           </p>
         </div>
       </div>

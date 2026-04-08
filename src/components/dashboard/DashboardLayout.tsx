@@ -42,10 +42,10 @@ const DashboardLayout = ({
         {/* Logo */}
         <div className="flex items-center gap-3 h-[72px] px-5 border-b border-sidebar-border/50">
           <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg">
-            <span className="font-display font-bold text-primary-foreground text-xs tracking-wider">TO</span>
+            <span className="font-display font-bold text-primary-foreground text-xs tracking-wider">W</span>
           </div>
           <div className="flex-1 min-w-0">
-            <span className="font-display font-semibold text-sm text-sidebar-accent-foreground block">TalentOps</span>
+            <span className="font-display font-semibold text-sm text-sidebar-accent-foreground block">Workz</span>
             <span className="text-[11px] text-sidebar-foreground/50 capitalize">{title}</span>
           </div>
           <button className="lg:hidden text-sidebar-foreground/60 hover:text-sidebar-foreground" onClick={() => setSidebarOpen(false)}>

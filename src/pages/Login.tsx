@@ -90,9 +90,9 @@ const Login = () => {
         <div className="w-full max-w-md">
           <Link to="/" className="flex items-center gap-2 mb-10">
             <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-              <span className="font-display font-bold text-primary-foreground text-sm">TO</span>
+              <span className="font-display font-bold text-primary-foreground text-sm">W</span>
             </div>
-            <span className="font-display font-bold text-lg text-foreground">TalentOps</span>
+            <span className="font-display font-bold text-lg text-foreground">Workz</span>
           </Link>
 
           <h1 className="text-2xl font-display font-bold text-foreground mb-2">Bem-vindo de volta</h1>
