@@ -2,11 +2,12 @@ import { useState } from "react";
 import { Link, useLocation, Outlet, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, Server, Puzzle, Cog, FileText, Users, Building2,
-  FolderKanban, DollarSign, LogOut, Menu, X, ChevronRight, Bell, Search, 
+  FolderKanban, DollarSign, LogOut, Menu, X, ChevronRight, Search, 
   Star, Settings, BarChart3, BookOpen, Brain, Sparkles, MessageSquare, Trophy, Bot, FileSpreadsheet
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
+import NotificationBell from "@/components/notifications/NotificationBell";
 
 const DashboardLayout = ({
   links,
@@ -146,10 +147,7 @@ const DashboardLayout = ({
 
           {/* Right side */}
           <div className="flex items-center gap-2">
-            <button className="relative p-2.5 rounded-xl hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
-              <Bell size={18} />
-              <span className="absolute top-2 right-2 w-2 h-2 bg-destructive rounded-full" />
-            </button>
+            <NotificationBell />
             <div className="hidden sm:flex items-center gap-3 pl-3 ml-1 border-l border-border">
               <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary/80 to-accent/80 flex items-center justify-center text-primary-foreground font-semibold text-xs shadow-md">
                 {initials}
