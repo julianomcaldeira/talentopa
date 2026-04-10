@@ -1081,6 +1081,39 @@ export type Database = {
     Functions: {
       aceitar_proposta: { Args: { p_proposta_id: string }; Returns: Json }
       concluir_projeto: { Args: { p_projeto_id: string }; Returns: Json }
+      get_monthly_project_stats: {
+        Args: never
+        Returns: {
+          concluidos: number
+          criados: number
+          mes: string
+        }[]
+      }
+      get_platform_metrics: { Args: never; Returns: Json }
+      get_projects_by_software: {
+        Args: never
+        Returns: {
+          count: number
+          software_nome: string
+        }[]
+      }
+      get_projects_by_status: {
+        Args: never
+        Returns: {
+          count: number
+          status: string
+        }[]
+      }
+      get_top_consultants: {
+        Args: { p_limit?: number }
+        Returns: {
+          consultor_user_id: string
+          nome: string
+          nota_media: number
+          total_projetos: number
+          valor_total: number
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
