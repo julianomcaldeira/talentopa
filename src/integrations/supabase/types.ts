@@ -223,6 +223,59 @@ export type Database = {
         }
         Relationships: []
       }
+      faturas: {
+        Row: {
+          consultor_user_id: string | null
+          created_at: string
+          emitida_em: string | null
+          empresa_user_id: string | null
+          id: string
+          numero_fatura: string
+          pagamento_id: string
+          pdf_url: string | null
+          status: Database["public"]["Enums"]["status_fatura"]
+          tipo: Database["public"]["Enums"]["tipo_fatura"]
+          updated_at: string
+          valor: number
+        }
+        Insert: {
+          consultor_user_id?: string | null
+          created_at?: string
+          emitida_em?: string | null
+          empresa_user_id?: string | null
+          id?: string
+          numero_fatura: string
+          pagamento_id: string
+          pdf_url?: string | null
+          status?: Database["public"]["Enums"]["status_fatura"]
+          tipo: Database["public"]["Enums"]["tipo_fatura"]
+          updated_at?: string
+          valor?: number
+        }
+        Update: {
+          consultor_user_id?: string | null
+          created_at?: string
+          emitida_em?: string | null
+          empresa_user_id?: string | null
+          id?: string
+          numero_fatura?: string
+          pagamento_id?: string
+          pdf_url?: string | null
+          status?: Database["public"]["Enums"]["status_fatura"]
+          tipo?: Database["public"]["Enums"]["tipo_fatura"]
+          updated_at?: string
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "faturas_pagamento_id_fkey"
+            columns: ["pagamento_id"]
+            isOneToOne: false
+            referencedRelation: "pagamentos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       funcionalidades: {
         Row: {
           created_at: string
@@ -336,6 +389,111 @@ export type Database = {
             columns: ["software_id"]
             isOneToOne: false
             referencedRelation: "softwares"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notificacoes: {
+        Row: {
+          created_at: string
+          id: string
+          lida: boolean
+          mensagem: string | null
+          referencia_id: string | null
+          referencia_tipo: string | null
+          tipo: string
+          titulo: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          lida?: boolean
+          mensagem?: string | null
+          referencia_id?: string | null
+          referencia_tipo?: string | null
+          tipo?: string
+          titulo: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          lida?: boolean
+          mensagem?: string | null
+          referencia_id?: string | null
+          referencia_tipo?: string | null
+          tipo?: string
+          titulo?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      pagamentos: {
+        Row: {
+          comissao_plataforma: number
+          consultor_user_id: string
+          created_at: string
+          data_pagamento: string | null
+          data_vencimento: string | null
+          empresa_user_id: string
+          id: string
+          metodo_pagamento: string | null
+          observacoes: string | null
+          projeto_id: string
+          proposta_id: string
+          status: Database["public"]["Enums"]["status_pagamento"]
+          updated_at: string
+          valor_consultor: number
+          valor_total: number
+        }
+        Insert: {
+          comissao_plataforma?: number
+          consultor_user_id: string
+          created_at?: string
+          data_pagamento?: string | null
+          data_vencimento?: string | null
+          empresa_user_id: string
+          id?: string
+          metodo_pagamento?: string | null
+          observacoes?: string | null
+          projeto_id: string
+          proposta_id: string
+          status?: Database["public"]["Enums"]["status_pagamento"]
+          updated_at?: string
+          valor_consultor?: number
+          valor_total?: number
+        }
+        Update: {
+          comissao_plataforma?: number
+          consultor_user_id?: string
+          created_at?: string
+          data_pagamento?: string | null
+          data_vencimento?: string | null
+          empresa_user_id?: string
+          id?: string
+          metodo_pagamento?: string | null
+          observacoes?: string | null
+          projeto_id?: string
+          proposta_id?: string
+          status?: Database["public"]["Enums"]["status_pagamento"]
+          updated_at?: string
+          valor_consultor?: number
+          valor_total?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pagamentos_projeto_id_fkey"
+            columns: ["projeto_id"]
+            isOneToOne: false
+            referencedRelation: "projetos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pagamentos_proposta_id_fkey"
+            columns: ["proposta_id"]
+            isOneToOne: false
+            referencedRelation: "propostas"
             referencedColumns: ["id"]
           },
         ]
@@ -921,6 +1079,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      aceitar_proposta: { Args: { p_proposta_id: string }; Returns: Json }
+      concluir_projeto: { Args: { p_projeto_id: string }; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -940,6 +1100,8 @@ export type Database = {
         | "aprovada"
         | "reprovada"
         | "em_mediacao"
+      status_fatura: "rascunho" | "emitida" | "paga" | "cancelada"
+      status_pagamento: "pendente" | "pago" | "atrasado" | "cancelado"
       status_projeto:
         | "rascunho"
         | "publicado"
@@ -948,6 +1110,7 @@ export type Database = {
         | "concluido"
         | "cancelado"
       status_proposta: "enviada" | "aceita" | "recusada"
+      tipo_fatura: "empresa" | "consultor" | "plataforma"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1086,6 +1249,8 @@ export const Constants = {
         "reprovada",
         "em_mediacao",
       ],
+      status_fatura: ["rascunho", "emitida", "paga", "cancelada"],
+      status_pagamento: ["pendente", "pago", "atrasado", "cancelado"],
       status_projeto: [
         "rascunho",
         "publicado",
@@ -1095,6 +1260,7 @@ export const Constants = {
         "cancelado",
       ],
       status_proposta: ["enviada", "aceita", "recusada"],
+      tipo_fatura: ["empresa", "consultor", "plataforma"],
     },
   },
 } as const
