@@ -3,27 +3,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
-import { TrendingUp, Clock, DollarSign, Star, Target, Users, BarChart3 } from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  PieChart, Pie, Cell, Legend, LineChart, Line,
+} from "recharts";
+import { TrendingUp, Clock, DollarSign, Star, Target, Users, BarChart3, Trophy } from "lucide-react";
 import { motion } from "framer-motion";
 
 const COLORS = ["hsl(var(--primary))", "hsl(var(--accent))", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6"];
-
-interface BenchmarkData {
-  avgProposalValue: number;
-  avgHoursPerProject: number;
-  avgRating: number;
-  proposalAcceptRate: number;
-  projectsByStatus: { name: string; value: number }[];
-  avgHoursByModule: { name: string; horas: number }[];
-  totalConsultors: number;
-  totalEmpresas: number;
-  totalProjetos: number;
-  avgProjectDuration: number;
-  topSoftwares: { name: string; count: number }[];
-}
-
-type UserScope = "admin" | "consultor" | "empresa";
 
 const STATUS_LABELS: Record<string, string> = {
   rascunho: "Rascunho",
@@ -34,131 +22,89 @@ const STATUS_LABELS: Record<string, string> = {
   cancelado: "Cancelado",
 };
 
+const MONTH_LABELS: Record<string, string> = {
+  "01": "Jan", "02": "Fev", "03": "Mar", "04": "Abr", "05": "Mai", "06": "Jun",
+  "07": "Jul", "08": "Ago", "09": "Set", "10": "Out", "11": "Nov", "12": "Dez",
+};
+
+type UserScope = "admin" | "consultor" | "empresa";
+
+interface PlatformMetrics {
+  total_projetos: number;
+  total_consultores: number;
+  total_empresas: number;
+  avg_valor_proposta: number;
+  avg_nota: number;
+  total_avaliacoes: number;
+  taxa_aceitacao: number;
+  avg_horas_projeto: number;
+  avg_duracao_dias: number;
+  valor_total_contratado: number;
+  receita_plataforma: number;
+}
+
 export const BenchmarkingSection = ({ userScope }: { userScope: UserScope }) => {
-  const [data, setData] = useState<BenchmarkData | null>(null);
+  const [metrics, setMetrics] = useState<PlatformMetrics | null>(null);
+  const [statusData, setStatusData] = useState<{ name: string; value: number }[]>([]);
+  const [softwareData, setSoftwareData] = useState<{ name: string; count: number }[]>([]);
+  const [monthlyData, setMonthlyData] = useState<{ mes: string; criados: number; concluidos: number }[]>([]);
+  const [topConsultants, setTopConsultants] = useState<{ nome: string; total_projetos: number; nota_media: number; valor_total: number }[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchBenchmarkData();
-  }, []);
+    const fetchAll = async () => {
+      try {
+        const [metricsRes, statusRes, softwareRes, monthlyRes, consultantsRes] = await Promise.all([
+          supabase.rpc("get_platform_metrics"),
+          supabase.rpc("get_projects_by_status"),
+          supabase.rpc("get_projects_by_software"),
+          supabase.rpc("get_monthly_project_stats"),
+          supabase.rpc("get_top_consultants", { p_limit: 5 }),
+        ]);
 
-  const fetchBenchmarkData = async () => {
-    try {
-      const [
-        { data: propostas },
-        { data: projetos },
-        { data: avaliacoes },
-        { data: fases },
-        { data: consultorRoles },
-        { data: empresaRoles },
-        { data: softwareData },
-      ] = await Promise.all([
-        supabase.from("propostas").select("valor_proposta, estimativa_horas, status"),
-        supabase.from("projetos").select("id, status, software_id, created_at, prazo_estimado"),
-        supabase.from("avaliacoes").select("nota"),
-        supabase.from("projeto_fases").select("horas_estimadas, horas_executadas, nome"),
-        supabase.from("user_roles").select("id").eq("role", "consultor"),
-        supabase.from("user_roles").select("id").eq("role", "empresa"),
-        supabase.from("softwares").select("id, nome"),
-      ]);
+        if (metricsRes.data) setMetrics(metricsRes.data as unknown as PlatformMetrics);
 
-      const propostasArr = propostas || [];
-      const projetosArr = projetos || [];
-      const avaliacoesArr = avaliacoes || [];
-      const fasesArr = fases || [];
-
-      // Avg proposal value
-      const propostasWithValue = propostasArr.filter((p) => p.valor_proposta);
-      const avgProposalValue =
-        propostasWithValue.length > 0
-          ? propostasWithValue.reduce((s, p) => s + (p.valor_proposta || 0), 0) / propostasWithValue.length
-          : 0;
-
-      // Avg hours
-      const propostasWithHours = propostasArr.filter((p) => p.estimativa_horas);
-      const avgHoursPerProject =
-        propostasWithHours.length > 0
-          ? propostasWithHours.reduce((s, p) => s + (p.estimativa_horas || 0), 0) / propostasWithHours.length
-          : 0;
-
-      // Avg rating
-      const avgRating =
-        avaliacoesArr.length > 0
-          ? avaliacoesArr.reduce((s, a) => s + a.nota, 0) / avaliacoesArr.length
-          : 0;
-
-      // Acceptance rate
-      const totalPropostas = propostasArr.length;
-      const aceitas = propostasArr.filter((p) => p.status === "aceita").length;
-      const proposalAcceptRate = totalPropostas > 0 ? (aceitas / totalPropostas) * 100 : 0;
-
-      // Projects by status
-      const statusCount: Record<string, number> = {};
-      projetosArr.forEach((p) => {
-        statusCount[p.status] = (statusCount[p.status] || 0) + 1;
-      });
-      const projectsByStatus = Object.entries(statusCount).map(([k, v]) => ({
-        name: STATUS_LABELS[k] || k,
-        value: v,
-      }));
-
-      // Avg hours by phase name
-      const phaseHours: Record<string, { total: number; count: number }> = {};
-      fasesArr.forEach((f) => {
-        if (!phaseHours[f.nome]) phaseHours[f.nome] = { total: 0, count: 0 };
-        phaseHours[f.nome].total += Number(f.horas_estimadas) || 0;
-        phaseHours[f.nome].count += 1;
-      });
-      const avgHoursByModule = Object.entries(phaseHours)
-        .map(([name, v]) => ({ name, horas: Math.round(v.total / v.count) }))
-        .sort((a, b) => b.horas - a.horas)
-        .slice(0, 8);
-
-      // Avg project duration
-      const projectsWithDates = projetosArr.filter((p) => p.prazo_estimado);
-      const avgProjectDuration =
-        projectsWithDates.length > 0
-          ? projectsWithDates.reduce((s, p) => {
-              const created = new Date(p.created_at);
-              const deadline = new Date(p.prazo_estimado!);
-              return s + Math.max(0, Math.ceil((deadline.getTime() - created.getTime()) / (1000 * 60 * 60 * 24)));
-            }, 0) / projectsWithDates.length
-          : 0;
-
-      // Top softwares
-      const softwareCount: Record<string, number> = {};
-      const softwareMap: Record<string, string> = {};
-      (softwareData || []).forEach((s) => (softwareMap[s.id] = s.nome));
-      projetosArr.forEach((p) => {
-        if (p.software_id && softwareMap[p.software_id]) {
-          const name = softwareMap[p.software_id];
-          softwareCount[name] = (softwareCount[name] || 0) + 1;
+        if (statusRes.data) {
+          setStatusData((statusRes.data as any[]).map((r) => ({
+            name: STATUS_LABELS[r.status] || r.status,
+            value: Number(r.count),
+          })));
         }
-      });
-      const topSoftwares = Object.entries(softwareCount)
-        .map(([name, count]) => ({ name, count }))
-        .sort((a, b) => b.count - a.count)
-        .slice(0, 5);
 
-      setData({
-        avgProposalValue,
-        avgHoursPerProject,
-        avgRating,
-        proposalAcceptRate,
-        projectsByStatus,
-        avgHoursByModule,
-        totalConsultors: consultorRoles?.length || 0,
-        totalEmpresas: empresaRoles?.length || 0,
-        totalProjetos: projetosArr.length,
-        avgProjectDuration: Math.round(avgProjectDuration),
-        topSoftwares,
-      });
-    } catch (err) {
-      console.error("Benchmark error:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
+        if (softwareRes.data) {
+          setSoftwareData((softwareRes.data as any[]).map((r) => ({
+            name: r.software_nome,
+            count: Number(r.count),
+          })));
+        }
+
+        if (monthlyRes.data) {
+          setMonthlyData((monthlyRes.data as any[]).map((r) => {
+            const [, mm] = r.mes.split("-");
+            return {
+              mes: MONTH_LABELS[mm] || r.mes,
+              criados: Number(r.criados),
+              concluidos: Number(r.concluidos),
+            };
+          }));
+        }
+
+        if (consultantsRes.data) {
+          setTopConsultants((consultantsRes.data as any[]).map((r) => ({
+            nome: r.nome,
+            total_projetos: Number(r.total_projetos),
+            nota_media: Number(r.nota_media),
+            valor_total: Number(r.valor_total),
+          })));
+        }
+      } catch (err) {
+        console.error("Benchmark error:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAll();
+  }, []);
 
   if (loading) {
     return (
@@ -168,46 +114,20 @@ export const BenchmarkingSection = ({ userScope }: { userScope: UserScope }) => 
     );
   }
 
-  if (!data) return null;
+  if (!metrics) return null;
+
+  const fmt = (v: number) => v.toLocaleString("pt-BR", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 
   const kpiCards = [
-    {
-      icon: DollarSign,
-      label: "Valor Médio das Propostas",
-      value: `R$ ${data.avgProposalValue.toLocaleString("pt-BR", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`,
-      color: "text-emerald-500",
-    },
-    {
-      icon: Clock,
-      label: "Horas Médias por Projeto",
-      value: `${data.avgHoursPerProject.toFixed(0)}h`,
-      color: "text-blue-500",
-    },
-    {
-      icon: Star,
-      label: "Nota Média de Avaliação",
-      value: data.avgRating.toFixed(1),
-      color: "text-amber-500",
-    },
-    {
-      icon: Target,
-      label: "Taxa de Aceitação de Propostas",
-      value: `${data.proposalAcceptRate.toFixed(1)}%`,
-      color: "text-violet-500",
-    },
-    {
-      icon: Users,
-      label: "Consultores na Plataforma",
-      value: String(data.totalConsultors),
-      color: "text-primary",
-    },
-    {
-      icon: TrendingUp,
-      label: "Duração Média dos Projetos",
-      value: `${data.avgProjectDuration} dias`,
-      color: "text-rose-500",
-    },
+    { icon: DollarSign, label: "Valor Médio das Propostas", value: `R$ ${fmt(metrics.avg_valor_proposta)}`, color: "text-emerald-500" },
+    { icon: Clock, label: "Horas Médias por Projeto", value: `${metrics.avg_horas_projeto}h`, color: "text-blue-500" },
+    { icon: Star, label: "Nota Média de Avaliação", value: String(metrics.avg_nota), color: "text-amber-500" },
+    { icon: Target, label: "Taxa de Aceitação", value: `${metrics.taxa_aceitacao}%`, color: "text-violet-500" },
+    { icon: Users, label: "Consultores na Plataforma", value: String(metrics.total_consultores), color: "text-primary" },
+    { icon: TrendingUp, label: "Duração Média dos Projetos", value: `${metrics.avg_duracao_dias} dias`, color: "text-rose-500" },
   ];
+
+  const maxSoftware = softwareData.length > 0 ? Math.max(...softwareData.map((s) => s.count)) : 1;
 
   return (
     <div className="space-y-6">
@@ -216,9 +136,7 @@ export const BenchmarkingSection = ({ userScope }: { userScope: UserScope }) => 
           <CardTitle className="flex items-center gap-2 text-lg">
             <BarChart3 size={20} className="text-primary" />
             Benchmarking da Plataforma
-            <Badge variant="outline" className="ml-2 text-xs">
-              Dados agregados
-            </Badge>
+            <Badge variant="outline" className="ml-2 text-xs">Dados agregados</Badge>
           </CardTitle>
           <p className="text-sm text-muted-foreground">
             Métricas consolidadas de toda a plataforma para comparação e referência.
@@ -231,12 +149,7 @@ export const BenchmarkingSection = ({ userScope }: { userScope: UserScope }) => 
       {/* KPI Grid */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         {kpiCards.map((kpi, i) => (
-          <motion.div
-            key={kpi.label}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.05 }}
-          >
+          <motion.div key={kpi.label} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
             <Card className="border-border/50 bg-card/80 hover:shadow-md transition-shadow">
               <CardContent className="p-4 text-center">
                 <kpi.icon size={20} className={`mx-auto mb-2 ${kpi.color}`} />
@@ -248,6 +161,56 @@ export const BenchmarkingSection = ({ userScope }: { userScope: UserScope }) => 
         ))}
       </div>
 
+      {/* Admin-only financial KPIs */}
+      {userScope === "admin" && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Card className="border-border/50 bg-card/80">
+            <CardContent className="p-4 flex items-center gap-4">
+              <div className="p-3 rounded-lg bg-emerald-500/10">
+                <DollarSign className="text-emerald-500" size={24} />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Total Contratado</p>
+                <p className="text-xl font-bold text-foreground">R$ {fmt(metrics.valor_total_contratado)}</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="border-border/50 bg-card/80">
+            <CardContent className="p-4 flex items-center gap-4">
+              <div className="p-3 rounded-lg bg-primary/10">
+                <TrendingUp className="text-primary" size={24} />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Receita Plataforma (15%)</p>
+                <p className="text-xl font-bold text-foreground">R$ {fmt(metrics.receita_plataforma)}</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Monthly Trends Chart */}
+      {monthlyData.length > 0 && (
+        <Card className="border-border/50 bg-card/80">
+          <CardHeader>
+            <CardTitle className="text-base">Tendência Mensal de Projetos (12 meses)</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={280}>
+              <LineChart data={monthlyData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <XAxis dataKey="mes" tick={{ fontSize: 12 }} />
+                <YAxis tick={{ fontSize: 12 }} allowDecimals={false} />
+                <Tooltip />
+                <Legend />
+                <Line type="monotone" dataKey="criados" stroke="hsl(var(--primary))" name="Criados" strokeWidth={2} dot={{ r: 3 }} />
+                <Line type="monotone" dataKey="concluidos" stroke="#10b981" name="Concluídos" strokeWidth={2} dot={{ r: 3 }} />
+              </LineChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Projects by Status */}
@@ -256,19 +219,12 @@ export const BenchmarkingSection = ({ userScope }: { userScope: UserScope }) => 
             <CardTitle className="text-base">Distribuição de Projetos por Status</CardTitle>
           </CardHeader>
           <CardContent>
-            {data.projectsByStatus.length > 0 ? (
+            {statusData.length > 0 ? (
               <ResponsiveContainer width="100%" height={280}>
                 <PieChart>
-                  <Pie
-                    data={data.projectsByStatus}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={100}
-                    dataKey="value"
-                    label={({ name, value }) => `${name}: ${value}`}
-                  >
-                    {data.projectsByStatus.map((_, i) => (
+                  <Pie data={statusData} cx="50%" cy="50%" innerRadius={60} outerRadius={100} dataKey="value"
+                    label={({ name, value }) => `${name}: ${value}`}>
+                    {statusData.map((_, i) => (
                       <Cell key={i} fill={COLORS[i % COLORS.length]} />
                     ))}
                   </Pie>
@@ -282,38 +238,14 @@ export const BenchmarkingSection = ({ userScope }: { userScope: UserScope }) => 
           </CardContent>
         </Card>
 
-        {/* Avg Hours by Phase */}
-        <Card className="border-border/50 bg-card/80">
-          <CardHeader>
-            <CardTitle className="text-base">Horas Médias por Fase</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {data.avgHoursByModule.length > 0 ? (
-              <ResponsiveContainer width="100%" height={280}>
-                <BarChart data={data.avgHoursByModule} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                  <XAxis type="number" tick={{ fontSize: 12 }} />
-                  <YAxis dataKey="name" type="category" width={120} tick={{ fontSize: 11 }} />
-                  <Tooltip />
-                  <Bar dataKey="horas" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <p className="text-muted-foreground text-sm text-center py-8">Sem dados de fases.</p>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Top Softwares + Acceptance Rate */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Top Softwares */}
         <Card className="border-border/50 bg-card/80">
           <CardHeader>
             <CardTitle className="text-base">ERPs Mais Utilizados</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {data.topSoftwares.length > 0 ? (
-              data.topSoftwares.map((sw, i) => (
+            {softwareData.length > 0 ? (
+              softwareData.map((sw, i) => (
                 <div key={sw.name} className="flex items-center gap-3">
                   <span className="text-sm font-medium w-8 text-muted-foreground">#{i + 1}</span>
                   <div className="flex-1">
@@ -321,10 +253,7 @@ export const BenchmarkingSection = ({ userScope }: { userScope: UserScope }) => 
                       <span className="text-sm font-medium">{sw.name}</span>
                       <span className="text-xs text-muted-foreground">{sw.count} projetos</span>
                     </div>
-                    <Progress
-                      value={(sw.count / Math.max(...data.topSoftwares.map((s) => s.count))) * 100}
-                      className="h-2"
-                    />
+                    <Progress value={(sw.count / maxSoftware) * 100} className="h-2" />
                   </div>
                 </div>
               ))
@@ -333,7 +262,53 @@ export const BenchmarkingSection = ({ userScope }: { userScope: UserScope }) => 
             )}
           </CardContent>
         </Card>
+      </div>
 
+      {/* Bottom Row: Top Consultants + General Indicators */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Top Consultants */}
+        {topConsultants.length > 0 && (
+          <Card className="border-border/50 bg-card/80">
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2">
+                <Trophy size={18} className="text-amber-500" />
+                Top Consultores
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>#</TableHead>
+                    <TableHead>Consultor</TableHead>
+                    <TableHead className="text-center">Projetos</TableHead>
+                    <TableHead className="text-center">Nota</TableHead>
+                    <TableHead className="text-right">Valor Total</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {topConsultants.map((c, i) => (
+                    <TableRow key={i}>
+                      <TableCell className="font-medium">{i + 1}</TableCell>
+                      <TableCell className="truncate max-w-[150px]">{c.nome}</TableCell>
+                      <TableCell className="text-center">{c.total_projetos}</TableCell>
+                      <TableCell className="text-center">
+                        {c.nota_media > 0 ? (
+                          <span className="flex items-center justify-center gap-1">
+                            <Star size={12} className="text-amber-500" /> {c.nota_media}
+                          </span>
+                        ) : "—"}
+                      </TableCell>
+                      <TableCell className="text-right">R$ {fmt(c.valor_total)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* General Indicators */}
         <Card className="border-border/50 bg-card/80">
           <CardHeader>
             <CardTitle className="text-base">Indicadores Gerais</CardTitle>
@@ -341,21 +316,25 @@ export const BenchmarkingSection = ({ userScope }: { userScope: UserScope }) => 
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between p-3 rounded-lg bg-muted/40">
               <span className="text-sm">Total de Projetos</span>
-              <Badge>{data.totalProjetos}</Badge>
+              <Badge>{metrics.total_projetos}</Badge>
             </div>
             <div className="flex items-center justify-between p-3 rounded-lg bg-muted/40">
               <span className="text-sm">Consultores Ativos</span>
-              <Badge variant="secondary">{data.totalConsultors}</Badge>
+              <Badge variant="secondary">{metrics.total_consultores}</Badge>
             </div>
             <div className="flex items-center justify-between p-3 rounded-lg bg-muted/40">
               <span className="text-sm">Empresas Cadastradas</span>
-              <Badge variant="secondary">{data.totalEmpresas}</Badge>
+              <Badge variant="secondary">{metrics.total_empresas}</Badge>
             </div>
             <div className="flex items-center justify-between p-3 rounded-lg bg-muted/40">
               <span className="text-sm">Taxa de Aceitação</span>
-              <Badge variant={data.proposalAcceptRate > 30 ? "default" : "destructive"}>
-                {data.proposalAcceptRate.toFixed(1)}%
+              <Badge variant={metrics.taxa_aceitacao > 30 ? "default" : "destructive"}>
+                {metrics.taxa_aceitacao}%
               </Badge>
+            </div>
+            <div className="flex items-center justify-between p-3 rounded-lg bg-muted/40">
+              <span className="text-sm">Total de Avaliações</span>
+              <Badge variant="secondary">{metrics.total_avaliacoes}</Badge>
             </div>
           </CardContent>
         </Card>
