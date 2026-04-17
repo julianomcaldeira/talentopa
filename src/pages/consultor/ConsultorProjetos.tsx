@@ -133,11 +133,12 @@ const ConsultorProjetos = () => {
                     <div>
                       <h3 className="font-display font-semibold text-foreground text-base">{p.nome}</h3>
                       <p className="text-xs text-muted-foreground mt-0.5">
-                        {p.softwares?.nome} · {p.empresa_nome || "Empresa"} · {p.protocolo}
+                        {p.softwares?.nome} · {myPropostas.get(p.id) === "aceita" ? (p.empresa_nome || "Empresa") : "Empresa confidencial"} · {p.protocolo}
                       </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
+                    <ModeloContratacaoBadge modelo={p.modelo_contratacao} />
                     {score > 0 && (
                       <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs font-bold ${scoreBg(score)} ${scoreColor(score)}`}>
                         <Star size={12} />
@@ -163,10 +164,15 @@ const ConsultorProjetos = () => {
                   )}
                 </div>
 
-                <div className="pl-[54px] flex gap-2">
-                  <Button onClick={() => { setSelectedProjeto(p); setProposalDialog(true); }}>
-                    <Send size={14} /> Enviar proposta
+                <div className="pl-[54px] flex gap-2 flex-wrap">
+                  <Button variant="outline" onClick={() => setDetalhesProjeto(p)}>
+                    <Eye size={14} /> Detalhes
                   </Button>
+                  {!myPropostas.has(p.id) && (
+                    <Button onClick={() => { setSelectedProjeto(p); setProposalDialog(true); }}>
+                      <Send size={14} /> Enviar proposta
+                    </Button>
+                  )}
                   {myPropostas.has(p.id) && (
                     <Button variant="outline" onClick={() => setChatProjeto(chatProjeto?.id === p.id ? null : p)}>
                       <MessageSquare size={14} /> Comunicação
