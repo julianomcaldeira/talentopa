@@ -144,7 +144,7 @@ const EmpresaNovoProjeto = () => {
               </div>
             </div>
             <div className="flex justify-end pt-2">
-              <Button onClick={() => setStep(1)} disabled={!form.nome}>Próximo <ArrowRight size={14} /></Button>
+              <Button onClick={() => setStep(1)} disabled={!form.nome || !form.modelo_contratacao}>Próximo <ArrowRight size={14} /></Button>
             </div>
           </div>
         )}
