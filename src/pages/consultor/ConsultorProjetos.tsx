@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { PageHeader, DataCard, StatusBadge, EmptyState, LoadingState } from "@/components/dashboard/DashboardComponents";
-import { FolderKanban, Send, Calendar, Target, Star, MessageSquare, Eye } from "lucide-react";
+import { FolderKanban, Send, Calendar, Target, Star, MessageSquare, Eye, MapPin } from "lucide-react";
 import { ProjectCommunication } from "@/components/communication/ProjectCommunication";
 import { ProjetoDetalhesDialog, ModeloContratacaoBadge } from "@/components/projetos/ProjetoDetalhesDialog";
 
@@ -49,10 +49,11 @@ const ConsultorProjetos = () => {
       if (projs.length > 0) {
         const projIds = projs.map(p => p.id);
         const empresaIds = [...new Set(projs.map(p => p.empresa_user_id))];
-        const [modRes, funcRes, empRes] = await Promise.all([
+        const [modRes, funcRes, empRes, empPerfilRes] = await Promise.all([
           supabase.from("projeto_modulos").select("projeto_id, modulo_id").in("projeto_id", projIds),
           supabase.from("projeto_funcionalidades").select("projeto_id, funcionalidade_id").in("projeto_id", projIds),
-          supabase.from("profiles").select("user_id, nome").in("user_id", empresaIds),
+          supabase.from("profiles").select("user_id, nome, cidade, estado").in("user_id", empresaIds),
+          supabase.from("empresa_perfil").select("user_id, endereco").in("user_id", empresaIds),
         ]);
         const scopeMap = new Map<string, { modulos: string[]; funcs: string[] }>();
         projIds.forEach(id => scopeMap.set(id, { modulos: [], funcs: [] }));
@@ -60,9 +61,24 @@ const ConsultorProjetos = () => {
         (funcRes.data || []).forEach(f => scopeMap.get(f.projeto_id)?.funcs.push(f.funcionalidade_id));
         setProjetoScopes(scopeMap);
 
-        // Attach empresa name to projects
-        const empMap = new Map((empRes.data || []).map(e => [e.user_id, e.nome]));
-        projs.forEach(p => { (p as any).empresa_nome = empMap.get(p.empresa_user_id) || "Empresa"; });
+        // Attach empresa name + location to projects
+        const empMap = new Map((empRes.data || []).map(e => [e.user_id, e]));
+        const empPerfilMap = new Map((empPerfilRes.data || []).map(e => [e.user_id, e]));
+        projs.forEach(p => {
+          const prof = empMap.get(p.empresa_user_id);
+          const perfil = empPerfilMap.get(p.empresa_user_id);
+          (p as any).empresa_nome = prof?.nome || "Empresa";
+          // Prefer profile city/state; fallback parses last 2 tokens of endereco "..., Cidade, UF"
+          let cidade = prof?.cidade || null;
+          let estado = prof?.estado || null;
+          if ((!cidade || !estado) && perfil?.endereco) {
+            const parts = perfil.endereco.split(",").map((s: string) => s.trim()).filter(Boolean);
+            if (!estado && parts.length >= 1) estado = parts[parts.length - 1];
+            if (!cidade && parts.length >= 2) cidade = parts[parts.length - 2];
+          }
+          (p as any).local_cidade = cidade;
+          (p as any).local_estado = estado;
+        });
       }
 
       setProjetos(projs);
@@ -137,7 +153,13 @@ const ConsultorProjetos = () => {
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap justify-end">
+                    {(p.local_cidade || p.local_estado) && (
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs font-bold bg-accent/15 text-accent-foreground border-accent/30">
+                        <MapPin size={12} />
+                        {[p.local_cidade, p.local_estado].filter(Boolean).join(" / ")}
+                      </span>
+                    )}
                     <ModeloContratacaoBadge modelo={p.modelo_contratacao} />
                     {score > 0 && (
                       <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs font-bold ${scoreBg(score)} ${scoreColor(score)}`}>

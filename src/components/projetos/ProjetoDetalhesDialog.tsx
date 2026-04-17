@@ -63,6 +63,12 @@ export const ProjetoDetalhesDialog = ({ projeto, open, onOpenChange, showEmpresa
             <Badge variant="outline" className="text-xs">{projeto.protocolo}</Badge>
             {projeto.softwares?.nome && <Badge variant="secondary" className="text-xs">{projeto.softwares.nome}</Badge>}
             <ModeloContratacaoBadge modelo={projeto.modelo_contratacao} />
+            {(projeto.local_cidade || projeto.local_estado) && (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs font-bold bg-accent/15 text-accent-foreground border-accent/30">
+                <MapPin size={12} />
+                {[projeto.local_cidade, projeto.local_estado].filter(Boolean).join(" / ")}
+              </span>
+            )}
           </div>
         </DialogHeader>
 
