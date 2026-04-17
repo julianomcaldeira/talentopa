@@ -217,6 +217,23 @@ const ConsultorProjetos = () => {
         </div>
       )}
 
+      {!loading && totalPages > 1 && (
+        <div className="flex items-center justify-between mt-6 px-1">
+          <p className="text-xs text-muted-foreground">
+            Mostrando {(currentPage - 1) * PAGE_SIZE + 1}–{Math.min(currentPage * PAGE_SIZE, sortedProjetos.length)} de {sortedProjetos.length} projetos
+          </p>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" disabled={currentPage === 1} onClick={() => setPage(currentPage - 1)}>
+              Anterior
+            </Button>
+            <span className="text-xs font-semibold text-foreground px-2">Página {currentPage} de {totalPages}</span>
+            <Button variant="outline" size="sm" disabled={currentPage === totalPages} onClick={() => setPage(currentPage + 1)}>
+              Próxima
+            </Button>
+          </div>
+        </div>
+      )}
+
       <Dialog open={proposalDialog} onOpenChange={setProposalDialog}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
