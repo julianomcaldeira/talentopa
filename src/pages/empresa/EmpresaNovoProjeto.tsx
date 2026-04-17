@@ -84,6 +84,7 @@ const EmpresaNovoProjeto = () => {
       problema_atual: form.problema_atual || null, objetivo: form.objetivo || null,
       prazo_estimado: form.prazo_estimado || null, software_id: form.software_id || null,
       template_id: form.template_id || null, observacoes: form.observacoes || null,
+      modelo_contratacao: (form.modelo_contratacao || null) as any,
       status: "publicado" as const,
     }).select("id").single();
     if (error || !projeto) { toast({ title: "Erro", description: error?.message, variant: "destructive" }); setSaving(false); return; }
