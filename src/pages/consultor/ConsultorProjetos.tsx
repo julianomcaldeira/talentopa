@@ -220,6 +220,13 @@ const ConsultorProjetos = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      <ProjetoDetalhesDialog
+        projeto={detalhesProjeto}
+        open={!!detalhesProjeto}
+        onOpenChange={(v) => !v && setDetalhesProjeto(null)}
+        showEmpresa={detalhesProjeto ? myPropostas.get(detalhesProjeto.id) === "aceita" : false}
+      />
     </div>
   );
 };
