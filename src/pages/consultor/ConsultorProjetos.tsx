@@ -23,7 +23,8 @@ const ConsultorProjetos = () => {
   const [mySkills, setMySkills] = useState<any[]>([]);
   const [projetoScopes, setProjetoScopes] = useState<Map<string, { modulos: string[]; funcs: string[] }>>(new Map());
   const [chatProjeto, setChatProjeto] = useState<any>(null);
-  const [myPropostas, setMyPropostas] = useState<Set<string>>(new Set());
+  const [myPropostas, setMyPropostas] = useState<Map<string, string>>(new Map()); // projeto_id -> status
+  const [detalhesProjeto, setDetalhesProjeto] = useState<any | null>(null);
 
   useEffect(() => {
     if (!user) return;
