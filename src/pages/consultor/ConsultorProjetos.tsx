@@ -38,13 +38,13 @@ const ConsultorProjetos = () => {
           .select("software_id, modulo_id, funcionalidade_id, nivel")
           .eq("user_id", user.id),
         supabase.from("propostas")
-          .select("projeto_id")
+          .select("projeto_id, status")
           .eq("consultor_user_id", user.id),
       ]);
 
       const projs = projRes.data || [];
       if (skillsRes.data) setMySkills(skillsRes.data);
-      if (propRes.data) setMyPropostas(new Set(propRes.data.map(p => p.projeto_id)));
+      if (propRes.data) setMyPropostas(new Map(propRes.data.map(p => [p.projeto_id, p.status as string])));
 
       if (projs.length > 0) {
         const projIds = projs.map(p => p.id);
