@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { PageHeader, DataCard, StatusBadge, EmptyState, LoadingState } from "@/components/dashboard/DashboardComponents";
-import { FolderKanban, Send, Calendar, Target, Star, MessageSquare, Eye } from "lucide-react";
+import { FolderKanban, Send, Calendar, Target, Star, MessageSquare, Eye, MapPin } from "lucide-react";
 import { ProjectCommunication } from "@/components/communication/ProjectCommunication";
 import { ProjetoDetalhesDialog, ModeloContratacaoBadge } from "@/components/projetos/ProjetoDetalhesDialog";
 
