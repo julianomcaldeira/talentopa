@@ -25,6 +25,8 @@ const ConsultorProjetos = () => {
   const [chatProjeto, setChatProjeto] = useState<any>(null);
   const [myPropostas, setMyPropostas] = useState<Map<string, string>>(new Map()); // projeto_id -> status
   const [detalhesProjeto, setDetalhesProjeto] = useState<any | null>(null);
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 5;
 
   useEffect(() => {
     if (!user) return;
