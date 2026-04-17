@@ -25,6 +25,8 @@ const ConsultorProjetos = () => {
   const [chatProjeto, setChatProjeto] = useState<any>(null);
   const [myPropostas, setMyPropostas] = useState<Map<string, string>>(new Map()); // projeto_id -> status
   const [detalhesProjeto, setDetalhesProjeto] = useState<any | null>(null);
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 5;
 
   useEffect(() => {
     if (!user) return;
@@ -128,6 +130,9 @@ const ConsultorProjetos = () => {
   const scoreBg = (s: number) => s >= 75 ? "bg-success/10 border-success/20" : s >= 50 ? "bg-warning/10 border-warning/20" : "bg-muted/50 border-border";
 
   const sortedProjetos = [...projetos].sort((a, b) => getMatchScore(b) - getMatchScore(a));
+  const totalPages = Math.max(1, Math.ceil(sortedProjetos.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const pagedProjetos = sortedProjetos.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   return (
     <div>
@@ -137,7 +142,7 @@ const ConsultorProjetos = () => {
         <DataCard><EmptyState message="Nenhum projeto disponível no momento" icon={FolderKanban} /></DataCard>
       ) : (
         <div className="space-y-4">
-          {sortedProjetos.map((p) => {
+          {pagedProjetos.map((p) => {
             const score = getMatchScore(p);
             return (
               <DataCard key={p.id}>
@@ -209,6 +214,23 @@ const ConsultorProjetos = () => {
               </DataCard>
             );
           })}
+        </div>
+      )}
+
+      {!loading && totalPages > 1 && (
+        <div className="flex items-center justify-between mt-6 px-1">
+          <p className="text-xs text-muted-foreground">
+            Mostrando {(currentPage - 1) * PAGE_SIZE + 1}–{Math.min(currentPage * PAGE_SIZE, sortedProjetos.length)} de {sortedProjetos.length} projetos
+          </p>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" disabled={currentPage === 1} onClick={() => setPage(currentPage - 1)}>
+              Anterior
+            </Button>
+            <span className="text-xs font-semibold text-foreground px-2">Página {currentPage} de {totalPages}</span>
+            <Button variant="outline" size="sm" disabled={currentPage === totalPages} onClick={() => setPage(currentPage + 1)}>
+              Próxima
+            </Button>
+          </div>
         </div>
       )}
 
