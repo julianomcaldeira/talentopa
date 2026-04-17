@@ -153,7 +153,13 @@ const ConsultorProjetos = () => {
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap justify-end">
+                    {(p.local_cidade || p.local_estado) && (
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs font-bold bg-accent/15 text-accent-foreground border-accent/30">
+                        <MapPin size={12} />
+                        {[p.local_cidade, p.local_estado].filter(Boolean).join(" / ")}
+                      </span>
+                    )}
                     <ModeloContratacaoBadge modelo={p.modelo_contratacao} />
                     {score > 0 && (
                       <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs font-bold ${scoreBg(score)} ${scoreColor(score)}`}>
