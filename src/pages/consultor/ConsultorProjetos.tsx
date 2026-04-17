@@ -130,6 +130,9 @@ const ConsultorProjetos = () => {
   const scoreBg = (s: number) => s >= 75 ? "bg-success/10 border-success/20" : s >= 50 ? "bg-warning/10 border-warning/20" : "bg-muted/50 border-border";
 
   const sortedProjetos = [...projetos].sort((a, b) => getMatchScore(b) - getMatchScore(a));
+  const totalPages = Math.max(1, Math.ceil(sortedProjetos.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const pagedProjetos = sortedProjetos.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   return (
     <div>
@@ -139,7 +142,7 @@ const ConsultorProjetos = () => {
         <DataCard><EmptyState message="Nenhum projeto disponível no momento" icon={FolderKanban} /></DataCard>
       ) : (
         <div className="space-y-4">
-          {sortedProjetos.map((p) => {
+          {pagedProjetos.map((p) => {
             const score = getMatchScore(p);
             return (
               <DataCard key={p.id}>
