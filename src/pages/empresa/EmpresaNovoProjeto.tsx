@@ -129,7 +129,20 @@ const EmpresaNovoProjeto = () => {
               <div className="space-y-2"><SectionLabel>Problema Atual</SectionLabel><Textarea value={form.problema_atual} onChange={(e) => setForm({ ...form, problema_atual: e.target.value })} rows={2} placeholder="Descreva o problema a resolver" /></div>
               <div className="space-y-2"><SectionLabel>Objetivo</SectionLabel><Textarea value={form.objetivo} onChange={(e) => setForm({ ...form, objetivo: e.target.value })} rows={2} /></div>
             </div>
-            <div className="space-y-2 max-w-xs"><SectionLabel>Prazo Estimado</SectionLabel><Input type="date" value={form.prazo_estimado} onChange={(e) => setForm({ ...form, prazo_estimado: e.target.value })} /></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div className="space-y-2"><SectionLabel>Prazo Estimado</SectionLabel><Input type="date" value={form.prazo_estimado} onChange={(e) => setForm({ ...form, prazo_estimado: e.target.value })} /></div>
+              <div className="space-y-2">
+                <SectionLabel>Modelo de Contratação *</SectionLabel>
+                <Select value={form.modelo_contratacao} onValueChange={(v) => setForm({ ...form, modelo_contratacao: v as any })}>
+                  <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="presencial">Presencial</SelectItem>
+                    <SelectItem value="hibrido">Híbrido</SelectItem>
+                    <SelectItem value="remoto">Remoto</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
             <div className="flex justify-end pt-2">
               <Button onClick={() => setStep(1)} disabled={!form.nome}>Próximo <ArrowRight size={14} /></Button>
             </div>
