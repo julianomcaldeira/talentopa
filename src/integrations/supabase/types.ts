@@ -868,6 +868,9 @@ export type Database = {
           descricao: string | null
           empresa_user_id: string
           id: string
+          modelo_contratacao:
+            | Database["public"]["Enums"]["modelo_contratacao"]
+            | null
           nome: string
           objetivo: string | null
           observacoes: string | null
@@ -884,6 +887,9 @@ export type Database = {
           descricao?: string | null
           empresa_user_id: string
           id?: string
+          modelo_contratacao?:
+            | Database["public"]["Enums"]["modelo_contratacao"]
+            | null
           nome: string
           objetivo?: string | null
           observacoes?: string | null
@@ -900,6 +906,9 @@ export type Database = {
           descricao?: string | null
           empresa_user_id?: string
           id?: string
+          modelo_contratacao?:
+            | Database["public"]["Enums"]["modelo_contratacao"]
+            | null
           nome?: string
           objetivo?: string | null
           observacoes?: string | null
@@ -1124,6 +1133,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "consultor" | "empresa"
+      modelo_contratacao: "presencial" | "hibrido" | "remoto"
       nivel_senioridade: "junior" | "pleno" | "senior" | "especialista"
       plano_assinatura: "standard" | "premium"
       status_fase:
@@ -1272,6 +1282,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "consultor", "empresa"],
+      modelo_contratacao: ["presencial", "hibrido", "remoto"],
       nivel_senioridade: ["junior", "pleno", "senior", "especialista"],
       plano_assinatura: ["standard", "premium"],
       status_fase: [

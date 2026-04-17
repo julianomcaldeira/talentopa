@@ -37,6 +37,7 @@ const EmpresaNovoProjeto = () => {
   const [form, setForm] = useState({
     nome: "", descricao: "", problema_atual: "", objetivo: "", prazo_estimado: "",
     software_id: "", template_id: "", observacoes: "",
+    modelo_contratacao: "" as "" | "presencial" | "hibrido" | "remoto",
   });
   const [selectedModulos, setSelectedModulos] = useState<string[]>([]);
   const [selectedFuncs, setSelectedFuncs] = useState<string[]>([]);
@@ -83,6 +84,7 @@ const EmpresaNovoProjeto = () => {
       problema_atual: form.problema_atual || null, objetivo: form.objetivo || null,
       prazo_estimado: form.prazo_estimado || null, software_id: form.software_id || null,
       template_id: form.template_id || null, observacoes: form.observacoes || null,
+      modelo_contratacao: (form.modelo_contratacao || null) as any,
       status: "publicado" as const,
     }).select("id").single();
     if (error || !projeto) { toast({ title: "Erro", description: error?.message, variant: "destructive" }); setSaving(false); return; }
@@ -127,9 +129,22 @@ const EmpresaNovoProjeto = () => {
               <div className="space-y-2"><SectionLabel>Problema Atual</SectionLabel><Textarea value={form.problema_atual} onChange={(e) => setForm({ ...form, problema_atual: e.target.value })} rows={2} placeholder="Descreva o problema a resolver" /></div>
               <div className="space-y-2"><SectionLabel>Objetivo</SectionLabel><Textarea value={form.objetivo} onChange={(e) => setForm({ ...form, objetivo: e.target.value })} rows={2} /></div>
             </div>
-            <div className="space-y-2 max-w-xs"><SectionLabel>Prazo Estimado</SectionLabel><Input type="date" value={form.prazo_estimado} onChange={(e) => setForm({ ...form, prazo_estimado: e.target.value })} /></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div className="space-y-2"><SectionLabel>Prazo Estimado</SectionLabel><Input type="date" value={form.prazo_estimado} onChange={(e) => setForm({ ...form, prazo_estimado: e.target.value })} /></div>
+              <div className="space-y-2">
+                <SectionLabel>Modelo de Contratação *</SectionLabel>
+                <Select value={form.modelo_contratacao} onValueChange={(v) => setForm({ ...form, modelo_contratacao: v as any })}>
+                  <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="presencial">Presencial</SelectItem>
+                    <SelectItem value="hibrido">Híbrido</SelectItem>
+                    <SelectItem value="remoto">Remoto</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
             <div className="flex justify-end pt-2">
-              <Button onClick={() => setStep(1)} disabled={!form.nome}>Próximo <ArrowRight size={14} /></Button>
+              <Button onClick={() => setStep(1)} disabled={!form.nome || !form.modelo_contratacao}>Próximo <ArrowRight size={14} /></Button>
             </div>
           </div>
         )}
