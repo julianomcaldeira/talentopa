@@ -155,7 +155,7 @@ const ConsultorProjetos = () => {
                   </div>
                   <div className="flex items-center gap-2 flex-wrap justify-end">
                     {(p.local_cidade || p.local_estado) && (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs font-bold bg-accent/15 text-accent-foreground border-accent/30">
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs font-bold bg-primary text-primary-foreground border-primary shadow-sm">
                         <MapPin size={12} />
                         {[p.local_cidade, p.local_estado].filter(Boolean).join(" / ")}
                       </span>
