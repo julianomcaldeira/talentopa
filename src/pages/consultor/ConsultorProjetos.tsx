@@ -154,12 +154,6 @@ const ConsultorProjetos = () => {
                     </div>
                   </div>
                   <div className="flex items-center gap-2 flex-wrap justify-end">
-                    {(p.local_cidade || p.local_estado) && (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs font-bold bg-primary text-primary-foreground border-primary shadow-sm">
-                        <MapPin size={12} />
-                        {[p.local_cidade, p.local_estado].filter(Boolean).join(" / ")}
-                      </span>
-                    )}
                     <ModeloContratacaoBadge modelo={p.modelo_contratacao} />
                     {score > 0 && (
                       <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs font-bold ${scoreBg(score)} ${scoreColor(score)}`}>
@@ -174,6 +168,12 @@ const ConsultorProjetos = () => {
                 {p.descricao && <p className="text-sm text-muted-foreground mb-3 pl-[54px]">{p.descricao}</p>}
 
                 <div className="flex flex-wrap gap-3 pl-[54px] mb-4">
+                  {(p.local_cidade || p.local_estado) && (
+                    <span className="inline-flex items-center gap-1.5 text-xs font-bold bg-primary/10 text-primary border border-primary/30 px-2.5 py-1 rounded-lg">
+                      <MapPin size={12} />
+                      {[p.local_cidade, p.local_estado].filter(Boolean).join(" / ")}
+                    </span>
+                  )}
                   {p.objetivo && (
                     <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/60 px-2.5 py-1 rounded-lg">
                       <Target size={12} /> {p.objetivo.substring(0, 60)}{p.objetivo.length > 60 ? "..." : ""}

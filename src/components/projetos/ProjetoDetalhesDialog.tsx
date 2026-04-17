@@ -13,9 +13,9 @@ interface Props {
 }
 
 const modeloLabels: Record<string, { label: string; className: string }> = {
-  presencial: { label: "Presencial", className: "bg-warning/15 text-warning border-warning/30" },
-  hibrido: { label: "Híbrido", className: "bg-primary/15 text-primary border-primary/30" },
-  remoto: { label: "Remoto", className: "bg-success/15 text-success border-success/30" },
+  presencial: { label: "Presencial", className: "bg-warning text-warning-foreground border-warning shadow-sm" },
+  hibrido: { label: "Híbrido", className: "bg-primary text-primary-foreground border-primary shadow-sm" },
+  remoto: { label: "Remoto", className: "bg-success text-success-foreground border-success shadow-sm" },
 };
 
 export const ModeloContratacaoBadge = ({ modelo }: { modelo?: string | null }) => {
