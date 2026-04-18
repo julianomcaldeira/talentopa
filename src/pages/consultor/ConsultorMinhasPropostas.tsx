@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ProjectCommunication } from "@/components/communication/ProjectCommunication";
 import { ModeloContratacaoBadge } from "@/components/projetos/ProjetoDetalhesDialog";
+import { ViewToggle, ViewMode } from "@/components/ui/view-toggle";
 
 const formatCurrency = (val: number) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(val);
@@ -31,6 +32,7 @@ const ConsultorMinhasPropostas = () => {
   const [filterSoftware, setFilterSoftware] = useState<string>("all");
   const [filterPeriodo, setFilterPeriodo] = useState<string>("all"); // 7, 30, 90, all
   const [page, setPage] = useState(1);
+  const [viewMode, setViewMode] = useState<ViewMode>("list");
 
   useEffect(() => {
     if (!user) return;
@@ -149,59 +151,133 @@ const ConsultorMinhasPropostas = () => {
         </div>
       </DataCard>
 
-      <DataCard noPadding>
-        {loading ? (
-          <LoadingState />
-        ) : filtered.length === 0 ? (
-          <EmptyState message={propostas.length === 0 ? "Você ainda não enviou nenhuma proposta" : "Nenhuma proposta corresponde aos filtros"} icon={Send} />
-        ) : (
-          <div className="divide-y divide-border/60">
-            {paged.map((p) => (
-              <div key={p.id} className="p-4 px-5">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-3.5 min-w-0">
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                      p.status === "aceita" ? "bg-success/10" : p.status === "recusada" ? "bg-destructive/10" : "bg-info/10"
-                    }`}>
-                      {p.status === "aceita" ? <CheckCircle2 size={18} className="text-success" />
-                        : p.status === "recusada" ? <XCircle size={18} className="text-destructive" />
-                        : <Clock size={18} className="text-info" />}
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium text-foreground truncate">{p.projetos?.nome}</p>
-                      <p className="text-xs text-muted-foreground truncate">
-                        {p.projetos?.softwares?.nome} · {p.projetos?.protocolo} · {p.estimativa_horas || 0}h · {formatDate(p.created_at)}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3 flex-shrink-0">
-                    <span className="text-sm font-semibold text-foreground">{formatCurrency(p.valor_proposta || 0)}</span>
-                    <StatusBadge status={p.status} />
-                  </div>
-                </div>
-                {p.comentarios && (
-                  <p className="text-xs text-muted-foreground mt-2 ml-[54px] line-clamp-2">{p.comentarios}</p>
-                )}
-                <div className="ml-[54px] mt-3 flex gap-2 flex-wrap">
-                  <Button variant="outline" size="sm" onClick={() => setDetalheProposta(p)}>
-                    <Eye size={14} /> Ver detalhes
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={() => setChatProposta(chatProposta?.id === p.id ? null : p)}>
-                    <MessageSquare size={14} /> Comunicação
-                  </Button>
-                </div>
-                {chatProposta?.id === p.id && p.projetos?.id && (
-                  <div className="ml-[54px] mt-3">
-                    <ProjectCommunication projetoId={p.projetos.id} projetoNome={p.projetos.nome} isEmpresa={false} />
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-      </DataCard>
+      {!loading && filtered.length > 0 && (
+        <div className="flex items-center justify-between">
+          <p className="text-xs text-muted-foreground">
+            {filtered.length} proposta{filtered.length > 1 ? "s" : ""}
+          </p>
+          <ViewToggle value={viewMode} onChange={setViewMode} />
+        </div>
+      )}
 
-      {!loading && totalPages > 1 && (
+      {(() => {
+        const renderRow = (p: any) => (
+          <div key={p.id} className="p-4 px-5">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3.5 min-w-0">
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                  p.status === "aceita" ? "bg-success/10" : p.status === "recusada" ? "bg-destructive/10" : "bg-info/10"
+                }`}>
+                  {p.status === "aceita" ? <CheckCircle2 size={18} className="text-success" />
+                    : p.status === "recusada" ? <XCircle size={18} className="text-destructive" />
+                    : <Clock size={18} className="text-info" />}
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-foreground truncate">{p.projetos?.nome}</p>
+                  <p className="text-xs text-muted-foreground truncate">
+                    {p.projetos?.softwares?.nome} · {p.projetos?.protocolo} · {p.estimativa_horas || 0}h · {formatDate(p.created_at)}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 flex-shrink-0">
+                <span className="text-sm font-semibold text-foreground">{formatCurrency(p.valor_proposta || 0)}</span>
+                <StatusBadge status={p.status} />
+              </div>
+            </div>
+            {p.comentarios && (
+              <p className="text-xs text-muted-foreground mt-2 ml-[54px] line-clamp-2">{p.comentarios}</p>
+            )}
+            <div className="ml-[54px] mt-3 flex gap-2 flex-wrap">
+              <Button variant="outline" size="sm" onClick={() => setDetalheProposta(p)}>
+                <Eye size={14} /> Ver detalhes
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setChatProposta(chatProposta?.id === p.id ? null : p)}>
+                <MessageSquare size={14} /> Comunicação
+              </Button>
+            </div>
+            {chatProposta?.id === p.id && p.projetos?.id && (
+              <div className="ml-[54px] mt-3">
+                <ProjectCommunication projetoId={p.projetos.id} projetoNome={p.projetos.nome} isEmpresa={false} />
+              </div>
+            )}
+          </div>
+        );
+
+        const renderKanbanCard = (p: any) => (
+          <div key={p.id} className="bg-background border border-border/60 rounded-lg p-3 hover:border-primary/40 transition-colors">
+            <div className="flex items-start justify-between gap-2 mb-2">
+              <p className="text-xs font-semibold text-foreground line-clamp-2 flex-1">{p.projetos?.nome}</p>
+              <span className="text-[10px] text-muted-foreground tabular-nums shrink-0">{formatDate(p.created_at)}</span>
+            </div>
+            <p className="text-[10px] text-muted-foreground mb-2 truncate">
+              {p.projetos?.softwares?.nome} · {p.projetos?.protocolo}
+            </p>
+            <div className="flex items-center justify-between gap-2 mb-2">
+              <span className="text-[11px] font-bold text-foreground">{formatCurrency(p.valor_proposta || 0)}</span>
+              <span className="text-[10px] text-muted-foreground">{p.estimativa_horas || 0}h</span>
+            </div>
+            <div className="flex gap-1.5">
+              <Button variant="outline" size="sm" className="h-7 text-[11px] px-2" onClick={() => setDetalheProposta(p)}>
+                <Eye size={11} /> Detalhes
+              </Button>
+              <Button variant="outline" size="sm" className="h-7 text-[11px] px-2" onClick={() => setChatProposta(chatProposta?.id === p.id ? null : p)}>
+                <MessageSquare size={11} />
+              </Button>
+            </div>
+            {chatProposta?.id === p.id && p.projetos?.id && (
+              <div className="mt-3">
+                <ProjectCommunication projetoId={p.projetos.id} projetoNome={p.projetos.nome} isEmpresa={false} />
+              </div>
+            )}
+          </div>
+        );
+
+        if (loading) return <DataCard><LoadingState /></DataCard>;
+        if (filtered.length === 0)
+          return <DataCard><EmptyState message={propostas.length === 0 ? "Você ainda não enviou nenhuma proposta" : "Nenhuma proposta corresponde aos filtros"} icon={Send} /></DataCard>;
+
+        if (viewMode === "kanban") {
+          const cols = [
+            { key: "enviada", label: "Pendentes", color: "bg-info", icon: Clock, items: filtered.filter(p => p.status === "enviada") },
+            { key: "aceita", label: "Aceitas", color: "bg-success", icon: CheckCircle2, items: filtered.filter(p => p.status === "aceita") },
+            { key: "recusada", label: "Recusadas", color: "bg-destructive", icon: XCircle, items: filtered.filter(p => p.status === "recusada") },
+          ];
+          return (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {cols.map(col => (
+                <div key={col.key} className="bg-muted/30 border border-border/60 rounded-xl p-3 min-h-[200px]">
+                  <div className="flex items-center justify-between mb-3 px-1">
+                    <div className="flex items-center gap-2">
+                      <span className={`w-2 h-2 rounded-full ${col.color}`} />
+                      <h4 className="text-xs font-semibold uppercase tracking-wider text-foreground">{col.label}</h4>
+                    </div>
+                    <span className="text-[11px] font-bold text-muted-foreground bg-background px-2 py-0.5 rounded-md border border-border/60">
+                      {col.items.length}
+                    </span>
+                  </div>
+                  <div className="space-y-2">
+                    {col.items.length === 0 ? (
+                      <p className="text-[11px] text-muted-foreground italic text-center py-6">Nenhuma proposta</p>
+                    ) : (
+                      col.items.map(renderKanbanCard)
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          );
+        }
+
+        return (
+          <DataCard noPadding>
+            <div className="divide-y divide-border/60">
+              {paged.map(renderRow)}
+            </div>
+          </DataCard>
+        );
+      })()}
+
+      {!loading && viewMode === "list" && totalPages > 1 && (
         <div className="flex items-center justify-between px-1">
           <p className="text-xs text-muted-foreground">
             Mostrando {(currentPage - 1) * PAGE_SIZE + 1}–{Math.min(currentPage * PAGE_SIZE, filtered.length)} de {filtered.length} propostas
