@@ -431,6 +431,7 @@ export type Database = {
           moderado: boolean
           motivo_bloqueio: string | null
           projeto_id: string
+          recipient_user_id: string | null
           sender_user_id: string
           tipo: string
         }
@@ -442,6 +443,7 @@ export type Database = {
           moderado?: boolean
           motivo_bloqueio?: string | null
           projeto_id: string
+          recipient_user_id?: string | null
           sender_user_id: string
           tipo?: string
         }
@@ -453,6 +455,7 @@ export type Database = {
           moderado?: boolean
           motivo_bloqueio?: string | null
           projeto_id?: string
+          recipient_user_id?: string | null
           sender_user_id?: string
           tipo?: string
         }
