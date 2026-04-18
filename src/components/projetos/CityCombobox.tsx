@@ -24,7 +24,7 @@ interface IBGEMunicipio {
 
 let cachedCities: CityOption[] | null = null;
 
-export const CityCombobox = ({ value, onChange, placeholder = "Filtrar por cidade..." }: CityComboboxProps) => {
+export const CityCombobox = ({ value, onChange, placeholder = "Filtrar por cidade...", count }: CityComboboxProps) => {
   const [open, setOpen] = useState(false);
   const [cities, setCities] = useState<CityOption[]>(cachedCities || []);
   const [loading, setLoading] = useState(!cachedCities);
