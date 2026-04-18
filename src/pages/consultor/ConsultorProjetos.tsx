@@ -170,9 +170,10 @@ const ConsultorProjetos = () => {
         if (!scope || !scope.modulos.includes(filterModulo)) return false;
       }
       if (filterSegmento !== "all" && p.empresa_segmento !== filterSegmento) return false;
+      if (onlyCompatible && getMatchScore(p) <= 50) return false;
       return true;
     });
-  }, [projetos, filterCity, filterSoftware, filterModulo, filterSegmento, projetoScopes]);
+  }, [projetos, filterCity, filterSoftware, filterModulo, filterSegmento, onlyCompatible, projetoScopes, mySkills]);
 
   const sortedProjetos = useMemo(() => [...filteredProjetos].sort((a, b) => getMatchScore(b) - getMatchScore(a)), [filteredProjetos, mySkills, projetoScopes]);
   const totalPages = Math.max(1, Math.ceil(sortedProjetos.length / PAGE_SIZE));
