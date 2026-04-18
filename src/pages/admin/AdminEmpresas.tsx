@@ -1,14 +1,45 @@
 import { useState, useEffect } from "react";
-import { Building2, Search, MapPin, Phone, Mail, Globe, Users, Calendar, Eye, RefreshCw, UserPlus, Briefcase, CheckCircle2, DollarSign, Loader2 } from "lucide-react";
+import { Building2, Search, MapPin, Phone, Mail, Globe, Users, Calendar, Eye, RefreshCw, UserPlus, Briefcase, CheckCircle2, DollarSign, Loader2, Trash2, Plus, ShieldCheck, Wallet, Wrench } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { PageHeader, DataCard, EmptyState, LoadingState, StatusBadge, SectionTitle } from "@/components/dashboard/DashboardComponents";
 import { Badge } from "@/components/ui/badge";
+
+type PapelEmpresa = "responsavel" | "financeiro" | "operacional";
+
+const PAPEL_LABELS: Record<PapelEmpresa, string> = {
+  responsavel: "Responsável",
+  financeiro: "Financeiro",
+  operacional: "Operacional",
+};
+
+const PAPEL_ICONS: Record<PapelEmpresa, any> = {
+  responsavel: ShieldCheck,
+  financeiro: Wallet,
+  operacional: Wrench,
+};
+
+interface EmpresaUsuarioRow {
+  id: string;
+  user_id: string;
+  papel: PapelEmpresa;
+  observacoes: string | null;
+  created_at: string;
+  isOwner?: boolean;
+  profile?: {
+    nome: string;
+    email: string;
+    telefone: string | null;
+    status: string;
+    avatar_url: string | null;
+  };
+}
 
 interface EmpresaRow {
   id: string;
