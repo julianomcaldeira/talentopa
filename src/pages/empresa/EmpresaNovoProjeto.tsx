@@ -10,7 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { PageHeader, DataCard } from "@/components/dashboard/DashboardComponents";
-import { ArrowLeft, ArrowRight, Check, FileText, Target, Settings, Rocket, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, FileText, Target, Settings, Rocket, Plus, Trash2, Copy, Sparkles } from "lucide-react";
 
 const SectionLabel = ({ children }: { children: React.ReactNode }) => (
   <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{children}</Label>
