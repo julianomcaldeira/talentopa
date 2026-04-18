@@ -64,7 +64,7 @@ const ProjetoGestao = () => {
     setPropostaAceita(propRes.data);
     setEntregaveis(entRes.data || []);
 
-    const uploaderIds = [...new Set((entRes.data || []).map((e: any) => e.uploader_user_id as string))];
+    const uploaderIds: string[] = Array.from(new Set((entRes.data || []).map((e: any) => String(e.uploader_user_id))));
     if (uploaderIds.length > 0) {
       const { data: profs } = await supabase.from("profiles").select("user_id, nome").in("user_id", uploaderIds);
       setUploaderProfiles(new Map((profs || []).map(p => [p.user_id, p.nome])));
