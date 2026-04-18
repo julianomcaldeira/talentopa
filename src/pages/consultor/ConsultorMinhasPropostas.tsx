@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { PageHeader, DataCard, StatusBadge, EmptyState, LoadingState, StatCard } from "@/components/dashboard/DashboardComponents";
-import { Send, CheckCircle2, XCircle, Clock, Eye, MessageSquare, Filter, X, Search, Calendar } from "lucide-react";
+import { Send, CheckCircle2, XCircle, Clock, Eye, MessageSquare, Filter, X, Search, Calendar, Archive, ArchiveRestore, GripVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,6 +11,18 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { ProjectCommunication } from "@/components/communication/ProjectCommunication";
 import { ModeloContratacaoBadge } from "@/components/projetos/ProjetoDetalhesDialog";
 import { ViewToggle, ViewMode } from "@/components/ui/view-toggle";
+import { toast } from "sonner";
+import {
+  DndContext,
+  DragEndEvent,
+  DragOverlay,
+  DragStartEvent,
+  PointerSensor,
+  useDraggable,
+  useDroppable,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
 
 const formatCurrency = (val: number) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(val);
