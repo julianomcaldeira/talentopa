@@ -117,6 +117,9 @@ const EmpresaProjetos = () => {
                   <Button size="sm" variant="outline" onClick={() => setChatProjeto(chatProjeto?.id === p.id ? null : p)}>
                     <MessageSquare size={14} /> Comunicação
                   </Button>
+                  <Button size="sm" variant="outline" onClick={() => setEditProjeto(p)}>
+                    <Pencil size={14} /> Editar / atualizar
+                  </Button>
                 </div>
               )}
 
@@ -128,13 +131,20 @@ const EmpresaProjetos = () => {
 
               {(p.status === "publicado" || p.status === "em_selecao") && (
                 <div className="ml-[54px]">
-                  <ConsultorMatchList projetoId={p.id} softwareId={p.software_id} />
+                  <ConsultorMatchList projetoId={p.id} projetoNome={p.nome} softwareId={p.software_id} />
                 </div>
               )}
             </DataCard>
           ))}
         </div>
       )}
+
+      <ProjetoEditDialog
+        open={!!editProjeto}
+        onOpenChange={(o) => { if (!o) setEditProjeto(null); }}
+        projeto={editProjeto}
+        onSaved={() => { refetch(); }}
+      />
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto custom-scrollbar">
