@@ -58,7 +58,7 @@ export const CityCombobox = ({ value, onChange, placeholder = "Filtrar por cidad
           <Button variant="outline" role="combobox" aria-expanded={open} className="justify-between min-w-[220px]">
             <span className="flex items-center gap-2 truncate">
               <MapPin size={14} className="text-primary" />
-              {value ? <span className="truncate">{value.cidade} / {value.estado}</span> : <span className="text-muted-foreground">{placeholder}</span>}
+              {value ? <span className="truncate">{value.cidade} / {value.estado}{typeof count === "number" ? ` (${count})` : ""}</span> : <span className="text-muted-foreground">{placeholder}</span>}
             </span>
             <ChevronsUpDown size={14} className="opacity-50 shrink-0" />
           </Button>
