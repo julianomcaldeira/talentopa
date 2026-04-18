@@ -279,6 +279,24 @@ export const ConsultorMatchList = ({ projetoId, projetoNome, softwareId, onInvit
                               {m.bio_profissional}
                             </p>
                           )}
+
+                          <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-border/50">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => { setSelected(m); setDetailOpen(true); }}
+                              className="h-8 text-xs"
+                            >
+                              <Eye size={12} /> Ver perfil completo
+                            </Button>
+                            <Button
+                              size="sm"
+                              onClick={() => { setSelected(m); setDetailOpen(true); }}
+                              className="h-8 text-xs"
+                            >
+                              <MessageSquare size={12} /> Conversar
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     </DataCard>
@@ -289,6 +307,23 @@ export const ConsultorMatchList = ({ projetoId, projetoNome, softwareId, onInvit
           </motion.div>
         )}
       </AnimatePresence>
+
+      <ConsultorDetailDialog
+        open={detailOpen}
+        onOpenChange={setDetailOpen}
+        consultor={selected ? {
+          user_id: selected.user_id,
+          nome: selected.nome,
+          cidade: selected.cidade,
+          estado: selected.estado,
+          avatar_url: selected.avatar_url,
+          bio_profissional: selected.bio_profissional,
+          linkedin: selected.linkedin,
+          score: selected.score,
+        } : null}
+        projetoId={projetoId}
+        projetoNome={projetoNome || "projeto"}
+      />
     </div>
   );
 };
