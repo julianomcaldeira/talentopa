@@ -10,7 +10,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { PageHeader, DataCard } from "@/components/dashboard/DashboardComponents";
-import { ArrowLeft, ArrowRight, Check, FileText, Target, Settings, Rocket, Plus, Trash2, Copy, Sparkles, UserCheck, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, FileText, Target, Settings, Rocket, Plus, Trash2, Copy, Sparkles, UserCheck, X, ClipboardList, Lightbulb } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 
 const SectionLabel = ({ children }: { children: React.ReactNode }) => (
   <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{children}</Label>
@@ -20,7 +21,16 @@ const steps = [
   { label: "Informações", icon: FileText },
   { label: "Escopo", icon: Target },
   { label: "Fases", icon: Settings },
+  { label: "Qualificação", icon: ClipboardList },
   { label: "Publicar", icon: Rocket },
+];
+
+const PERGUNTAS_SUGERIDAS = [
+  "Quantos projetos similares (mesmo ERP/módulos) você já entregou?",
+  "Qual sua disponibilidade semanal em horas para este projeto?",
+  "Você possui certificação oficial no ERP escolhido? Qual?",
+  "Cite 2 referências de clientes onde implantou esse escopo.",
+  "Qual sua abordagem para mitigar atrasos em integrações?",
 ];
 
 const EmpresaNovoProjeto = () => {
