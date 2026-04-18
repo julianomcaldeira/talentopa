@@ -3,7 +3,7 @@ import { Link, useLocation, Outlet, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, Server, Puzzle, Cog, FileText, Users, Building2,
   FolderKanban, DollarSign, LogOut, Menu, X, ChevronRight, Search, 
-  Star, Settings, BarChart3, BookOpen, Brain, Sparkles, MessageSquare, Trophy, Bot, FileSpreadsheet
+  Star, Settings, BarChart3, BookOpen, Brain, Sparkles, MessageSquare, Trophy, Bot, FileSpreadsheet, SlidersHorizontal
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
@@ -181,6 +181,7 @@ const adminLinks = [
   { to: "/admin/catalogo", icon: Server, label: "Catálogo ERP" },
   { to: "/admin/base-conhecimento", icon: BookOpen, label: "Base de Conhecimento" },
   { to: "/admin/relatorios", icon: FileSpreadsheet, label: "Relatórios" },
+  { to: "/admin/score-config", icon: SlidersHorizontal, label: "Config. de Score" },
 ];
 
 export const AdminLayout = () => <DashboardLayout links={adminLinks} title="Administração" />;
