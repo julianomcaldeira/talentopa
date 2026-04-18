@@ -427,7 +427,9 @@ export type Database = {
           bloqueado: boolean
           conteudo: string
           created_at: string
+          escopo: string
           id: string
+          mencionados: string[]
           moderado: boolean
           motivo_bloqueio: string | null
           projeto_id: string
@@ -439,7 +441,9 @@ export type Database = {
           bloqueado?: boolean
           conteudo: string
           created_at?: string
+          escopo?: string
           id?: string
+          mencionados?: string[]
           moderado?: boolean
           motivo_bloqueio?: string | null
           projeto_id: string
@@ -451,7 +455,9 @@ export type Database = {
           bloqueado?: boolean
           conteudo?: string
           created_at?: string
+          escopo?: string
           id?: string
+          mencionados?: string[]
           moderado?: boolean
           motivo_bloqueio?: string | null
           projeto_id?: string
@@ -1312,6 +1318,10 @@ export type Database = {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
+        Returns: boolean
+      }
+      is_empresa_team_member: {
+        Args: { _empresa_user_id: string; _user_id: string }
         Returns: boolean
       }
       log_audit_event: {
