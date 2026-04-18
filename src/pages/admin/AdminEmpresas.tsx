@@ -519,6 +519,10 @@ const AdminEmpresas = () => {
                   <Badge variant="secondary" className="text-[11px]">
                     {empresa.projetos_count} projeto{empresa.projetos_count !== 1 ? "s" : ""}
                   </Badge>
+                  <Badge variant="outline" className="text-[11px] gap-1">
+                    <Users size={11} />
+                    {empresa.usuarios_count} usuário{empresa.usuarios_count !== 1 ? "s" : ""}
+                  </Badge>
                   <StatusBadge status={empresa.profile?.status || "ativo"} labels={{ ativo: "Ativa", inativo: "Inativa" }} />
                   <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground">
                     <Eye size={14} />
