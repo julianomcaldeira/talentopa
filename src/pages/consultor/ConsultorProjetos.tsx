@@ -322,6 +322,14 @@ const ConsultorProjetos = () => {
             </Select>
           </div>
         </div>
+        <div className="mt-4 pt-3 border-t border-border/60 flex items-center gap-3">
+          <Switch id="only-compatible" checked={onlyCompatible} onCheckedChange={setOnlyCompatible} />
+          <Label htmlFor="only-compatible" className="text-xs font-semibold text-foreground cursor-pointer flex items-center gap-1.5">
+            <Star size={12} className="text-success" />
+            Apenas projetos compatíveis com minhas habilidades
+            <span className="text-muted-foreground font-normal">(match &gt; 50%)</span>
+          </Label>
+        </div>
       </DataCard>
 
       {loading ? <DataCard><LoadingState /></DataCard> : sortedProjetos.length === 0 ? (
