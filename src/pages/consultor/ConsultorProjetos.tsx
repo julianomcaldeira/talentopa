@@ -585,6 +585,7 @@ const ConsultorProjetos = () => {
         </DialogContent>
       </Dialog>
 
+      <ProjetoDetalhesDialog
         projeto={detalhesProjeto}
         open={!!detalhesProjeto}
         onOpenChange={(v) => !v && setDetalhesProjeto(null)}
