@@ -166,6 +166,37 @@ const EmpresaNovoProjeto = () => {
         {step === 0 && (
           <div className="space-y-5">
             <h3 className="font-display font-semibold text-foreground text-lg mb-2">Informações Gerais</h3>
+
+            {meusProjetos.length > 0 && (
+              <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 space-y-2">
+                <div className="flex items-center gap-2">
+                  <Sparkles size={14} className="text-primary" />
+                  <SectionLabel>Espelhar projeto anterior (opcional)</SectionLabel>
+                </div>
+                <p className="text-xs text-muted-foreground">Acelere o preenchimento copiando informações, escopo e fases de um projeto já publicado.</p>
+                <div className="flex gap-2">
+                  <Select value={espelhandoId} onValueChange={espelharProjeto}>
+                    <SelectTrigger className="bg-background"><SelectValue placeholder="Selecione um projeto para espelhar..." /></SelectTrigger>
+                    <SelectContent>
+                      {meusProjetos.map(p => (
+                        <SelectItem key={p.id} value={p.id}>
+                          {p.nome} <span className="text-muted-foreground ml-1 text-[11px]">· {new Date(p.created_at).toLocaleDateString("pt-BR")}</span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {espelhandoId && (
+                    <Button type="button" variant="ghost" size="sm" onClick={() => { setEspelhandoId(""); }} className="shrink-0">
+                      Limpar
+                    </Button>
+                  )}
+                </div>
+                {espelhandoId && (
+                  <p className="text-[11px] text-primary flex items-center gap-1"><Copy size={10} /> Dados copiados — ajuste o que precisar antes de publicar.</p>
+                )}
+              </div>
+            )}
+
             <div className="space-y-2"><SectionLabel>Nome do Projeto *</SectionLabel><Input value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} placeholder="Ex: Implantação TOTVS - Módulo Financeiro" /></div>
             <div className="space-y-2"><SectionLabel>Descrição</SectionLabel><Textarea value={form.descricao} onChange={(e) => setForm({ ...form, descricao: e.target.value })} rows={3} /></div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
