@@ -33,6 +33,7 @@ const ConsultorProjetos = () => {
   const [myPropostas, setMyPropostas] = useState<Map<string, string>>(new Map());
   const [detalhesProjeto, setDetalhesProjeto] = useState<any | null>(null);
   const [page, setPage] = useState(1);
+  const [viewMode, setViewMode] = useState<ViewMode>("list");
   const PAGE_SIZE = 5;
 
   // Filter options
