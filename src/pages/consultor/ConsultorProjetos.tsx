@@ -192,6 +192,64 @@ const ConsultorProjetos = () => {
     return modulos.filter(m => m.software_id === filterSoftware);
   }, [modulos, filterSoftware]);
 
+  // Faceted counts: each filter dimension counts projects passing ALL OTHER filters
+  type FilterKey = "city" | "software" | "modulo" | "segmento";
+  const matchesExcept = (p: any, except: FilterKey) => {
+    if (except !== "city" && filterCity) {
+      if ((p.local_cidade || "").toLowerCase() !== filterCity.cidade.toLowerCase()
+        || (p.local_estado || "").toUpperCase() !== filterCity.estado.toUpperCase()) return false;
+    }
+    if (except !== "software" && filterSoftware !== "all" && p.software_id !== filterSoftware) return false;
+    if (except !== "modulo" && filterModulo !== "all") {
+      const scope = projetoScopes.get(p.id);
+      if (!scope || !scope.modulos.includes(filterModulo)) return false;
+    }
+    if (except !== "segmento" && filterSegmento !== "all" && p.empresa_segmento !== filterSegmento) return false;
+    return true;
+  };
+
+  const softwareCounts = useMemo(() => {
+    const m = new Map<string, number>();
+    let all = 0;
+    projetos.forEach(p => {
+      if (!matchesExcept(p, "software")) return;
+      all++;
+      if (p.software_id) m.set(p.software_id, (m.get(p.software_id) || 0) + 1);
+    });
+    return { all, byId: m };
+  }, [projetos, filterCity, filterModulo, filterSegmento, projetoScopes]);
+
+  const moduloCounts = useMemo(() => {
+    const m = new Map<string, number>();
+    let all = 0;
+    projetos.forEach(p => {
+      if (!matchesExcept(p, "modulo")) return;
+      all++;
+      const scope = projetoScopes.get(p.id);
+      scope?.modulos.forEach(modId => m.set(modId, (m.get(modId) || 0) + 1));
+    });
+    return { all, byId: m };
+  }, [projetos, filterCity, filterSoftware, filterSegmento, projetoScopes]);
+
+  const segmentoCounts = useMemo(() => {
+    const m = new Map<string, number>();
+    let all = 0;
+    projetos.forEach(p => {
+      if (!matchesExcept(p, "segmento")) return;
+      all++;
+      if (p.empresa_segmento) m.set(p.empresa_segmento, (m.get(p.empresa_segmento) || 0) + 1);
+    });
+    return { all, byId: m };
+  }, [projetos, filterCity, filterSoftware, filterModulo, projetoScopes]);
+
+  const cityCount = useMemo(() => {
+    if (!filterCity) return 0;
+    return projetos.filter(p => matchesExcept(p, "city")
+      && (p.local_cidade || "").toLowerCase() === filterCity.cidade.toLowerCase()
+      && (p.local_estado || "").toUpperCase() === filterCity.estado.toUpperCase()
+    ).length;
+  }, [projetos, filterCity, filterSoftware, filterModulo, filterSegmento, projetoScopes]);
+
   const hasActiveFilters = filterCity || filterSoftware !== "all" || filterModulo !== "all" || filterSegmento !== "all";
 
   const clearFilters = () => {
