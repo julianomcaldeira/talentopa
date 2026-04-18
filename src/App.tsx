@@ -34,6 +34,7 @@ import EmpresaDashboard from "./pages/empresa/EmpresaDashboard";
 import EmpresaPerfil from "./pages/empresa/EmpresaPerfil";
 import EmpresaNovoProjeto from "./pages/empresa/EmpresaNovoProjeto";
 import EmpresaProjetos from "./pages/empresa/EmpresaProjetos";
+import EmpresaConsultoresHistorico from "./pages/empresa/EmpresaConsultoresHistorico";
 import AdminRelatorios from "./pages/admin/AdminRelatorios";
 import AdminScoreConfig from "./pages/admin/AdminScoreConfig";
 import ConsultorRelatorios from "./pages/consultor/ConsultorRelatorios";
@@ -103,6 +104,7 @@ const App = () => (
             <Route path="/empresa" element={<ProtectedRoute allowedRoles={["empresa"]}><EmpresaLayout /></ProtectedRoute>}>
               <Route index element={<EmpresaDashboard />} />
               <Route path="projetos" element={<EmpresaProjetos />} />
+              <Route path="consultores" element={<EmpresaConsultoresHistorico />} />
               <Route path="novo-projeto" element={<EmpresaNovoProjeto />} />
               <Route path="perfil" element={<EmpresaPerfil />} />
               <Route path="relatorios" element={<EmpresaRelatorios />} />
