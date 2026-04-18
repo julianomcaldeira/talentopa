@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,7 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { PageHeader, DataCard } from "@/components/dashboard/DashboardComponents";
-import { ArrowLeft, ArrowRight, Check, FileText, Target, Settings, Rocket, Plus, Trash2, Copy, Sparkles } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, FileText, Target, Settings, Rocket, Plus, Trash2, Copy, Sparkles, UserCheck, X } from "lucide-react";
 
 const SectionLabel = ({ children }: { children: React.ReactNode }) => (
   <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{children}</Label>
@@ -27,6 +27,7 @@ const EmpresaNovoProjeto = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [step, setStep] = useState(0);
   const [softwares, setSoftwares] = useState<any[]>([]);
   const [modulos, setModulos] = useState<any[]>([]);
@@ -35,6 +36,7 @@ const EmpresaNovoProjeto = () => {
   const [meusProjetos, setMeusProjetos] = useState<any[]>([]);
   const [espelhandoId, setEspelhandoId] = useState<string>("");
   const [saving, setSaving] = useState(false);
+  const [recontratarConsultor, setRecontratarConsultor] = useState<{ user_id: string; nome: string; avatar_url: string | null } | null>(null);
 
   const [form, setForm] = useState({
     nome: "", descricao: "", problema_atual: "", objetivo: "", prazo_estimado: "",
