@@ -3,10 +3,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { DataCard, LoadingState, EmptyState } from "@/components/dashboard/DashboardComponents";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Star, MapPin, Award, Zap, ChevronDown, ChevronUp, Trophy } from "lucide-react";
+import { Star, MapPin, Award, Zap, ChevronDown, ChevronUp, Trophy, Eye, MessageSquare } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import { useScoreConfig } from "@/hooks/useScoreConfig";
+import { ConsultorDetailDialog } from "./ConsultorDetailDialog";
 
 interface ConsultorMatch {
   user_id: string;
@@ -28,14 +29,17 @@ interface ConsultorMatch {
 
 interface Props {
   projetoId: string;
+  projetoNome?: string;
   softwareId: string | null;
   onInvite?: (userId: string) => void;
 }
 
-export const ConsultorMatchList = ({ projetoId, softwareId, onInvite }: Props) => {
+export const ConsultorMatchList = ({ projetoId, projetoNome, softwareId, onInvite }: Props) => {
   const [matches, setMatches] = useState<ConsultorMatch[]>([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState(true);
+  const [selected, setSelected] = useState<ConsultorMatch | null>(null);
+  const [detailOpen, setDetailOpen] = useState(false);
   const { config: scoreCfg } = useScoreConfig();
 
   useEffect(() => {
