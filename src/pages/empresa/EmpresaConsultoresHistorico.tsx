@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Input } from "@/components/ui/input";
@@ -6,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { PageHeader, DataCard, StatusBadge, EmptyState, LoadingState, StatCard } from "@/components/dashboard/DashboardComponents";
-import { Users, Search, Star, FolderKanban, Clock, DollarSign, MapPin, Linkedin, Award, TrendingUp, CheckCircle2, Eye, Briefcase } from "lucide-react";
+import { Users, Search, Star, FolderKanban, Clock, DollarSign, MapPin, Linkedin, Award, TrendingUp, CheckCircle2, Eye, Briefcase, RotateCcw } from "lucide-react";
 
 type ConsultorAgg = {
   user_id: string;
@@ -41,6 +42,10 @@ type ConsultorAgg = {
 
 const EmpresaConsultoresHistorico = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const recontratar = (c: ConsultorAgg) => {
+    navigate(`/empresa/projetos/novo?recontratar=${c.user_id}&nome=${encodeURIComponent(c.nome)}`);
+  };
   const [loading, setLoading] = useState(true);
   const [consultores, setConsultores] = useState<ConsultorAgg[]>([]);
   const [search, setSearch] = useState("");
@@ -325,9 +330,14 @@ const EmpresaConsultoresHistorico = () => {
                 <span className="flex items-center gap-1"><TrendingUp size={11} /> Última: {fmtData(c.ultima_contratacao)}</span>
               </div>
 
-              <Button size="sm" variant="outline" className="mt-auto" onClick={() => setSelected(c)}>
-                <Eye size={14} /> Ver histórico completo
-              </Button>
+              <div className="mt-auto flex gap-2">
+                <Button size="sm" variant="outline" className="flex-1" onClick={() => setSelected(c)}>
+                  <Eye size={14} /> Histórico
+                </Button>
+                <Button size="sm" className="flex-1" onClick={() => recontratar(c)}>
+                  <RotateCcw size={14} /> Recontratar
+                </Button>
+              </div>
             </DataCard>
           ))}
         </div>
