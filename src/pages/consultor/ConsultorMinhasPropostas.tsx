@@ -228,6 +228,31 @@ const ConsultorMinhasPropostas = () => {
               <Button variant="outline" size="sm" onClick={() => setChatProposta(chatProposta?.id === p.id ? null : p)}>
                 <MessageSquare size={14} /> Comunicação
               </Button>
+              {p.status === "aguardando_consultor" && (
+                <>
+                  <Button size="sm" onClick={async () => {
+                    const { error } = await (supabase as any).rpc("consultor_confirmar_inicio", { p_proposta_id: p.id });
+                    if (error) { toast.error(error.message); return; }
+                    toast.success("Projeto iniciado! Acompanhe na gestão compartilhada.");
+                    window.location.reload();
+                  }}>
+                    <CheckCircle2 size={14} /> Confirmar início
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={async () => {
+                    const { error } = await (supabase as any).rpc("consultor_recusar_inicio", { p_proposta_id: p.id });
+                    if (error) { toast.error(error.message); return; }
+                    toast.success("Você recusou o início do projeto.");
+                    window.location.reload();
+                  }}>
+                    <XCircle size={14} /> Recusar
+                  </Button>
+                </>
+              )}
+              {p.status === "aceita" && p.projetos?.id && (
+                <Button size="sm" onClick={() => window.location.href = `/projetos/${p.projetos.id}/gestao`}>
+                  Gestão do projeto
+                </Button>
+              )}
             </div>
             {chatProposta?.id === p.id && p.projetos?.id && (
               <div className="ml-[54px] mt-3">

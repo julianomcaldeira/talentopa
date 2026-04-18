@@ -133,19 +133,26 @@ const EmpresaProjetos = () => {
   };
 
   const renderActions = (p: any) => (
-    (p.status === "publicado" || p.status === "em_selecao" || p.status === "em_andamento") && (
-      <div className="flex flex-wrap items-center gap-2">
-        <Button size="sm" variant="outline" onClick={() => viewPropostas(p)}>
-          <Eye size={14} /> Ver propostas
+    <div className="flex flex-wrap items-center gap-2">
+      {(p.status === "publicado" || p.status === "em_selecao" || p.status === "em_andamento") && (
+        <>
+          <Button size="sm" variant="outline" onClick={() => viewPropostas(p)}>
+            <Eye size={14} /> Ver propostas
+          </Button>
+          <Button size="sm" variant="outline" onClick={() => setChatProjeto(chatProjeto?.id === p.id ? null : p)}>
+            <MessageSquare size={14} /> Comunicação
+          </Button>
+          <Button size="sm" variant="outline" onClick={() => setEditProjeto(p)}>
+            <Pencil size={14} /> Editar
+          </Button>
+        </>
+      )}
+      {(p.status === "em_andamento" || p.status === "concluido") && (
+        <Button size="sm" onClick={() => navigate(`/projetos/${p.id}/gestao`)}>
+          <Settings2 size={14} /> Gestão compartilhada
         </Button>
-        <Button size="sm" variant="outline" onClick={() => setChatProjeto(chatProjeto?.id === p.id ? null : p)}>
-          <MessageSquare size={14} /> Comunicação
-        </Button>
-        <Button size="sm" variant="outline" onClick={() => setEditProjeto(p)}>
-          <Pencil size={14} /> Editar
-        </Button>
-      </div>
-    )
+      )}
+    </div>
   );
 
   const projectsByStatus = useMemo(() => {
