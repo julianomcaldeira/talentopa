@@ -150,7 +150,7 @@ const EmpresaProjetos = () => {
         </>
       )}
       {(p.status === "em_andamento" || p.status === "concluido") && (
-        <Button size="sm" onClick={() => navigate(`/projetos/${p.id}/gestao`)}>
+        <Button size="sm" onClick={() => navigate(`/empresa/projetos/${p.id}/gestao`)}>
           <Settings2 size={14} /> Gestão compartilhada
         </Button>
       )}

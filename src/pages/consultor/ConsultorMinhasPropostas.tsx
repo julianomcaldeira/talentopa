@@ -249,7 +249,7 @@ const ConsultorMinhasPropostas = () => {
                 </>
               )}
               {p.status === "aceita" && p.projetos?.id && (
-                <Button size="sm" onClick={() => window.location.href = `/projetos/${p.projetos.id}/gestao`}>
+                <Button size="sm" onClick={() => window.location.href = `/consultor/projetos/${p.projetos.id}/gestao`}>
                   Gestão do projeto
                 </Button>
               )}
