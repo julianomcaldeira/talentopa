@@ -1324,6 +1324,18 @@ export type Database = {
         }
         Returns: undefined
       }
+      notify_empresa_por_papel: {
+        Args: {
+          p_empresa_user_id: string
+          p_mensagem: string
+          p_papel: Database["public"]["Enums"]["papel_empresa_usuario"]
+          p_referencia_id: string
+          p_referencia_tipo: string
+          p_tipo: string
+          p_titulo: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "admin" | "consultor" | "empresa"
