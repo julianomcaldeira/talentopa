@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useScoreConfig } from "@/hooks/useScoreConfig";
 import { PageHeader, DataCard, SectionTitle } from "@/components/dashboard/DashboardComponents";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
@@ -34,6 +35,7 @@ const getLevel = (score: number) => {
 
 const ConsultorScore = () => {
   const { user } = useAuth();
+  const { config } = useScoreConfig();
   const [data, setData] = useState<ScoreData | null>(null);
   const [cases, setCases] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -41,7 +43,7 @@ const ConsultorScore = () => {
   useEffect(() => {
     if (!user) return;
     loadData();
-  }, [user]);
+  }, [user, config]);
 
   const loadData = async () => {
     if (!user) return;
@@ -89,7 +91,14 @@ const ConsultorScore = () => {
     const scoreTaxa = taxaAceitacao / 10;
     const scoreExp = Math.min(habilidades.length * 0.8, 10);
 
-    const weights = { aval: 0.30, prazo: 0.25, projetos: 0.20, taxa: 0.15, exp: 0.10 };
+    // Pesos vindos do admin (score_config) — convertidos de % para fração
+    const weights = {
+      aval: config.perf_nota_media / 100,
+      prazo: config.perf_pontualidade / 100,
+      projetos: config.perf_projetos_concluidos / 100,
+      taxa: config.perf_taxa_aceitacao / 100,
+      exp: config.perf_recomendacoes / 100,
+    };
     const overall = Math.round(
       ((scoreAval * weights.aval) + (scorePrazo * weights.prazo) + (scoreProjetos * weights.projetos) +
         (scoreTaxa * weights.taxa) + (scoreExp * weights.exp)) * 10
@@ -108,11 +117,11 @@ const ConsultorScore = () => {
       propostasAceitas: aceitas.length,
       especialidades,
       breakdown: [
-        { label: "Avaliações", score: Math.round(scoreAval * 10) / 10, max: 10, weight: weights.aval * 100, icon: Star },
-        { label: "Cumprimento de prazo", score: Math.round(scorePrazo * 10) / 10, max: 10, weight: weights.prazo * 100, icon: Clock },
-        { label: "Projetos concluídos", score: Math.round(scoreProjetos * 10) / 10, max: 10, weight: weights.projetos * 100, icon: FolderKanban },
-        { label: "Taxa de aceitação", score: Math.round(scoreTaxa * 10) / 10, max: 10, weight: weights.taxa * 100, icon: CheckCircle2 },
-        { label: "Experiência técnica", score: Math.round(scoreExp * 10) / 10, max: 10, weight: weights.exp * 100, icon: Zap },
+        { label: "Avaliações", score: Math.round(scoreAval * 10) / 10, max: 10, weight: Math.round(weights.aval * 100), icon: Star },
+        { label: "Cumprimento de prazo", score: Math.round(scorePrazo * 10) / 10, max: 10, weight: Math.round(weights.prazo * 100), icon: Clock },
+        { label: "Projetos concluídos", score: Math.round(scoreProjetos * 10) / 10, max: 10, weight: Math.round(weights.projetos * 100), icon: FolderKanban },
+        { label: "Taxa de aceitação", score: Math.round(scoreTaxa * 10) / 10, max: 10, weight: Math.round(weights.taxa * 100), icon: CheckCircle2 },
+        { label: "Experiência técnica", score: Math.round(scoreExp * 10) / 10, max: 10, weight: Math.round(weights.exp * 100), icon: Zap },
       ],
     });
     setLoading(false);

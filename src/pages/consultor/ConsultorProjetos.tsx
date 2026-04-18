@@ -15,10 +15,12 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { ProjectCommunication } from "@/components/communication/ProjectCommunication";
 import { ProjetoDetalhesDialog, ModeloContratacaoBadge } from "@/components/projetos/ProjetoDetalhesDialog";
 import { CityCombobox, CityOption } from "@/components/projetos/CityCombobox";
+import { useScoreConfig } from "@/hooks/useScoreConfig";
 
 const ConsultorProjetos = () => {
   const { user, profile } = useAuth();
   const { toast } = useToast();
+  const { config: scoreCfg } = useScoreConfig();
   const [projetos, setProjetos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [proposalDialog, setProposalDialog] = useState(false);
@@ -157,21 +159,22 @@ const ConsultorProjetos = () => {
     const relevantSkills = mySkills.filter(s => s.software_id === projeto.software_id);
     if (relevantSkills.length === 0) return 0;
 
-    let score = 20;
+    // Pesos vindos do admin (score_config)
+    let score = scoreCfg.match_software;
     const scope = projetoScopes.get(projeto.id);
     if (scope) {
       if (scope.modulos.length > 0) {
         const matched = relevantSkills.filter(s => s.modulo_id && scope.modulos.includes(s.modulo_id)).length;
-        score += Math.round((matched / scope.modulos.length) * 40);
+        score += Math.round((matched / scope.modulos.length) * scoreCfg.match_modulos);
       }
       if (scope.funcs.length > 0) {
         const matched = relevantSkills.filter(s => s.funcionalidade_id && scope.funcs.includes(s.funcionalidade_id)).length;
-        score += Math.round((matched / scope.funcs.length) * 30);
+        score += Math.round((matched / scope.funcs.length) * scoreCfg.match_funcionalidades);
       }
     }
     const nivelW: Record<string, number> = { junior: 1, pleno: 2, senior: 3, especialista: 4 };
     const maxN = Math.max(...relevantSkills.map(s => nivelW[s.nivel] || 1));
-    score += Math.round((maxN / 4) * 10);
+    score += Math.round((maxN / 4) * scoreCfg.match_senioridade);
     return Math.min(score, 100);
   };
 

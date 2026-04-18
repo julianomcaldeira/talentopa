@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Star, MapPin, Award, Zap, ChevronDown, ChevronUp, Trophy } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
+import { useScoreConfig } from "@/hooks/useScoreConfig";
 
 interface ConsultorMatch {
   user_id: string;
@@ -35,11 +36,12 @@ export const ConsultorMatchList = ({ projetoId, softwareId, onInvite }: Props) =
   const [matches, setMatches] = useState<ConsultorMatch[]>([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState(true);
+  const { config: scoreCfg } = useScoreConfig();
 
   useEffect(() => {
     if (!softwareId) { setLoading(false); return; }
     computeMatches();
-  }, [projetoId, softwareId]);
+  }, [projetoId, softwareId, scoreCfg]);
 
   const computeMatches = async () => {
     setLoading(true);
@@ -78,24 +80,24 @@ export const ConsultorMatchList = ({ projetoId, softwareId, onInvite }: Props) =
     const scored: { user_id: string; score: number; details: ConsultorMatch["matchDetails"] }[] = [];
 
     consultorMap.forEach((skills, userId) => {
-      let score = 20; // base: knows the software
+      let score = scoreCfg.match_software; // base: knows the software
 
       const matchedModulos = skills.filter(s => s.modulo_id && projetoModulos.includes(s.modulo_id));
       const matchedFuncs = skills.filter(s => s.funcionalidade_id && projetoFuncs.includes(s.funcionalidade_id));
 
-      // Module match: up to 40 points
+      // Module match (peso configurável)
       if (projetoModulos.length > 0) {
-        score += Math.round((matchedModulos.length / projetoModulos.length) * 40);
+        score += Math.round((matchedModulos.length / projetoModulos.length) * scoreCfg.match_modulos);
       }
 
-      // Feature match: up to 30 points
+      // Feature match (peso configurável)
       if (projetoFuncs.length > 0) {
-        score += Math.round((matchedFuncs.length / projetoFuncs.length) * 30);
+        score += Math.round((matchedFuncs.length / projetoFuncs.length) * scoreCfg.match_funcionalidades);
       }
 
-      // Seniority bonus: up to 10 points
+      // Seniority bonus (peso configurável)
       const maxNivel = Math.max(...skills.map(s => nivelWeight[s.nivel] || 1));
-      score += Math.round((maxNivel / 4) * 10);
+      score += Math.round((maxNivel / 4) * scoreCfg.match_senioridade);
 
       scored.push({
         user_id: userId,
