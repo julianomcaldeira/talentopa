@@ -225,10 +225,6 @@ const AdminEmpresas = () => {
     setLoading(false);
   };
 
-    setEmpresas(enriched);
-    setLoading(false);
-  };
-
   useEffect(() => { fetchEmpresas(); }, []);
 
   const consultarCnpj = async (cnpj: string) => {
