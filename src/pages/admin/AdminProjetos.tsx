@@ -380,14 +380,14 @@ const AdminProjetos = () => {
       </DataCard>
 
       {/* Pagination */}
-      {!loading && filtered.length > PAGE_SIZE && (
+      {!loading && sorted.length > PAGE_SIZE && (
         <div className="flex items-center justify-between mt-4 px-1">
           <p className="text-xs text-muted-foreground">
             Mostrando <span className="font-semibold text-foreground">{(currentPage - 1) * PAGE_SIZE + 1}</span>
             {" - "}
-            <span className="font-semibold text-foreground">{Math.min(currentPage * PAGE_SIZE, filtered.length)}</span>
+            <span className="font-semibold text-foreground">{Math.min(currentPage * PAGE_SIZE, sorted.length)}</span>
             {" de "}
-            <span className="font-semibold text-foreground">{filtered.length}</span> projetos
+            <span className="font-semibold text-foreground">{sorted.length}</span> projetos
           </p>
           <div className="flex items-center gap-2">
             <Button
