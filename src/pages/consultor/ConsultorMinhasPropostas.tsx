@@ -32,6 +32,7 @@ const ConsultorMinhasPropostas = () => {
   const [filterSoftware, setFilterSoftware] = useState<string>("all");
   const [filterPeriodo, setFilterPeriodo] = useState<string>("all"); // 7, 30, 90, all
   const [page, setPage] = useState(1);
+  const [viewMode, setViewMode] = useState<ViewMode>("list");
 
   useEffect(() => {
     if (!user) return;
