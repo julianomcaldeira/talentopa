@@ -34,6 +34,7 @@ import EmpresaPerfil from "./pages/empresa/EmpresaPerfil";
 import EmpresaNovoProjeto from "./pages/empresa/EmpresaNovoProjeto";
 import EmpresaProjetos from "./pages/empresa/EmpresaProjetos";
 import AdminRelatorios from "./pages/admin/AdminRelatorios";
+import AdminScoreConfig from "./pages/admin/AdminScoreConfig";
 import ConsultorRelatorios from "./pages/consultor/ConsultorRelatorios";
 import EmpresaRelatorios from "./pages/empresa/EmpresaRelatorios";
 const queryClient = new QueryClient();
@@ -80,6 +81,7 @@ const App = () => (
               <Route path="moderacao" element={<AdminModeracao />} />
               <Route path="base-conhecimento" element={<AdminBaseConhecimento />} />
               <Route path="relatorios" element={<AdminRelatorios />} />
+              <Route path="score-config" element={<AdminScoreConfig />} />
             </Route>
 
             {/* Consultor */}
