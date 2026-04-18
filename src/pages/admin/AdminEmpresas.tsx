@@ -125,6 +125,7 @@ const AdminEmpresas = () => {
   const [empresas, setEmpresas] = useState<EmpresaRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [papelFilter, setPapelFilter] = useState<string>("todos");
   const [selectedEmpresa, setSelectedEmpresa] = useState<EmpresaRow | null>(null);
   const [cnpjData, setCnpjData] = useState<CnpjData | null>(null);
   const [cnpjLoading, setCnpjLoading] = useState(false);
@@ -375,12 +376,31 @@ const AdminEmpresas = () => {
 
   const filtered = empresas.filter(e => {
     const term = search.toLowerCase();
-    return !term || 
+    const matchSearch = !term ||
       e.razao_social.toLowerCase().includes(term) ||
       e.nome_fantasia?.toLowerCase().includes(term) ||
       e.cnpj?.includes(term) ||
       e.profile?.email.toLowerCase().includes(term);
+    if (!matchSearch) return false;
+
+    if (papelFilter === "todos") return true;
+    const papeis = new Set((e.usuarios_resumo || []).map(u => u.papel));
+    // Dono é sempre considerado responsável; financeiro/operacional só vêm de vínculos
+    if (papelFilter === "com_responsavel") return papeis.has("responsavel");
+    if (papelFilter === "sem_responsavel") return !papeis.has("responsavel");
+    if (papelFilter === "com_financeiro") return papeis.has("financeiro");
+    if (papelFilter === "sem_financeiro") return !papeis.has("financeiro");
+    if (papelFilter === "com_operacional") return papeis.has("operacional");
+    if (papelFilter === "sem_operacional") return !papeis.has("operacional");
+    if (papelFilter === "apenas_dono") return (e.usuarios_count || 0) <= 1;
+    return true;
   });
+
+  const gapsCount = {
+    sem_financeiro: empresas.filter(e => !new Set((e.usuarios_resumo || []).map(u => u.papel)).has("financeiro")).length,
+    sem_operacional: empresas.filter(e => !new Set((e.usuarios_resumo || []).map(u => u.papel)).has("operacional")).length,
+    apenas_dono: empresas.filter(e => (e.usuarios_count || 0) <= 1).length,
+  };
 
   const handleCnpjLookupForCreate = async () => {
     const clean = newEmpresa.cnpj.replace(/\D/g, '');
@@ -463,9 +483,9 @@ const AdminEmpresas = () => {
         }
       />
 
-      {/* Search */}
-      <div className="mb-6">
-        <div className="relative max-w-md">
+      {/* Search + filtro de papel */}
+      <div className="mb-6 flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1 max-w-md">
           <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/60" />
           <Input
             placeholder="Buscar por razão social, CNPJ ou e-mail..."
@@ -474,6 +494,20 @@ const AdminEmpresas = () => {
             className="pl-10"
           />
         </div>
+        <Select value={papelFilter} onValueChange={setPapelFilter}>
+          <SelectTrigger className="w-full sm:w-72">
+            <SelectValue placeholder="Filtrar por papel" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="todos">Todas as empresas</SelectItem>
+            <SelectItem value="apenas_dono">Apenas dono cadastrado ({gapsCount.apenas_dono})</SelectItem>
+            <SelectItem value="sem_financeiro">Sem financeiro vinculado ({gapsCount.sem_financeiro})</SelectItem>
+            <SelectItem value="sem_operacional">Sem operacional vinculado ({gapsCount.sem_operacional})</SelectItem>
+            <SelectItem value="com_financeiro">Com financeiro vinculado</SelectItem>
+            <SelectItem value="com_operacional">Com operacional vinculado</SelectItem>
+            <SelectItem value="sem_responsavel">Sem responsável vinculado</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Stats */}
