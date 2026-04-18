@@ -173,9 +173,10 @@ const AdminEmpresas = () => {
     if (!empresaData) { setLoading(false); return; }
 
     const userIds = empresaData.map(e => e.user_id);
-    const [profilesRes, projetosRes] = await Promise.all([
+    const [profilesRes, projetosRes, linksRes] = await Promise.all([
       supabase.from("profiles").select("*").in("user_id", userIds),
       supabase.from("projetos").select("id, empresa_user_id").in("empresa_user_id", userIds),
+      supabase.from("empresa_usuarios").select("empresa_user_id, user_id").in("empresa_user_id", userIds),
     ]);
 
     const profileMap = new Map((profilesRes.data || []).map(p => [p.user_id, p]));
@@ -184,10 +185,19 @@ const AdminEmpresas = () => {
       projetoCountMap.set(p.empresa_user_id, (projetoCountMap.get(p.empresa_user_id) || 0) + 1);
     });
 
+    // Conta usuários únicos vinculados, incluindo sempre o dono da empresa
+    const usuariosSetMap = new Map<string, Set<string>>();
+    userIds.forEach(uid => usuariosSetMap.set(uid, new Set([uid])));
+    (linksRes.data || []).forEach(l => {
+      const set = usuariosSetMap.get(l.empresa_user_id);
+      if (set) set.add(l.user_id);
+    });
+
     const enriched: EmpresaRow[] = empresaData.map(e => ({
       ...e,
       profile: profileMap.get(e.user_id) as any,
       projetos_count: projetoCountMap.get(e.user_id) || 0,
+      usuarios_count: usuariosSetMap.get(e.user_id)?.size || 1,
     }));
 
     setEmpresas(enriched);
