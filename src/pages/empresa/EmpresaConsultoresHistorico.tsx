@@ -227,6 +227,7 @@ const EmpresaConsultoresHistorico = () => {
   const exportCSV = () => {
     const rows = buildRows();
     if (rows.length === 0) return;
+
     const headers = Object.keys(rows[0]);
     const escape = (v: any) => {
       const s = String(v ?? "");
