@@ -1005,6 +1005,51 @@ export type Database = {
           },
         ]
       }
+      score_config: {
+        Row: {
+          id: string
+          match_funcionalidades: number
+          match_modulos: number
+          match_senioridade: number
+          match_software: number
+          perf_nota_media: number
+          perf_pontualidade: number
+          perf_projetos_concluidos: number
+          perf_recomendacoes: number
+          perf_taxa_aceitacao: number
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          id?: string
+          match_funcionalidades?: number
+          match_modulos?: number
+          match_senioridade?: number
+          match_software?: number
+          perf_nota_media?: number
+          perf_pontualidade?: number
+          perf_projetos_concluidos?: number
+          perf_recomendacoes?: number
+          perf_taxa_aceitacao?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          id?: string
+          match_funcionalidades?: number
+          match_modulos?: number
+          match_senioridade?: number
+          match_software?: number
+          perf_nota_media?: number
+          perf_pontualidade?: number
+          perf_projetos_concluidos?: number
+          perf_recomendacoes?: number
+          perf_taxa_aceitacao?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       softwares: {
         Row: {
           created_at: string
