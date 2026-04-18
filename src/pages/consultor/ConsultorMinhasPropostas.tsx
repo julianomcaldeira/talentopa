@@ -45,6 +45,28 @@ const ConsultorMinhasPropostas = () => {
   const [filterPeriodo, setFilterPeriodo] = useState<string>("all"); // 7, 30, 90, all
   const [page, setPage] = useState(1);
   const [viewMode, setViewMode] = useState<ViewMode>("list");
+  const [archivedIds, setArchivedIds] = useState<Set<string>>(new Set());
+  const [activeDragId, setActiveDragId] = useState<string | null>(null);
+
+  const archiveKey = user ? `propostas_arquivadas_${user.id}` : null;
+
+  useEffect(() => {
+    if (!archiveKey) return;
+    try {
+      const raw = localStorage.getItem(archiveKey);
+      if (raw) setArchivedIds(new Set(JSON.parse(raw)));
+    } catch {}
+  }, [archiveKey]);
+
+  const setArchivedFor = (id: string, archived: boolean) => {
+    const next = new Set(archivedIds);
+    if (archived) next.add(id); else next.delete(id);
+    setArchivedIds(next);
+    if (archiveKey) localStorage.setItem(archiveKey, JSON.stringify([...next]));
+    toast.success(archived ? "Proposta arquivada" : "Proposta restaurada");
+  };
+
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
   useEffect(() => {
     if (!user) return;
