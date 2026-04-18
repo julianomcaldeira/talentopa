@@ -206,8 +206,8 @@ const EmpresaConsultoresHistorico = () => {
       />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-        <StatCard label="Consultores únicos" value={stats.totalConsultores} icon={Users} />
-        <StatCard label="Projetos contratados" value={stats.totalProjetos} icon={Briefcase} />
+        <StatCard label="Consultores únicos" value={String(stats.totalConsultores)} icon={Users} />
+        <StatCard label="Projetos contratados" value={String(stats.totalProjetos)} icon={Briefcase} />
         <StatCard label="Valor total investido" value={fmtBRL(stats.valorTotal)} icon={DollarSign} />
         <StatCard label="Nota média geral" value={stats.notaMediaGlobal ? stats.notaMediaGlobal.toFixed(1) : "—"} icon={Star} />
       </div>
