@@ -62,6 +62,9 @@ const EmpresaNovoProjeto = () => {
     { nome: "Treinamento", descricao: "", prazo: "", valor: "" },
     { nome: "Go-live", descricao: "", prazo: "", valor: "" },
   ]);
+  const [perguntas, setPerguntas] = useState<{ pergunta: string; obrigatoria: boolean }[]>([]);
+  const [novaPergunta, setNovaPergunta] = useState("");
+  const [novaObrigatoria, setNovaObrigatoria] = useState(true);
 
   useEffect(() => {
     const fetch = async () => {
