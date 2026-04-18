@@ -92,21 +92,89 @@ const AdminProjetos = () => {
 
   useEffect(() => { fetchProjetos(); }, []);
 
-  const filtered = projetos.filter(p => {
-    const term = search.toLowerCase();
-    const matchesSearch = !term ||
-      p.nome.toLowerCase().includes(term) ||
-      p.protocolo?.toLowerCase().includes(term) ||
-      p.empresa_nome?.toLowerCase().includes(term);
-    const matchesStatus = statusFilter === "todos" || p.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
+  const softwareOptions = useMemo(() => {
+    const map = new Map<string, string>();
+    projetos.forEach(p => { if (p.software_id && p.software?.nome) map.set(p.software_id, p.software.nome); });
+    return Array.from(map.entries()).sort((a, b) => a[1].localeCompare(b[1]));
+  }, [projetos]);
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const filtered = useMemo(() => {
+    const now = Date.now();
+    const day = 86400000;
+    return projetos.filter(p => {
+      const term = search.toLowerCase();
+      const matchesSearch = !term ||
+        p.nome.toLowerCase().includes(term) ||
+        p.protocolo?.toLowerCase().includes(term) ||
+        p.empresa_nome?.toLowerCase().includes(term);
+      if (!matchesSearch) return false;
+      if (statusFilter !== "todos" && p.status !== statusFilter) return false;
+      if (softwareFilter !== "todos" && p.software_id !== softwareFilter) return false;
+      if (modeloFilter !== "todos" && p.modelo_contratacao !== modeloFilter) return false;
+
+      if (healthFilter !== "todos") {
+        const score = calculateHealthScore(p.fases || [], p.prazo_estimado, p.status).score;
+        if (healthFilter === "alto" && score < 75) return false;
+        if (healthFilter === "medio" && (score < 50 || score >= 75)) return false;
+        if (healthFilter === "baixo" && score >= 50) return false;
+      }
+
+      if (propostasFilter !== "todos") {
+        const c = p.propostas_count || 0;
+        if (propostasFilter === "sem" && c !== 0) return false;
+        if (propostasFilter === "com" && c === 0) return false;
+        if (propostasFilter === "muitas" && c < 3) return false;
+      }
+
+      if (periodoFilter !== "todos") {
+        const age = now - new Date(p.created_at).getTime();
+        if (periodoFilter === "7d" && age > 7 * day) return false;
+        if (periodoFilter === "30d" && age > 30 * day) return false;
+        if (periodoFilter === "90d" && age > 90 * day) return false;
+      }
+      return true;
+    });
+  }, [projetos, search, statusFilter, softwareFilter, modeloFilter, healthFilter, propostasFilter, periodoFilter]);
+
+  const sorted = useMemo(() => {
+    const arr = [...filtered];
+    switch (sortBy) {
+      case "oldest": return arr.sort((a, b) => +new Date(a.created_at) - +new Date(b.created_at));
+      case "name_asc": return arr.sort((a, b) => a.nome.localeCompare(b.nome));
+      case "health_desc": return arr.sort((a, b) =>
+        calculateHealthScore(b.fases || [], b.prazo_estimado, b.status).score -
+        calculateHealthScore(a.fases || [], a.prazo_estimado, a.status).score);
+      case "health_asc": return arr.sort((a, b) =>
+        calculateHealthScore(a.fases || [], a.prazo_estimado, a.status).score -
+        calculateHealthScore(b.fases || [], b.prazo_estimado, b.status).score);
+      case "propostas_desc": return arr.sort((a, b) => (b.propostas_count || 0) - (a.propostas_count || 0));
+      case "prazo_asc": return arr.sort((a, b) => {
+        if (!a.prazo_estimado) return 1;
+        if (!b.prazo_estimado) return -1;
+        return +new Date(a.prazo_estimado) - +new Date(b.prazo_estimado);
+      });
+      default: return arr.sort((a, b) => +new Date(b.created_at) - +new Date(a.created_at));
+    }
+  }, [filtered, sortBy]);
+
+  const totalPages = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
-  const paginated = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const paginated = sorted.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
-  useEffect(() => { setPage(1); }, [search, statusFilter]);
+  useEffect(() => { setPage(1); }, [search, statusFilter, softwareFilter, modeloFilter, healthFilter, propostasFilter, periodoFilter, sortBy]);
+
+  const activeFiltersCount = [statusFilter, softwareFilter, modeloFilter, healthFilter, propostasFilter, periodoFilter]
+    .filter(v => v !== "todos").length;
+
+  const clearFilters = () => {
+    setStatusFilter("todos");
+    setSoftwareFilter("todos");
+    setModeloFilter("todos");
+    setHealthFilter("todos");
+    setPropostasFilter("todos");
+    setPeriodoFilter("todos");
+    setSearch("");
+  };
 
   const statusCounts = {
     total: projetos.length,
