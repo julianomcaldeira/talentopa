@@ -376,12 +376,31 @@ const AdminEmpresas = () => {
 
   const filtered = empresas.filter(e => {
     const term = search.toLowerCase();
-    return !term || 
+    const matchSearch = !term ||
       e.razao_social.toLowerCase().includes(term) ||
       e.nome_fantasia?.toLowerCase().includes(term) ||
       e.cnpj?.includes(term) ||
       e.profile?.email.toLowerCase().includes(term);
+    if (!matchSearch) return false;
+
+    if (papelFilter === "todos") return true;
+    const papeis = new Set((e.usuarios_resumo || []).map(u => u.papel));
+    // Dono é sempre considerado responsável; financeiro/operacional só vêm de vínculos
+    if (papelFilter === "com_responsavel") return papeis.has("responsavel");
+    if (papelFilter === "sem_responsavel") return !papeis.has("responsavel");
+    if (papelFilter === "com_financeiro") return papeis.has("financeiro");
+    if (papelFilter === "sem_financeiro") return !papeis.has("financeiro");
+    if (papelFilter === "com_operacional") return papeis.has("operacional");
+    if (papelFilter === "sem_operacional") return !papeis.has("operacional");
+    if (papelFilter === "apenas_dono") return (e.usuarios_count || 0) <= 1;
+    return true;
   });
+
+  const gapsCount = {
+    sem_financeiro: empresas.filter(e => !new Set((e.usuarios_resumo || []).map(u => u.papel)).has("financeiro")).length,
+    sem_operacional: empresas.filter(e => !new Set((e.usuarios_resumo || []).map(u => u.papel)).has("operacional")).length,
+    apenas_dono: empresas.filter(e => (e.usuarios_count || 0) <= 1).length,
+  };
 
   const handleCnpjLookupForCreate = async () => {
     const clean = newEmpresa.cnpj.replace(/\D/g, '');
