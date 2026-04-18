@@ -1372,7 +1372,11 @@ export type Database = {
         | "em_andamento"
         | "concluido"
         | "cancelado"
-      status_proposta: "enviada" | "aceita" | "recusada"
+      status_proposta:
+        | "enviada"
+        | "aceita"
+        | "recusada"
+        | "aguardando_consultor"
       tipo_fatura: "empresa" | "consultor" | "plataforma"
     }
     CompositeTypes: {
@@ -1524,7 +1528,12 @@ export const Constants = {
         "concluido",
         "cancelado",
       ],
-      status_proposta: ["enviada", "aceita", "recusada"],
+      status_proposta: [
+        "enviada",
+        "aceita",
+        "recusada",
+        "aguardando_consultor",
+      ],
       tipo_fatura: ["empresa", "consultor", "plataforma"],
     },
   },
