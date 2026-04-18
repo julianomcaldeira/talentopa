@@ -819,6 +819,69 @@ export type Database = {
           },
         ]
       }
+      projeto_entregaveis: {
+        Row: {
+          aprovado: boolean | null
+          aprovado_em: string | null
+          aprovado_por: string | null
+          arquivo_url: string | null
+          created_at: string
+          descricao: string | null
+          fase_id: string | null
+          id: string
+          link_url: string | null
+          nome: string
+          projeto_id: string
+          tipo: string
+          uploader_user_id: string
+        }
+        Insert: {
+          aprovado?: boolean | null
+          aprovado_em?: string | null
+          aprovado_por?: string | null
+          arquivo_url?: string | null
+          created_at?: string
+          descricao?: string | null
+          fase_id?: string | null
+          id?: string
+          link_url?: string | null
+          nome: string
+          projeto_id: string
+          tipo?: string
+          uploader_user_id: string
+        }
+        Update: {
+          aprovado?: boolean | null
+          aprovado_em?: string | null
+          aprovado_por?: string | null
+          arquivo_url?: string | null
+          created_at?: string
+          descricao?: string | null
+          fase_id?: string | null
+          id?: string
+          link_url?: string | null
+          nome?: string
+          projeto_id?: string
+          tipo?: string
+          uploader_user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "projeto_entregaveis_fase_id_fkey"
+            columns: ["fase_id"]
+            isOneToOne: false
+            referencedRelation: "projeto_fases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "projeto_entregaveis_projeto_id_fkey"
+            columns: ["projeto_id"]
+            isOneToOne: false
+            referencedRelation: "projetos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       projeto_fases: {
         Row: {
           created_at: string
@@ -1278,7 +1341,27 @@ export type Database = {
     }
     Functions: {
       aceitar_proposta: { Args: { p_proposta_id: string }; Returns: Json }
+      atualizar_fase: {
+        Args: {
+          p_fase_id: string
+          p_horas_executadas?: number
+          p_status?: Database["public"]["Enums"]["status_fase"]
+        }
+        Returns: Json
+      }
       concluir_projeto: { Args: { p_projeto_id: string }; Returns: Json }
+      consultor_confirmar_inicio: {
+        Args: { p_proposta_id: string }
+        Returns: Json
+      }
+      consultor_recusar_inicio: {
+        Args: { p_proposta_id: string }
+        Returns: Json
+      }
+      empresa_aceitar_proposta: {
+        Args: { p_proposta_id: string }
+        Returns: Json
+      }
       get_admin_advanced_metrics: { Args: never; Returns: Json }
       get_monthly_project_stats: {
         Args: never
