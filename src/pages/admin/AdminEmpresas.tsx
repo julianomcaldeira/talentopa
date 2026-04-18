@@ -125,6 +125,7 @@ const AdminEmpresas = () => {
   const [empresas, setEmpresas] = useState<EmpresaRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [papelFilter, setPapelFilter] = useState<string>("todos");
   const [selectedEmpresa, setSelectedEmpresa] = useState<EmpresaRow | null>(null);
   const [cnpjData, setCnpjData] = useState<CnpjData | null>(null);
   const [cnpjLoading, setCnpjLoading] = useState(false);
