@@ -1,14 +1,45 @@
 import { useState, useEffect } from "react";
-import { Building2, Search, MapPin, Phone, Mail, Globe, Users, Calendar, Eye, RefreshCw, UserPlus, Briefcase, CheckCircle2, DollarSign, Loader2 } from "lucide-react";
+import { Building2, Search, MapPin, Phone, Mail, Globe, Users, Calendar, Eye, RefreshCw, UserPlus, Briefcase, CheckCircle2, DollarSign, Loader2, Trash2, Plus, ShieldCheck, Wallet, Wrench } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { PageHeader, DataCard, EmptyState, LoadingState, StatusBadge, SectionTitle } from "@/components/dashboard/DashboardComponents";
 import { Badge } from "@/components/ui/badge";
+
+type PapelEmpresa = "responsavel" | "financeiro" | "operacional";
+
+const PAPEL_LABELS: Record<PapelEmpresa, string> = {
+  responsavel: "Responsável",
+  financeiro: "Financeiro",
+  operacional: "Operacional",
+};
+
+const PAPEL_ICONS: Record<PapelEmpresa, any> = {
+  responsavel: ShieldCheck,
+  financeiro: Wallet,
+  operacional: Wrench,
+};
+
+interface EmpresaUsuarioRow {
+  id: string;
+  user_id: string;
+  papel: PapelEmpresa;
+  observacoes: string | null;
+  created_at: string;
+  isOwner?: boolean;
+  profile?: {
+    nome: string;
+    email: string;
+    telefone: string | null;
+    status: string;
+    avatar_url: string | null;
+  };
+}
 
 interface EmpresaRow {
   id: string;
@@ -112,8 +143,17 @@ const AdminEmpresas = () => {
 
   // Dialog detail data
   const [empresaProjetos, setEmpresaProjetos] = useState<ProjetoEmpresa[]>([]);
-  const [empresaUsers, setEmpresaUsers] = useState<any[]>([]);
+  const [empresaUsers, setEmpresaUsers] = useState<EmpresaUsuarioRow[]>([]);
   const [detailLoading, setDetailLoading] = useState(false);
+
+  // Add user form
+  const [addUserOpen, setAddUserOpen] = useState(false);
+  const [addingUser, setAddingUser] = useState(false);
+  const [newLink, setNewLink] = useState<{ email: string; papel: PapelEmpresa; observacoes: string }>({
+    email: "",
+    papel: "operacional",
+    observacoes: "",
+  });
 
   const { toast } = useToast();
 
@@ -201,17 +241,95 @@ const AdminEmpresas = () => {
     }));
     setEmpresaProjetos(projetosEnriched);
 
-    // Fetch all users linked to this company (responsible profile)
-    // The empresa_perfil has a single user_id. We list it as the main user.
-    // If the system supports multiple users per company in the future, fetch them here.
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("user_id", empresa.user_id)
-      .maybeSingle();
-    if (profile) setEmpresaUsers([{ ...profile, papel: "Responsável" }]);
-
+    await loadEmpresaUsers(empresa);
     setDetailLoading(false);
+  };
+
+  const loadEmpresaUsers = async (empresa: EmpresaRow) => {
+    const [ownerRes, linksRes] = await Promise.all([
+      supabase.from("profiles").select("*").eq("user_id", empresa.user_id).maybeSingle(),
+      supabase.from("empresa_usuarios").select("*").eq("empresa_user_id", empresa.user_id).order("created_at", { ascending: true }),
+    ]);
+
+    const linkedUserIds = (linksRes.data || []).map(l => l.user_id);
+    const otherProfilesRes = linkedUserIds.length > 0
+      ? await supabase.from("profiles").select("*").in("user_id", linkedUserIds)
+      : { data: [] as any[] };
+    const profileMap = new Map((otherProfilesRes.data || []).map(p => [p.user_id, p]));
+
+    const rows: EmpresaUsuarioRow[] = [];
+    if (ownerRes.data) {
+      rows.push({
+        id: `owner-${empresa.user_id}`,
+        user_id: empresa.user_id,
+        papel: "responsavel",
+        observacoes: "Dono da empresa (cadastro original)",
+        created_at: empresa.created_at,
+        isOwner: true,
+        profile: ownerRes.data as any,
+      });
+    }
+    (linksRes.data || []).forEach(l => {
+      if (l.user_id === empresa.user_id && l.papel === "responsavel") return;
+      rows.push({
+        id: l.id,
+        user_id: l.user_id,
+        papel: l.papel as PapelEmpresa,
+        observacoes: l.observacoes,
+        created_at: l.created_at,
+        profile: profileMap.get(l.user_id) as any,
+      });
+    });
+    setEmpresaUsers(rows);
+  };
+
+  const handleAddUserLink = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedEmpresa) return;
+    setAddingUser(true);
+    try {
+      const { data: targetProfile, error: pErr } = await supabase
+        .from("profiles")
+        .select("user_id, nome, email")
+        .ilike("email", newLink.email.trim())
+        .maybeSingle();
+      if (pErr) throw pErr;
+      if (!targetProfile) {
+        throw new Error("Nenhum usuário cadastrado com esse e-mail. Cadastre o usuário primeiro.");
+      }
+
+      const { error: insErr } = await supabase.from("empresa_usuarios").insert({
+        empresa_user_id: selectedEmpresa.user_id,
+        user_id: targetProfile.user_id,
+        papel: newLink.papel,
+        observacoes: newLink.observacoes || null,
+      });
+      if (insErr) {
+        if ((insErr as any).code === "23505") throw new Error("Este usuário já está vinculado com este papel.");
+        throw insErr;
+      }
+
+      toast({ title: "Usuário vinculado!", description: `${targetProfile.nome} agora é ${PAPEL_LABELS[newLink.papel]}.` });
+      setNewLink({ email: "", papel: "operacional", observacoes: "" });
+      setAddUserOpen(false);
+      await loadEmpresaUsers(selectedEmpresa);
+    } catch (err: any) {
+      toast({ title: "Erro ao vincular", description: err.message, variant: "destructive" });
+    } finally {
+      setAddingUser(false);
+    }
+  };
+
+  const handleRemoveUserLink = async (linkId: string) => {
+    if (!selectedEmpresa) return;
+    if (!confirm("Remover este vínculo?")) return;
+    const { error } = await supabase.from("empresa_usuarios").delete().eq("id", linkId);
+    if (error) {
+      toast({ title: "Erro ao remover", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Vínculo removido" });
+    await loadEmpresaUsers(selectedEmpresa);
   };
 
   const openDetail = (empresa: EmpresaRow) => {
@@ -483,34 +601,56 @@ const AdminEmpresas = () => {
               </TabsContent>
 
               {/* Tab: Usuários */}
-              <TabsContent value="usuarios" className="pt-4">
+              <TabsContent value="usuarios" className="pt-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs text-muted-foreground">
+                    Vincule múltiplos usuários com papéis distintos (responsável, financeiro, operacional).
+                  </p>
+                  <Button size="sm" onClick={() => setAddUserOpen(true)} className="gap-1.5">
+                    <Plus size={14} /> Vincular usuário
+                  </Button>
+                </div>
+
                 {detailLoading ? <LoadingState /> : empresaUsers.length === 0 ? (
                   <EmptyState message="Nenhum usuário vinculado" icon={Users} />
                 ) : (
                   <div className="space-y-2">
-                    {empresaUsers.map((u) => (
-                      <div key={u.user_id} className="flex items-center justify-between p-3.5 rounded-xl border border-border/60 bg-card">
-                        <div className="flex items-center gap-3 min-w-0">
-                          <div className="icon-container icon-container-md bg-primary/10">
-                            <Users size={16} className="text-primary" />
+                    {empresaUsers.map((u) => {
+                      const Icon = PAPEL_ICONS[u.papel];
+                      return (
+                        <div key={u.id} className="flex items-center justify-between p-3.5 rounded-xl border border-border/60 bg-card">
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div className="icon-container icon-container-md bg-primary/10">
+                              <Icon size={16} className="text-primary" />
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-sm font-medium text-foreground truncate">
+                                {u.profile?.nome || "Usuário sem perfil"}
+                                {u.isOwner && <span className="ml-2 text-[10px] uppercase tracking-wider text-primary font-semibold">Dono</span>}
+                              </p>
+                              <p className="text-xs text-muted-foreground truncate flex items-center gap-2">
+                                <Mail size={11} /> {u.profile?.email || "—"}
+                                {u.profile?.telefone && (<><span>·</span><Phone size={11} /> {u.profile.telefone}</>)}
+                              </p>
+                              {u.observacoes && (
+                                <p className="text-[11px] text-muted-foreground/80 truncate mt-0.5">{u.observacoes}</p>
+                              )}
+                            </div>
                           </div>
-                          <div className="min-w-0">
-                            <p className="text-sm font-medium text-foreground truncate">{u.nome}</p>
-                            <p className="text-xs text-muted-foreground truncate flex items-center gap-2">
-                              <Mail size={11} /> {u.email}
-                              {u.telefone && (<><span>·</span><Phone size={11} /> {u.telefone}</>)}
-                            </p>
+                          <div className="flex items-center gap-2 flex-shrink-0">
+                            <Badge variant="outline" className="text-[10px] gap-1">
+                              <Icon size={10} /> {PAPEL_LABELS[u.papel]}
+                            </Badge>
+                            <StatusBadge status={u.profile?.status || "ativo"} labels={{ ativo: "Ativo", inativo: "Inativo" }} />
+                            {!u.isOwner && (
+                              <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => handleRemoveUserLink(u.id)}>
+                                <Trash2 size={14} />
+                              </Button>
+                            )}
                           </div>
                         </div>
-                        <div className="flex items-center gap-2 flex-shrink-0">
-                          <Badge variant="outline" className="text-[10px]">{u.papel}</Badge>
-                          <StatusBadge status={u.status || "ativo"} labels={{ ativo: "Ativo", inativo: "Inativo" }} />
-                        </div>
-                      </div>
-                    ))}
-                    <p className="text-[11px] text-muted-foreground pt-2">
-                      A plataforma atualmente vincula um responsável principal por empresa.
-                    </p>
+                      );
+                    })}
                   </div>
                 )}
               </TabsContent>
@@ -616,6 +756,58 @@ const AdminEmpresas = () => {
             <div className="flex justify-end gap-3 pt-2">
               <Button type="button" variant="outline" onClick={() => setCreateOpen(false)}>Cancelar</Button>
               <Button type="submit" disabled={creating}>{creating ? "Cadastrando..." : "Cadastrar"}</Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add User Link Dialog */}
+      <Dialog open={addUserOpen} onOpenChange={setAddUserOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-display flex items-center gap-2">
+              <UserPlus size={18} className="text-primary" />
+              Vincular usuário à empresa
+            </DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleAddUserLink} className="space-y-4 pt-2">
+            <div className="space-y-2">
+              <Label htmlFor="link-email">E-mail do usuário *</Label>
+              <Input
+                id="link-email"
+                type="email"
+                required
+                value={newLink.email}
+                onChange={(e) => setNewLink({ ...newLink, email: e.target.value })}
+                placeholder="usuario@empresa.com"
+              />
+              <p className="text-[11px] text-muted-foreground">O usuário precisa já ter cadastro na plataforma.</p>
+            </div>
+            <div className="space-y-2">
+              <Label>Papel na empresa *</Label>
+              <Select value={newLink.papel} onValueChange={(v) => setNewLink({ ...newLink, papel: v as PapelEmpresa })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="responsavel">Responsável</SelectItem>
+                  <SelectItem value="financeiro">Financeiro</SelectItem>
+                  <SelectItem value="operacional">Operacional</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="link-obs">Observações</Label>
+              <Input
+                id="link-obs"
+                value={newLink.observacoes}
+                onChange={(e) => setNewLink({ ...newLink, observacoes: e.target.value })}
+                placeholder="Ex: contato para faturamento"
+              />
+            </div>
+            <div className="flex justify-end gap-3 pt-2">
+              <Button type="button" variant="outline" onClick={() => setAddUserOpen(false)}>Cancelar</Button>
+              <Button type="submit" disabled={addingUser}>
+                {addingUser ? <><Loader2 size={14} className="animate-spin mr-1.5" />Vinculando...</> : "Vincular"}
+              </Button>
             </div>
           </form>
         </DialogContent>
