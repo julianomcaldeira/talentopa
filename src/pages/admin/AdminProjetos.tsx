@@ -199,31 +199,112 @@ const AdminProjetos = () => {
       </div>
 
       {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-3 mb-6">
-        <div className="relative flex-1 max-w-md">
-          <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/60" />
-          <Input
-            placeholder="Buscar por nome, protocolo ou empresa..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-10"
-          />
+      <div className="bg-card border border-border/60 rounded-2xl p-4 mb-6 space-y-3">
+        <div className="flex flex-col lg:flex-row gap-3">
+          <div className="relative flex-1">
+            <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/60" />
+            <Input
+              placeholder="Buscar por nome, protocolo ou empresa..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortKey)}>
+            <SelectTrigger className="w-full lg:w-[200px]">
+              <ArrowUpDown size={14} className="mr-2 text-muted-foreground" />
+              <SelectValue placeholder="Ordenar" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="recent">Mais recentes</SelectItem>
+              <SelectItem value="oldest">Mais antigos</SelectItem>
+              <SelectItem value="name_asc">Nome (A–Z)</SelectItem>
+              <SelectItem value="health_desc">Health Score ↓</SelectItem>
+              <SelectItem value="health_asc">Health Score ↑</SelectItem>
+              <SelectItem value="propostas_desc">Mais propostas</SelectItem>
+              <SelectItem value="prazo_asc">Prazo mais próximo</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-full sm:w-[180px]">
-            <Filter size={14} className="mr-2 text-muted-foreground" />
-            <SelectValue placeholder="Status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="todos">Todos os status</SelectItem>
-            <SelectItem value="rascunho">Rascunho</SelectItem>
-            <SelectItem value="publicado">Publicado</SelectItem>
-            <SelectItem value="em_selecao">Em seleção</SelectItem>
-            <SelectItem value="em_andamento">Em andamento</SelectItem>
-            <SelectItem value="concluido">Concluído</SelectItem>
-            <SelectItem value="cancelado">Cancelado</SelectItem>
-          </SelectContent>
-        </Select>
+
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger><SelectValue placeholder="Status" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos os status</SelectItem>
+              <SelectItem value="rascunho">Rascunho</SelectItem>
+              <SelectItem value="publicado">Publicado</SelectItem>
+              <SelectItem value="em_selecao">Em seleção</SelectItem>
+              <SelectItem value="em_andamento">Em andamento</SelectItem>
+              <SelectItem value="concluido">Concluído</SelectItem>
+              <SelectItem value="cancelado">Cancelado</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select value={softwareFilter} onValueChange={setSoftwareFilter}>
+            <SelectTrigger><SelectValue placeholder="Software" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos os ERPs</SelectItem>
+              {softwareOptions.map(([id, nome]) => (
+                <SelectItem key={id} value={id}>{nome}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select value={modeloFilter} onValueChange={setModeloFilter}>
+            <SelectTrigger><SelectValue placeholder="Modelo" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos os modelos</SelectItem>
+              <SelectItem value="remoto">Remoto</SelectItem>
+              <SelectItem value="hibrido">Híbrido</SelectItem>
+              <SelectItem value="presencial">Presencial</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select value={healthFilter} onValueChange={setHealthFilter}>
+            <SelectTrigger><SelectValue placeholder="Health Score" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos os scores</SelectItem>
+              <SelectItem value="alto">Alto (≥75)</SelectItem>
+              <SelectItem value="medio">Médio (50–74)</SelectItem>
+              <SelectItem value="baixo">Baixo (&lt;50)</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select value={propostasFilter} onValueChange={setPropostasFilter}>
+            <SelectTrigger><SelectValue placeholder="Propostas" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todas as propostas</SelectItem>
+              <SelectItem value="sem">Sem propostas</SelectItem>
+              <SelectItem value="com">Com propostas</SelectItem>
+              <SelectItem value="muitas">3+ propostas</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select value={periodoFilter} onValueChange={setPeriodoFilter}>
+            <SelectTrigger><SelectValue placeholder="Período" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Qualquer data</SelectItem>
+              <SelectItem value="7d">Últimos 7 dias</SelectItem>
+              <SelectItem value="30d">Últimos 30 dias</SelectItem>
+              <SelectItem value="90d">Últimos 90 dias</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {(activeFiltersCount > 0 || search) && (
+          <div className="flex items-center justify-between pt-1">
+            <p className="text-xs text-muted-foreground">
+              <span className="font-semibold text-foreground">{sorted.length}</span> de {projetos.length} projeto(s)
+              {activeFiltersCount > 0 && (
+                <> · <span className="font-semibold text-foreground">{activeFiltersCount}</span> filtro(s) ativo(s)</>
+              )}
+            </p>
+            <Button variant="ghost" size="sm" onClick={clearFilters} className="h-7 text-xs">
+              Limpar filtros
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* List */}
