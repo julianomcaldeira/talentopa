@@ -10,7 +10,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { PageHeader, DataCard, StatusBadge, EmptyState, LoadingState } from "@/components/dashboard/DashboardComponents";
-import { FolderKanban, Send, Calendar, Target, Star, MessageSquare, Eye, MapPin, Filter, X } from "lucide-react";
+import { FolderKanban, Send, Calendar, Target, Star, MessageSquare, Eye, MapPin, Filter, X, Bookmark, BookmarkPlus, Trash2 } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ProjectCommunication } from "@/components/communication/ProjectCommunication";
 import { ProjetoDetalhesDialog, ModeloContratacaoBadge } from "@/components/projetos/ProjetoDetalhesDialog";
 import { CityCombobox, CityOption } from "@/components/projetos/CityCombobox";
@@ -43,12 +44,31 @@ const ConsultorProjetos = () => {
   const [filterSegmento, setFilterSegmento] = useState<string>("all");
   const [onlyCompatible, setOnlyCompatible] = useState(false);
 
+  // Saved searches
+  type SavedSearch = { id: string; nome: string; filtros: any };
+  const [savedSearches, setSavedSearches] = useState<SavedSearch[]>([]);
+  const [saveDialogOpen, setSaveDialogOpen] = useState(false);
+  const [saveName, setSaveName] = useState("");
+
   // Default city from logged consultor profile
   useEffect(() => {
     if (profile?.cidade && profile?.estado && !filterCity) {
       setFilterCity({ cidade: profile.cidade, estado: profile.estado });
     }
   }, [profile]);
+
+  // Load saved searches
+  const fetchSavedSearches = async () => {
+    if (!user) return;
+    const { data } = await (supabase as any)
+      .from("consultor_buscas_favoritas")
+      .select("id, nome, filtros")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false });
+    if (data) setSavedSearches(data);
+  };
+
+  useEffect(() => { fetchSavedSearches(); }, [user]);
 
   useEffect(() => {
     if (!user) return;
@@ -263,20 +283,88 @@ const ConsultorProjetos = () => {
     setOnlyCompatible(false);
   };
 
+  const handleSaveSearch = async () => {
+    if (!user || !saveName.trim()) return;
+    const filtros = {
+      city: filterCity,
+      software: filterSoftware,
+      modulo: filterModulo,
+      segmento: filterSegmento,
+      onlyCompatible,
+    };
+    const { error } = await (supabase as any)
+      .from("consultor_buscas_favoritas")
+      .insert({ user_id: user.id, nome: saveName.trim(), filtros });
+    if (error) { toast({ title: "Erro ao salvar", description: error.message, variant: "destructive" }); return; }
+    toast({ title: "Busca salva!", description: `"${saveName.trim()}" foi adicionada às suas favoritas.` });
+    setSaveName("");
+    setSaveDialogOpen(false);
+    fetchSavedSearches();
+  };
+
+  const applySavedSearch = (s: SavedSearch) => {
+    const f = s.filtros || {};
+    setFilterCity(f.city || null);
+    setFilterSoftware(f.software || "all");
+    setFilterModulo(f.modulo || "all");
+    setFilterSegmento(f.segmento || "all");
+    setOnlyCompatible(!!f.onlyCompatible);
+    toast({ title: "Busca aplicada", description: s.nome });
+  };
+
+  const deleteSavedSearch = async (id: string, nome: string) => {
+    const { error } = await (supabase as any).from("consultor_buscas_favoritas").delete().eq("id", id);
+    if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
+    toast({ title: "Busca removida", description: nome });
+    fetchSavedSearches();
+  };
+
   return (
     <div>
       <PageHeader title="Projetos Disponíveis" description="Encontre projetos compatíveis com seu perfil técnico" />
 
       {/* Filters */}
       <DataCard className="mb-4">
-        <div className="flex items-center gap-2 mb-3">
+        <div className="flex items-center gap-2 mb-3 flex-wrap">
           <Filter size={14} className="text-primary" />
           <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Filtros</h3>
-          {hasActiveFilters && (
-            <Button variant="ghost" size="sm" className="h-7 ml-auto text-xs" onClick={clearFilters}>
-              <X size={12} /> Limpar
-            </Button>
-          )}
+          <div className="ml-auto flex items-center gap-2">
+            {savedSearches.length > 0 && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="h-8 text-xs">
+                    <Bookmark size={12} /> Buscas favoritas ({savedSearches.length})
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-72">
+                  <DropdownMenuLabel className="text-xs">Aplicar busca salva</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  {savedSearches.map(s => (
+                    <DropdownMenuItem key={s.id} className="flex items-center justify-between gap-2 cursor-pointer" onSelect={(e) => e.preventDefault()}>
+                      <button onClick={() => applySavedSearch(s)} className="flex-1 text-left text-xs truncate">{s.nome}</button>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); deleteSavedSearch(s.id, s.nome); }}
+                        className="text-muted-foreground hover:text-destructive p-1"
+                        title="Remover"
+                      >
+                        <Trash2 size={12} />
+                      </button>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+            {hasActiveFilters && (
+              <>
+                <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => setSaveDialogOpen(true)}>
+                  <BookmarkPlus size={12} /> Salvar busca
+                </Button>
+                <Button variant="ghost" size="sm" className="h-8 text-xs" onClick={clearFilters}>
+                  <X size={12} /> Limpar
+                </Button>
+              </>
+            )}
+          </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
           <div className="space-y-1.5">
@@ -461,6 +549,38 @@ const ConsultorProjetos = () => {
             <Button className="w-full" onClick={handleProposal}>
               <Send size={14} /> Enviar proposta
             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={saveDialogOpen} onOpenChange={setSaveDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-display text-lg">Salvar busca favorita</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-xs text-muted-foreground">
+              Salve esta combinação de filtros para reaplicá-la com um clique depois.
+            </p>
+            <div className="space-y-2">
+              <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Nome da busca</Label>
+              <Input value={saveName} onChange={(e) => setSaveName(e.target.value)} placeholder="Ex: SAP em São Paulo" autoFocus />
+            </div>
+            <div className="bg-muted/40 rounded-lg p-3 text-xs space-y-1">
+              <p className="font-semibold text-foreground mb-1">Filtros atuais:</p>
+              {filterCity && <p>📍 {filterCity.cidade} / {filterCity.estado}</p>}
+              {filterSoftware !== "all" && <p>💻 {softwares.find(s => s.id === filterSoftware)?.nome}</p>}
+              {filterModulo !== "all" && <p>📦 {modulos.find(m => m.id === filterModulo)?.nome}</p>}
+              {filterSegmento !== "all" && <p>🏢 {filterSegmento}</p>}
+              {onlyCompatible && <p>⭐ Apenas compatíveis (match &gt; 50%)</p>}
+              {!hasActiveFilters && <p className="text-muted-foreground italic">Nenhum filtro ativo</p>}
+            </div>
+            <div className="flex gap-2 justify-end">
+              <Button variant="outline" onClick={() => setSaveDialogOpen(false)}>Cancelar</Button>
+              <Button onClick={handleSaveSearch} disabled={!saveName.trim()}>
+                <BookmarkPlus size={14} /> Salvar
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

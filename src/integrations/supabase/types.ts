@@ -55,6 +55,30 @@ export type Database = {
           },
         ]
       }
+      consultor_buscas_favoritas: {
+        Row: {
+          created_at: string
+          filtros: Json
+          id: string
+          nome: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          filtros?: Json
+          id?: string
+          nome: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          filtros?: Json
+          id?: string
+          nome?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       consultor_habilidades: {
         Row: {
           created_at: string
