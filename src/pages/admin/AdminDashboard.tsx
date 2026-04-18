@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import {
   Building2, Users, FolderKanban, DollarSign, TrendingUp,
   AlertCircle, ArrowUpRight, Clock, Zap, Target,
-  CheckCircle2, XCircle, Timer, BarChart3, Sparkles, Shield, Send
+  CheckCircle2, XCircle, Timer, BarChart3, Sparkles, Shield, Send,
+  Wallet, Wrench, UserMinus
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { StatusBadge, SectionTitle, DataCard } from "@/components/dashboard/DashboardComponents";
@@ -221,9 +222,6 @@ const AdminDashboard = () => {
               </Link>
             </Button>
           </div>
-        </div>
-      </motion.div>
-
         </div>
       </motion.div>
 
