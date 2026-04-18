@@ -7,7 +7,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { PageHeader, DataCard, StatusBadge, EmptyState, LoadingState, StatCard } from "@/components/dashboard/DashboardComponents";
-import { Users, Search, Star, FolderKanban, Clock, DollarSign, MapPin, Linkedin, Award, TrendingUp, CheckCircle2, Eye, Briefcase, RotateCcw } from "lucide-react";
+import { Users, Search, Star, FolderKanban, Clock, DollarSign, MapPin, Linkedin, Award, TrendingUp, CheckCircle2, Eye, Briefcase, RotateCcw, Download, FileSpreadsheet, FileText } from "lucide-react";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 type ConsultorAgg = {
   user_id: string;
@@ -203,11 +206,120 @@ const EmpresaConsultoresHistorico = () => {
   const initials = (n: string) =>
     n.split(" ").slice(0, 2).map((x) => x.charAt(0)).join("").toUpperCase();
 
+  const buildRows = () =>
+    filtered.map((c) => ({
+      Nome: c.nome,
+      Cidade: c.cidade || "",
+      Estado: c.estado || "",
+      "Total projetos": c.total_projetos,
+      "Em andamento": c.projetos_em_andamento,
+      Concluidos: c.projetos_concluidos,
+      "Total horas": c.total_horas.toFixed(0),
+      "Valor total (R$)": c.valor_total.toFixed(2),
+      "Nota media": c.nota_media ? c.nota_media.toFixed(2) : "",
+      Recomendacoes: c.recomendacoes,
+      Softwares: c.softwares.join("; "),
+      "Primeira contratacao": c.primeira_contratacao ? new Date(c.primeira_contratacao).toLocaleDateString("pt-BR") : "",
+      "Ultima contratacao": c.ultima_contratacao ? new Date(c.ultima_contratacao).toLocaleDateString("pt-BR") : "",
+      LinkedIn: c.linkedin || "",
+    }));
+
+  const exportCSV = () => {
+    const rows = buildRows();
+    if (rows.length === 0) return;
+    const headers = Object.keys(rows[0]);
+    const escape = (v: any) => {
+      const s = String(v ?? "");
+      return /[",;\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+    };
+    const csv = [
+      headers.join(";"),
+      ...rows.map((r) => headers.map((h) => escape((r as any)[h])).join(";")),
+    ].join("\n");
+    const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `historico-consultores-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const exportPDF = () => {
+    if (filtered.length === 0) return;
+    const doc = new jsPDF({ orientation: "landscape", unit: "pt", format: "a4" });
+    doc.setFontSize(14);
+    doc.text("Historico de Consultores", 40, 40);
+    doc.setFontSize(9);
+    doc.setTextColor(120);
+    doc.text(
+      `Gerado em ${new Date().toLocaleString("pt-BR")} - ${filtered.length} consultor(es)`,
+      40,
+      56,
+    );
+    doc.setFontSize(10);
+    doc.setTextColor(60);
+    doc.text(
+      `Totais: ${stats.totalConsultores} consultores - ${stats.totalProjetos} projetos - ${fmtBRL(stats.valorTotal)} investidos - nota media ${stats.notaMediaGlobal ? stats.notaMediaGlobal.toFixed(1) : "-"}`,
+      40,
+      72,
+    );
+
+    const cols = ["Nome", "Cidade/UF", "Projetos", "Horas", "Valor (R$)", "Nota", "Softwares", "Ultima"];
+    const body = filtered.map((c) => [
+      c.nome,
+      [c.cidade, c.estado].filter(Boolean).join("/"),
+      `${c.total_projetos} (${c.projetos_em_andamento} ativ., ${c.projetos_concluidos} concl.)`,
+      c.total_horas.toFixed(0),
+      c.valor_total.toLocaleString("pt-BR", { minimumFractionDigits: 2 }),
+      c.nota_media ? c.nota_media.toFixed(1) : "-",
+      c.softwares.join(", "),
+      c.ultima_contratacao ? new Date(c.ultima_contratacao).toLocaleDateString("pt-BR") : "-",
+    ]);
+
+    autoTable(doc, {
+      head: [cols],
+      body,
+      startY: 90,
+      styles: { fontSize: 8, cellPadding: 5 },
+      headStyles: { fillColor: [99, 102, 241], textColor: 255, fontStyle: "bold" },
+      alternateRowStyles: { fillColor: [248, 250, 252] },
+      columnStyles: {
+        0: { cellWidth: 110 },
+        1: { cellWidth: 80 },
+        2: { cellWidth: 110 },
+        3: { cellWidth: 45, halign: "right" },
+        4: { cellWidth: 80, halign: "right" },
+        5: { cellWidth: 35, halign: "center" },
+        7: { cellWidth: 60 },
+      },
+    });
+
+    doc.save(`historico-consultores-${new Date().toISOString().slice(0, 10)}.pdf`);
+  };
+
   return (
     <div>
       <PageHeader
         title="Histórico de Consultores"
         description="Todos os consultores que sua empresa já contratou e o histórico consolidado"
+        action={
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" disabled={filtered.length === 0}>
+                <Download size={14} /> Exportar
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={exportCSV}>
+                <FileSpreadsheet size={14} className="mr-2" /> Exportar CSV
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={exportPDF}>
+                <FileText size={14} className="mr-2" /> Exportar PDF
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        }
       />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
