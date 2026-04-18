@@ -181,7 +181,7 @@ const ConsultorProjetos = () => {
   const pagedProjetos = sortedProjetos.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   // Reset page when filters change
-  useEffect(() => { setPage(1); }, [filterCity, filterSoftware, filterModulo, filterSegmento]);
+  useEffect(() => { setPage(1); }, [filterCity, filterSoftware, filterModulo, filterSegmento, onlyCompatible]);
 
   const segmentosUnicos = useMemo(() => {
     const set = new Set<string>();
