@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,7 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { PageHeader, DataCard } from "@/components/dashboard/DashboardComponents";
-import { ArrowLeft, ArrowRight, Check, FileText, Target, Settings, Rocket, Plus, Trash2, Copy, Sparkles } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, FileText, Target, Settings, Rocket, Plus, Trash2, Copy, Sparkles, UserCheck, X } from "lucide-react";
 
 const SectionLabel = ({ children }: { children: React.ReactNode }) => (
   <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{children}</Label>
@@ -27,6 +27,7 @@ const EmpresaNovoProjeto = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [step, setStep] = useState(0);
   const [softwares, setSoftwares] = useState<any[]>([]);
   const [modulos, setModulos] = useState<any[]>([]);
@@ -35,6 +36,7 @@ const EmpresaNovoProjeto = () => {
   const [meusProjetos, setMeusProjetos] = useState<any[]>([]);
   const [espelhandoId, setEspelhandoId] = useState<string>("");
   const [saving, setSaving] = useState(false);
+  const [recontratarConsultor, setRecontratarConsultor] = useState<{ user_id: string; nome: string; avatar_url: string | null } | null>(null);
 
   const [form, setForm] = useState({
     nome: "", descricao: "", problema_atual: "", objetivo: "", prazo_estimado: "",
@@ -74,6 +76,30 @@ const EmpresaNovoProjeto = () => {
     };
     fetch();
   }, [user]);
+
+  // Pré-carregar consultor sugerido via querystring (?recontratar=USER_ID)
+  useEffect(() => {
+    const uid = searchParams.get("recontratar");
+    if (!uid) return;
+    (async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("user_id, nome, avatar_url")
+        .eq("user_id", uid)
+        .maybeSingle();
+      if (data) {
+        setRecontratarConsultor({ user_id: data.user_id, nome: data.nome, avatar_url: data.avatar_url });
+        toast({ title: "Recontratação iniciada", description: `O projeto será sugerido a ${data.nome} assim que for publicado.` });
+      }
+    })();
+  }, [searchParams, toast]);
+
+  const limparRecontratacao = () => {
+    setRecontratarConsultor(null);
+    searchParams.delete("recontratar");
+    searchParams.delete("nome");
+    setSearchParams(searchParams, { replace: true });
+  };
 
   const espelharProjeto = (projetoId: string) => {
     if (!projetoId) {
@@ -137,6 +163,25 @@ const EmpresaNovoProjeto = () => {
     const validFases = fases.filter(f => f.nome);
     if (validFases.length > 0) await supabase.from("projeto_fases").insert(validFases.map((f, i) => ({ projeto_id: projeto.id, nome: f.nome, descricao: f.descricao || null, ordem: i, prazo: f.prazo || null, valor: f.valor ? Number(f.valor) : null })));
 
+    // Convidar consultor (recontratação): notificação + mensagem-convite no chat do projeto
+    if (recontratarConsultor) {
+      await supabase.from("notificacoes").insert({
+        user_id: recontratarConsultor.user_id,
+        tipo: "convite_projeto",
+        titulo: "Convite para novo projeto",
+        mensagem: `Você foi convidado(a) a enviar uma proposta para o projeto "${form.nome}".`,
+        referencia_id: projeto.id,
+        referencia_tipo: "projeto",
+      });
+      await supabase.from("mensagens").insert({
+        projeto_id: projeto.id,
+        sender_user_id: user.id,
+        recipient_user_id: recontratarConsultor.user_id,
+        tipo: "convite",
+        conteudo: `Olá ${recontratarConsultor.nome}! Gostaríamos de contar com você novamente neste projeto. Avalie o escopo e, se fizer sentido, envie sua proposta.`,
+      });
+    }
+
     toast({ title: "Projeto publicado com sucesso!" });
     navigate("/empresa/projetos");
     setSaving(false);
@@ -145,6 +190,25 @@ const EmpresaNovoProjeto = () => {
   return (
     <div>
       <PageHeader title="Novo Projeto" description="Crie um projeto de implementação ERP em poucos passos" />
+
+      {recontratarConsultor && (
+        <div className="max-w-3xl mb-4 rounded-xl border border-primary/30 bg-primary/5 p-4 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/60 to-accent/60 flex items-center justify-center text-primary-foreground text-xs font-semibold overflow-hidden shrink-0">
+            {recontratarConsultor.avatar_url
+              ? <img src={recontratarConsultor.avatar_url} alt={recontratarConsultor.nome} className="w-full h-full object-cover" />
+              : recontratarConsultor.nome.split(" ").slice(0, 2).map(x => x.charAt(0)).join("").toUpperCase()}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-display font-semibold text-foreground flex items-center gap-2">
+              <UserCheck size={14} className="text-primary" /> Recontratando {recontratarConsultor.nome}
+            </p>
+            <p className="text-xs text-muted-foreground">Após publicar, este consultor será notificado e convidado a enviar uma proposta.</p>
+          </div>
+          <Button variant="ghost" size="sm" onClick={limparRecontratacao}>
+            <X size={14} /> Cancelar
+          </Button>
+        </div>
+      )}
 
       {/* Stepper */}
       <div className="flex items-center gap-2 mb-8 max-w-3xl">
