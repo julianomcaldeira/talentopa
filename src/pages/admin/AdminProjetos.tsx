@@ -23,11 +23,15 @@ interface ProjetoRow {
   prazo_estimado: string | null;
   created_at: string;
   empresa_user_id: string;
+  software_id: string | null;
+  modelo_contratacao: string | null;
   software?: { nome: string } | null;
   fases?: { id: string; nome: string; status: string; ordem: number }[];
   propostas_count?: number;
   empresa_nome?: string;
 }
+
+type SortKey = "recent" | "oldest" | "name_asc" | "health_desc" | "health_asc" | "propostas_desc" | "prazo_asc";
 
 const AdminProjetos = () => {
   const navigate = useNavigate();
@@ -35,6 +39,12 @@ const AdminProjetos = () => {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("todos");
+  const [softwareFilter, setSoftwareFilter] = useState("todos");
+  const [modeloFilter, setModeloFilter] = useState("todos");
+  const [healthFilter, setHealthFilter] = useState("todos");
+  const [propostasFilter, setPropostasFilter] = useState("todos");
+  const [periodoFilter, setPeriodoFilter] = useState("todos");
+  const [sortBy, setSortBy] = useState<SortKey>("recent");
   const [selectedProjeto, setSelectedProjeto] = useState<ProjetoRow | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
   const [page, setPage] = useState(1);
