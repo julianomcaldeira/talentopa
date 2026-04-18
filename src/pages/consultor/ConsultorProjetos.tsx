@@ -426,91 +426,146 @@ const ConsultorProjetos = () => {
         </div>
       </DataCard>
 
-      {loading ? <DataCard><LoadingState /></DataCard> : sortedProjetos.length === 0 ? (
-        <DataCard><EmptyState message={projetos.length === 0 ? "Nenhum projeto disponível no momento" : "Nenhum projeto corresponde aos filtros aplicados"} icon={FolderKanban} /></DataCard>
-      ) : (
-        <div className="space-y-4">
-          {pagedProjetos.map((p) => {
-            const score = getMatchScore(p);
-            return (
-              <DataCard key={p.id}>
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-start gap-3.5">
-                    <div className="icon-container icon-container-md bg-primary/10 mt-0.5">
-                      <FolderKanban size={18} className="text-primary" />
-                    </div>
-                    <div>
-                      <h3 className="font-display font-semibold text-foreground text-base">{p.nome}</h3>
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        {p.softwares?.nome} · {myPropostas.get(p.id) === "aceita" ? (p.empresa_nome || "Empresa") : "Empresa confidencial"} · {p.protocolo}
-                      </p>
-                    </div>
+      {/* View toggle */}
+      {!loading && sortedProjetos.length > 0 && (
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-xs text-muted-foreground">
+            {sortedProjetos.length} projeto{sortedProjetos.length > 1 ? "s" : ""} encontrado{sortedProjetos.length > 1 ? "s" : ""}
+          </p>
+          <ViewToggle value={viewMode} onChange={setViewMode} />
+        </div>
+      )}
+
+      {(() => {
+        const renderCard = (p: any, compact = false) => {
+          const score = getMatchScore(p);
+          return (
+            <DataCard key={p.id} className={compact ? "p-3.5" : ""}>
+              <div className="flex items-start justify-between mb-3 gap-2">
+                <div className="flex items-start gap-3 min-w-0">
+                  <div className="icon-container icon-container-md bg-primary/10 mt-0.5 shrink-0">
+                    <FolderKanban size={16} className="text-primary" />
                   </div>
-                  <div className="flex items-center gap-2 flex-wrap justify-end">
+                  <div className="min-w-0">
+                    <h3 className="font-display font-semibold text-foreground text-sm truncate">{p.nome}</h3>
+                    <p className="text-[11px] text-muted-foreground mt-0.5 truncate">
+                      {p.softwares?.nome} · {myPropostas.get(p.id) === "aceita" ? (p.empresa_nome || "Empresa") : "Empresa confidencial"} · {p.protocolo}
+                    </p>
+                  </div>
+                </div>
+                {!compact && (
+                  <div className="flex items-center gap-2 flex-wrap justify-end shrink-0">
                     <ModeloContratacaoBadge modelo={p.modelo_contratacao} />
                     {score > 0 && (
                       <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs font-bold ${scoreBg(score)} ${scoreColor(score)}`}>
-                        <Star size={12} />
-                        {score}% match
+                        <Star size={12} /> {score}% match
                       </div>
                     )}
                     <StatusBadge status={p.status} labels={{ publicado: "Aberto", em_selecao: "Em seleção" }} />
                   </div>
-                </div>
-
-                {p.descricao && <p className="text-sm text-muted-foreground mb-3 pl-[54px]">{p.descricao}</p>}
-
-                <div className="flex flex-wrap gap-3 pl-[54px] mb-4">
-                  {(p.local_cidade || p.local_estado) && (
-                    <span className="inline-flex items-center gap-1.5 text-xs font-bold bg-primary/10 text-primary border border-primary/30 px-2.5 py-1 rounded-lg">
-                      <MapPin size={12} />
-                      {[p.local_cidade, p.local_estado].filter(Boolean).join(" / ")}
-                    </span>
-                  )}
-                  {p.empresa_segmento && (
-                    <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/60 px-2.5 py-1 rounded-lg">
-                      {p.empresa_segmento}
-                    </span>
-                  )}
-                  {p.objetivo && (
-                    <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/60 px-2.5 py-1 rounded-lg">
-                      <Target size={12} /> {p.objetivo.substring(0, 60)}{p.objetivo.length > 60 ? "..." : ""}
-                    </span>
-                  )}
-                  {p.prazo_estimado && (
-                    <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/60 px-2.5 py-1 rounded-lg">
-                      <Calendar size={12} /> {new Date(p.prazo_estimado).toLocaleDateString("pt-BR")}
-                    </span>
-                  )}
-                </div>
-
-                <div className="pl-[54px] flex gap-2 flex-wrap">
-                  <Button variant="outline" onClick={() => setDetalhesProjeto(p)}>
-                    <Eye size={14} /> Detalhes
-                  </Button>
-                  {!myPropostas.has(p.id) && (
-                    <Button onClick={() => { setSelectedProjeto(p); setProposalDialog(true); }}>
-                      <Send size={14} /> Enviar proposta
-                    </Button>
-                  )}
-                  {myPropostas.has(p.id) && (
-                    <Button variant="outline" onClick={() => setChatProjeto(chatProjeto?.id === p.id ? null : p)}>
-                      <MessageSquare size={14} /> Comunicação
-                    </Button>
-                  )}
-                </div>
-                {chatProjeto?.id === p.id && (
-                  <div className="pl-[54px] mt-3">
-                    <ProjectCommunication projetoId={p.id} projetoNome={p.nome} isEmpresa={false} />
-                  </div>
                 )}
-              </DataCard>
-            );
-          })}
-        </div>
-      )}
+              </div>
 
-      {!loading && totalPages > 1 && (
+              {compact && score > 0 && (
+                <div className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md border text-[11px] font-bold mb-2 ${scoreBg(score)} ${scoreColor(score)}`}>
+                  <Star size={10} /> {score}% match
+                </div>
+              )}
+
+              {p.descricao && !compact && <p className="text-sm text-muted-foreground mb-3 pl-[50px]">{p.descricao}</p>}
+
+              <div className={`flex flex-wrap gap-1.5 mb-3 ${compact ? "" : "pl-[50px]"}`}>
+                {(p.local_cidade || p.local_estado) && (
+                  <span className="inline-flex items-center gap-1 text-[11px] font-bold bg-primary/10 text-primary border border-primary/30 px-2 py-0.5 rounded-md">
+                    <MapPin size={10} />
+                    {[p.local_cidade, p.local_estado].filter(Boolean).join(" / ")}
+                  </span>
+                )}
+                {p.empresa_segmento && (
+                  <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-md">
+                    {p.empresa_segmento}
+                  </span>
+                )}
+                {!compact && p.objetivo && (
+                  <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/60 px-2.5 py-1 rounded-lg">
+                    <Target size={12} /> {p.objetivo.substring(0, 60)}{p.objetivo.length > 60 ? "..." : ""}
+                  </span>
+                )}
+                {p.prazo_estimado && (
+                  <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-md">
+                    <Calendar size={10} /> {new Date(p.prazo_estimado).toLocaleDateString("pt-BR")}
+                  </span>
+                )}
+              </div>
+
+              <div className={`flex gap-1.5 flex-wrap ${compact ? "" : "pl-[50px]"}`}>
+                <Button variant="outline" size="sm" onClick={() => setDetalhesProjeto(p)}>
+                  <Eye size={12} /> Detalhes
+                </Button>
+                {!myPropostas.has(p.id) && (
+                  <Button size="sm" onClick={() => { setSelectedProjeto(p); setProposalDialog(true); }}>
+                    <Send size={12} /> {compact ? "Proposta" : "Enviar proposta"}
+                  </Button>
+                )}
+                {myPropostas.has(p.id) && (
+                  <Button variant="outline" size="sm" onClick={() => setChatProjeto(chatProjeto?.id === p.id ? null : p)}>
+                    <MessageSquare size={12} /> {compact ? "Chat" : "Comunicação"}
+                  </Button>
+                )}
+              </div>
+              {chatProjeto?.id === p.id && (
+                <div className={`mt-3 ${compact ? "" : "pl-[50px]"}`}>
+                  <ProjectCommunication projetoId={p.id} projetoNome={p.nome} isEmpresa={false} />
+                </div>
+              )}
+            </DataCard>
+          );
+        };
+
+        if (loading) return <DataCard><LoadingState /></DataCard>;
+        if (sortedProjetos.length === 0)
+          return <DataCard><EmptyState message={projetos.length === 0 ? "Nenhum projeto disponível no momento" : "Nenhum projeto corresponde aos filtros aplicados"} icon={FolderKanban} /></DataCard>;
+
+        if (viewMode === "kanban") {
+          const columns = [
+            { key: "publicado", label: "Aberto", color: "bg-info", items: sortedProjetos.filter(p => p.status === "publicado" && !myPropostas.has(p.id)) },
+            { key: "em_selecao", label: "Em seleção", color: "bg-warning", items: sortedProjetos.filter(p => p.status === "em_selecao" && !myPropostas.has(p.id)) },
+            { key: "minhas", label: "Minhas propostas", color: "bg-primary", items: sortedProjetos.filter(p => myPropostas.has(p.id)) },
+          ];
+          return (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {columns.map(col => (
+                <div key={col.key} className="bg-muted/30 border border-border/60 rounded-xl p-3 min-h-[200px]">
+                  <div className="flex items-center justify-between mb-3 px-1">
+                    <div className="flex items-center gap-2">
+                      <span className={`w-2 h-2 rounded-full ${col.color}`} />
+                      <h4 className="text-xs font-semibold uppercase tracking-wider text-foreground">{col.label}</h4>
+                    </div>
+                    <span className="text-[11px] font-bold text-muted-foreground bg-background px-2 py-0.5 rounded-md border border-border/60">
+                      {col.items.length}
+                    </span>
+                  </div>
+                  <div className="space-y-2.5">
+                    {col.items.length === 0 ? (
+                      <p className="text-[11px] text-muted-foreground italic text-center py-6">Nenhum projeto</p>
+                    ) : (
+                      col.items.map(p => renderCard(p, true))
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          );
+        }
+
+        return (
+          <div className="space-y-4">
+            {pagedProjetos.map(p => renderCard(p, false))}
+          </div>
+        );
+      })()}
+
+      {!loading && viewMode === "list" && totalPages > 1 && (
         <div className="flex items-center justify-between mt-6 px-1">
           <p className="text-xs text-muted-foreground">
             Mostrando {(currentPage - 1) * PAGE_SIZE + 1}–{Math.min(currentPage * PAGE_SIZE, sortedProjetos.length)} de {sortedProjetos.length} projetos
