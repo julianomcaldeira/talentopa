@@ -247,6 +247,36 @@ export type Database = {
         }
         Relationships: []
       }
+      empresa_usuarios: {
+        Row: {
+          created_at: string
+          empresa_user_id: string
+          id: string
+          observacoes: string | null
+          papel: Database["public"]["Enums"]["papel_empresa_usuario"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          empresa_user_id: string
+          id?: string
+          observacoes?: string | null
+          papel?: Database["public"]["Enums"]["papel_empresa_usuario"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          empresa_user_id?: string
+          id?: string
+          observacoes?: string | null
+          papel?: Database["public"]["Enums"]["papel_empresa_usuario"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       faturas: {
         Row: {
           consultor_user_id: string | null
@@ -1231,6 +1261,7 @@ export type Database = {
       app_role: "admin" | "consultor" | "empresa"
       modelo_contratacao: "presencial" | "hibrido" | "remoto"
       nivel_senioridade: "junior" | "pleno" | "senior" | "especialista"
+      papel_empresa_usuario: "responsavel" | "financeiro" | "operacional"
       plano_assinatura: "standard" | "premium"
       status_fase:
         | "pendente"
@@ -1380,6 +1411,7 @@ export const Constants = {
       app_role: ["admin", "consultor", "empresa"],
       modelo_contratacao: ["presencial", "hibrido", "remoto"],
       nivel_senioridade: ["junior", "pleno", "senior", "especialista"],
+      papel_empresa_usuario: ["responsavel", "financeiro", "operacional"],
       plano_assinatura: ["standard", "premium"],
       status_fase: [
         "pendente",
