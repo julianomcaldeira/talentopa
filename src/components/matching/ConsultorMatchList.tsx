@@ -3,10 +3,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { DataCard, LoadingState, EmptyState } from "@/components/dashboard/DashboardComponents";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Star, MapPin, Award, Zap, ChevronDown, ChevronUp, Trophy } from "lucide-react";
+import { Star, MapPin, Award, Zap, ChevronDown, ChevronUp, Trophy, Eye, MessageSquare } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import { useScoreConfig } from "@/hooks/useScoreConfig";
+import { ConsultorDetailDialog } from "./ConsultorDetailDialog";
 
 interface ConsultorMatch {
   user_id: string;
@@ -28,14 +29,17 @@ interface ConsultorMatch {
 
 interface Props {
   projetoId: string;
+  projetoNome?: string;
   softwareId: string | null;
   onInvite?: (userId: string) => void;
 }
 
-export const ConsultorMatchList = ({ projetoId, softwareId, onInvite }: Props) => {
+export const ConsultorMatchList = ({ projetoId, projetoNome, softwareId, onInvite }: Props) => {
   const [matches, setMatches] = useState<ConsultorMatch[]>([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState(true);
+  const [selected, setSelected] = useState<ConsultorMatch | null>(null);
+  const [detailOpen, setDetailOpen] = useState(false);
   const { config: scoreCfg } = useScoreConfig();
 
   useEffect(() => {
@@ -275,6 +279,24 @@ export const ConsultorMatchList = ({ projetoId, softwareId, onInvite }: Props) =
                               {m.bio_profissional}
                             </p>
                           )}
+
+                          <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-border/50">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => { setSelected(m); setDetailOpen(true); }}
+                              className="h-8 text-xs"
+                            >
+                              <Eye size={12} /> Ver perfil completo
+                            </Button>
+                            <Button
+                              size="sm"
+                              onClick={() => { setSelected(m); setDetailOpen(true); }}
+                              className="h-8 text-xs"
+                            >
+                              <MessageSquare size={12} /> Conversar
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     </DataCard>
@@ -285,6 +307,23 @@ export const ConsultorMatchList = ({ projetoId, softwareId, onInvite }: Props) =
           </motion.div>
         )}
       </AnimatePresence>
+
+      <ConsultorDetailDialog
+        open={detailOpen}
+        onOpenChange={setDetailOpen}
+        consultor={selected ? {
+          user_id: selected.user_id,
+          nome: selected.nome,
+          cidade: selected.cidade,
+          estado: selected.estado,
+          avatar_url: selected.avatar_url,
+          bio_profissional: selected.bio_profissional,
+          linkedin: selected.linkedin,
+          score: selected.score,
+        } : null}
+        projetoId={projetoId}
+        projetoNome={projetoNome || "projeto"}
+      />
     </div>
   );
 };

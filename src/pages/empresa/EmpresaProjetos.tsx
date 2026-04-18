@@ -4,9 +4,10 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { PageHeader, DataCard, StatusBadge, EmptyState, LoadingState, SectionTitle } from "@/components/dashboard/DashboardComponents";
-import { FolderKanban, Eye, MapPin, Clock, DollarSign, User, Zap, MessageSquare } from "lucide-react";
+import { FolderKanban, Eye, MapPin, Clock, DollarSign, User, Zap, MessageSquare, Pencil } from "lucide-react";
 import { ConsultorMatchList } from "@/components/matching/ConsultorMatchList";
 import { ProjectCommunication } from "@/components/communication/ProjectCommunication";
+import { ProjetoEditDialog } from "@/components/projetos/ProjetoEditDialog";
 
 const EmpresaProjetos = () => {
   const { user } = useAuth();
@@ -16,19 +17,21 @@ const EmpresaProjetos = () => {
   const [propostas, setPropostas] = useState<any[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [chatProjeto, setChatProjeto] = useState<any>(null);
+  const [editProjeto, setEditProjeto] = useState<any>(null);
+
+  const refetch = async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from("projetos")
+      .select("*, softwares(nome), projeto_fases(id, nome, status, valor)")
+      .eq("empresa_user_id", user.id)
+      .order("created_at", { ascending: false });
+    if (data) setProjetos(data);
+  };
 
   useEffect(() => {
     if (!user) return;
-    const fetch = async () => {
-      const { data } = await supabase
-        .from("projetos")
-        .select("*, softwares(nome), projeto_fases(id, nome, status, valor)")
-        .eq("empresa_user_id", user.id)
-        .order("created_at", { ascending: false });
-      if (data) setProjetos(data);
-      setLoading(false);
-    };
-    fetch();
+    refetch().then(() => setLoading(false));
   }, [user]);
 
   const viewPropostas = async (projeto: any) => {
@@ -114,6 +117,9 @@ const EmpresaProjetos = () => {
                   <Button size="sm" variant="outline" onClick={() => setChatProjeto(chatProjeto?.id === p.id ? null : p)}>
                     <MessageSquare size={14} /> Comunicação
                   </Button>
+                  <Button size="sm" variant="outline" onClick={() => setEditProjeto(p)}>
+                    <Pencil size={14} /> Editar / atualizar
+                  </Button>
                 </div>
               )}
 
@@ -125,13 +131,20 @@ const EmpresaProjetos = () => {
 
               {(p.status === "publicado" || p.status === "em_selecao") && (
                 <div className="ml-[54px]">
-                  <ConsultorMatchList projetoId={p.id} softwareId={p.software_id} />
+                  <ConsultorMatchList projetoId={p.id} projetoNome={p.nome} softwareId={p.software_id} />
                 </div>
               )}
             </DataCard>
           ))}
         </div>
       )}
+
+      <ProjetoEditDialog
+        open={!!editProjeto}
+        onOpenChange={(o) => { if (!o) setEditProjeto(null); }}
+        projeto={editProjeto}
+        onSaved={() => { refetch(); }}
+      />
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto custom-scrollbar">
