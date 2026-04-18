@@ -4,9 +4,10 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { PageHeader, DataCard, StatusBadge, EmptyState, LoadingState, SectionTitle } from "@/components/dashboard/DashboardComponents";
-import { FolderKanban, Eye, MapPin, Clock, DollarSign, User, Zap, MessageSquare } from "lucide-react";
+import { FolderKanban, Eye, MapPin, Clock, DollarSign, User, Zap, MessageSquare, Pencil } from "lucide-react";
 import { ConsultorMatchList } from "@/components/matching/ConsultorMatchList";
 import { ProjectCommunication } from "@/components/communication/ProjectCommunication";
+import { ProjetoEditDialog } from "@/components/projetos/ProjetoEditDialog";
 
 const EmpresaProjetos = () => {
   const { user } = useAuth();
