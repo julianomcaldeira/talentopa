@@ -17,19 +17,21 @@ const EmpresaProjetos = () => {
   const [propostas, setPropostas] = useState<any[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [chatProjeto, setChatProjeto] = useState<any>(null);
+  const [editProjeto, setEditProjeto] = useState<any>(null);
+
+  const refetch = async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from("projetos")
+      .select("*, softwares(nome), projeto_fases(id, nome, status, valor)")
+      .eq("empresa_user_id", user.id)
+      .order("created_at", { ascending: false });
+    if (data) setProjetos(data);
+  };
 
   useEffect(() => {
     if (!user) return;
-    const fetch = async () => {
-      const { data } = await supabase
-        .from("projetos")
-        .select("*, softwares(nome), projeto_fases(id, nome, status, valor)")
-        .eq("empresa_user_id", user.id)
-        .order("created_at", { ascending: false });
-      if (data) setProjetos(data);
-      setLoading(false);
-    };
-    fetch();
+    refetch().then(() => setLoading(false));
   }, [user]);
 
   const viewPropostas = async (projeto: any) => {
