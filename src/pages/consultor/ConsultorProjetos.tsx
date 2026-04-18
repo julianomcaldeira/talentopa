@@ -553,7 +553,38 @@ const ConsultorProjetos = () => {
         </DialogContent>
       </Dialog>
 
-      <ProjetoDetalhesDialog
+      <Dialog open={saveDialogOpen} onOpenChange={setSaveDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-display text-lg">Salvar busca favorita</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-xs text-muted-foreground">
+              Salve esta combinação de filtros para reaplicá-la com um clique depois.
+            </p>
+            <div className="space-y-2">
+              <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Nome da busca</Label>
+              <Input value={saveName} onChange={(e) => setSaveName(e.target.value)} placeholder="Ex: SAP em São Paulo" autoFocus />
+            </div>
+            <div className="bg-muted/40 rounded-lg p-3 text-xs space-y-1">
+              <p className="font-semibold text-foreground mb-1">Filtros atuais:</p>
+              {filterCity && <p>📍 {filterCity.cidade} / {filterCity.estado}</p>}
+              {filterSoftware !== "all" && <p>💻 {softwares.find(s => s.id === filterSoftware)?.nome}</p>}
+              {filterModulo !== "all" && <p>📦 {modulos.find(m => m.id === filterModulo)?.nome}</p>}
+              {filterSegmento !== "all" && <p>🏢 {filterSegmento}</p>}
+              {onlyCompatible && <p>⭐ Apenas compatíveis (match &gt; 50%)</p>}
+              {!hasActiveFilters && <p className="text-muted-foreground italic">Nenhum filtro ativo</p>}
+            </div>
+            <div className="flex gap-2 justify-end">
+              <Button variant="outline" onClick={() => setSaveDialogOpen(false)}>Cancelar</Button>
+              <Button onClick={handleSaveSearch} disabled={!saveName.trim()}>
+                <BookmarkPlus size={14} /> Salvar
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
         projeto={detalhesProjeto}
         open={!!detalhesProjeto}
         onOpenChange={(v) => !v && setDetalhesProjeto(null)}
