@@ -44,6 +44,12 @@ const ConsultorProjetos = () => {
   const [filterSegmento, setFilterSegmento] = useState<string>("all");
   const [onlyCompatible, setOnlyCompatible] = useState(false);
 
+  // Saved searches
+  type SavedSearch = { id: string; nome: string; filtros: any };
+  const [savedSearches, setSavedSearches] = useState<SavedSearch[]>([]);
+  const [saveDialogOpen, setSaveDialogOpen] = useState(false);
+  const [saveName, setSaveName] = useState("");
+
   // Default city from logged consultor profile
   useEffect(() => {
     if (profile?.cidade && profile?.estado && !filterCity) {
