@@ -53,19 +53,60 @@ const EmpresaNovoProjeto = () => {
 
   useEffect(() => {
     const fetch = async () => {
-      const [swRes, modRes, funcRes, tplRes] = await Promise.all([
+      const [swRes, modRes, funcRes, tplRes, projRes] = await Promise.all([
         supabase.from("softwares").select("*").order("nome"),
         supabase.from("modulos").select("*").order("nome"),
         supabase.from("funcionalidades").select("*").order("nome"),
         supabase.from("templates").select("*, template_funcionalidades(funcionalidade_id)").order("nome"),
+        user ? supabase
+          .from("projetos")
+          .select("id, nome, descricao, problema_atual, objetivo, prazo_estimado, software_id, template_id, observacoes, modelo_contratacao, status, created_at, projeto_modulos(modulo_id), projeto_funcionalidades(funcionalidade_id), projeto_fases(nome, descricao, ordem, prazo, valor)")
+          .eq("empresa_user_id", user.id)
+          .neq("status", "rascunho")
+          .order("created_at", { ascending: false })
+          .limit(20) : Promise.resolve({ data: [] as any[] }),
       ]);
       if (swRes.data) setSoftwares(swRes.data);
       if (modRes.data) setModulos(modRes.data);
       if (funcRes.data) setFuncionalidades(funcRes.data);
       if (tplRes.data) setTemplates(tplRes.data);
+      if (projRes.data) setMeusProjetos(projRes.data as any[]);
     };
     fetch();
-  }, []);
+  }, [user]);
+
+  const espelharProjeto = (projetoId: string) => {
+    if (!projetoId) {
+      setEspelhandoId("");
+      return;
+    }
+    const p = meusProjetos.find(x => x.id === projetoId);
+    if (!p) return;
+    setEspelhandoId(projetoId);
+    setForm({
+      nome: `${p.nome} (cópia)`,
+      descricao: p.descricao || "",
+      problema_atual: p.problema_atual || "",
+      objetivo: p.objetivo || "",
+      prazo_estimado: "",
+      software_id: p.software_id || "",
+      template_id: p.template_id || "",
+      observacoes: p.observacoes || "",
+      modelo_contratacao: (p.modelo_contratacao || "") as any,
+    });
+    setSelectedModulos((p.projeto_modulos || []).map((m: any) => m.modulo_id));
+    setSelectedFuncs((p.projeto_funcionalidades || []).map((f: any) => f.funcionalidade_id));
+    const fasesEspelho = (p.projeto_fases || [])
+      .sort((a: any, b: any) => (a.ordem ?? 0) - (b.ordem ?? 0))
+      .map((f: any) => ({
+        nome: f.nome || "",
+        descricao: f.descricao || "",
+        prazo: "",
+        valor: f.valor != null ? String(f.valor) : "",
+      }));
+    if (fasesEspelho.length > 0) setFases(fasesEspelho);
+    toast({ title: "Projeto espelhado", description: `Dados de "${p.nome}" copiados. Revise e ajuste antes de publicar.` });
+  };
 
   const filteredModulos = modulos.filter(m => m.software_id === form.software_id);
   const filteredFuncs = funcionalidades.filter(f => selectedModulos.includes(f.modulo_id));
