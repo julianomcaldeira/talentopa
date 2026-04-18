@@ -40,6 +40,7 @@ const ConsultorProjetos = () => {
   const [filterSoftware, setFilterSoftware] = useState<string>("all");
   const [filterModulo, setFilterModulo] = useState<string>("all");
   const [filterSegmento, setFilterSegmento] = useState<string>("all");
+  const [onlyCompatible, setOnlyCompatible] = useState(false);
 
   // Default city from logged consultor profile
   useEffect(() => {
