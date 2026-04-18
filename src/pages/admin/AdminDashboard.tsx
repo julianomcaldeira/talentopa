@@ -224,6 +224,63 @@ const AdminDashboard = () => {
         </div>
       </motion.div>
 
+        </div>
+      </motion.div>
+
+      {/* Critical Gaps Alert */}
+      {(data.gapsFinanceiro > 0 || data.gapsOperacional > 0 || data.gapsApenasDono > 0) && (
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.1 }}
+          className="relative overflow-hidden rounded-2xl border border-warning/30 bg-gradient-to-r from-warning/10 via-warning/5 to-transparent p-5 shadow-card"
+        >
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-start gap-3 flex-1">
+              <div className="icon-container icon-container-md bg-warning/15 rounded-xl shrink-0">
+                <AlertCircle className="h-5 w-5 text-warning" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-display font-semibold text-foreground text-[15px] flex items-center gap-2">
+                  Empresas com gaps de cadastro
+                </h3>
+                <p className="text-sm text-muted-foreground mt-0.5">
+                  Identifique empresas sem papéis críticos vinculados para garantir notificações corretas (faturamento, operação).
+                </p>
+                <div className="flex flex-wrap gap-2 mt-3">
+                  {data.gapsFinanceiro > 0 && (
+                    <Link to="/admin/empresas?gap=sem_financeiro">
+                      <Badge className="bg-warning/15 hover:bg-warning/25 text-warning border-warning/30 cursor-pointer transition-colors gap-1.5">
+                        <Wallet size={12} /> {data.gapsFinanceiro} sem financeiro
+                      </Badge>
+                    </Link>
+                  )}
+                  {data.gapsOperacional > 0 && (
+                    <Link to="/admin/empresas?gap=sem_operacional">
+                      <Badge className="bg-warning/15 hover:bg-warning/25 text-warning border-warning/30 cursor-pointer transition-colors gap-1.5">
+                        <Wrench size={12} /> {data.gapsOperacional} sem operacional
+                      </Badge>
+                    </Link>
+                  )}
+                  {data.gapsApenasDono > 0 && (
+                    <Link to="/admin/empresas?gap=apenas_dono">
+                      <Badge className="bg-muted hover:bg-muted/70 text-foreground border-border cursor-pointer transition-colors gap-1.5">
+                        <UserMinus size={12} /> {data.gapsApenasDono} só com dono
+                      </Badge>
+                    </Link>
+                  )}
+                </div>
+              </div>
+            </div>
+            <Button asChild variant="outline" size="sm" className="shrink-0">
+              <Link to="/admin/empresas">
+                Ver empresas <ArrowUpRight size={14} className="ml-1" />
+              </Link>
+            </Button>
+          </div>
+        </motion.div>
+      )}
+
       {/* Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((stat, i) => (
