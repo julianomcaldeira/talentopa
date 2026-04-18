@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Building2, Search, MapPin, Phone, Mail, Globe, Users, Calendar, Eye, RefreshCw, UserPlus, Briefcase, CheckCircle2, DollarSign, Loader2, Trash2, Plus, ShieldCheck, Wallet, Wrench } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -125,7 +126,23 @@ const AdminEmpresas = () => {
   const [empresas, setEmpresas] = useState<EmpresaRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [papelFilter, setPapelFilter] = useState<string>("todos");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [papelFilter, setPapelFilter] = useState<string>(searchParams.get("gap") || "todos");
+
+  useEffect(() => {
+    const gap = searchParams.get("gap");
+    if (gap && gap !== papelFilter) setPapelFilter(gap);
+  }, [searchParams]);
+
+  const handlePapelFilterChange = (val: string) => {
+    setPapelFilter(val);
+    if (val === "todos") {
+      searchParams.delete("gap");
+    } else {
+      searchParams.set("gap", val);
+    }
+    setSearchParams(searchParams, { replace: true });
+  };
   const [selectedEmpresa, setSelectedEmpresa] = useState<EmpresaRow | null>(null);
   const [cnpjData, setCnpjData] = useState<CnpjData | null>(null);
   const [cnpjLoading, setCnpjLoading] = useState(false);
@@ -494,7 +511,7 @@ const AdminEmpresas = () => {
             className="pl-10"
           />
         </div>
-        <Select value={papelFilter} onValueChange={setPapelFilter}>
+        <Select value={papelFilter} onValueChange={handlePapelFilterChange}>
           <SelectTrigger className="w-full sm:w-72">
             <SelectValue placeholder="Filtrar por papel" />
           </SelectTrigger>
