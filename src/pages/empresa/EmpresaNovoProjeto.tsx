@@ -172,6 +172,25 @@ const EmpresaNovoProjeto = () => {
     <div>
       <PageHeader title="Novo Projeto" description="Crie um projeto de implementação ERP em poucos passos" />
 
+      {recontratarConsultor && (
+        <div className="max-w-3xl mb-4 rounded-xl border border-primary/30 bg-primary/5 p-4 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/60 to-accent/60 flex items-center justify-center text-primary-foreground text-xs font-semibold overflow-hidden shrink-0">
+            {recontratarConsultor.avatar_url
+              ? <img src={recontratarConsultor.avatar_url} alt={recontratarConsultor.nome} className="w-full h-full object-cover" />
+              : recontratarConsultor.nome.split(" ").slice(0, 2).map(x => x.charAt(0)).join("").toUpperCase()}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-display font-semibold text-foreground flex items-center gap-2">
+              <UserCheck size={14} className="text-primary" /> Recontratando {recontratarConsultor.nome}
+            </p>
+            <p className="text-xs text-muted-foreground">Após publicar, este consultor será notificado e convidado a enviar uma proposta.</p>
+          </div>
+          <Button variant="ghost" size="sm" onClick={limparRecontratacao}>
+            <X size={14} /> Cancelar
+          </Button>
+        </div>
+      )}
+
       {/* Stepper */}
       <div className="flex items-center gap-2 mb-8 max-w-3xl">
         {steps.map((s, i) => (
