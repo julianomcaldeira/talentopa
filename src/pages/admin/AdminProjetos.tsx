@@ -309,8 +309,8 @@ const AdminProjetos = () => {
 
       {/* List */}
       <DataCard noPadding>
-        {loading ? <LoadingState /> : filtered.length === 0 ? (
-          <EmptyState message={search || statusFilter !== "todos" ? "Nenhum projeto encontrado" : "Nenhum projeto cadastrado"} icon={FolderKanban} />
+        {loading ? <LoadingState /> : sorted.length === 0 ? (
+          <EmptyState message={search || activeFiltersCount > 0 ? "Nenhum projeto encontrado com esses filtros" : "Nenhum projeto cadastrado"} icon={FolderKanban} />
         ) : (
           <div className="divide-y divide-border/60">
             {paginated.map((projeto) => (
