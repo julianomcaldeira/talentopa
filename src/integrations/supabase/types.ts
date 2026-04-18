@@ -971,6 +971,66 @@ export type Database = {
           },
         ]
       }
+      projeto_horas_lancadas: {
+        Row: {
+          aprovado: boolean | null
+          aprovado_em: string | null
+          aprovado_por: string | null
+          consultor_user_id: string
+          created_at: string
+          data_execucao: string
+          descricao: string | null
+          fase_id: string | null
+          horas: number
+          id: string
+          projeto_id: string
+          updated_at: string
+        }
+        Insert: {
+          aprovado?: boolean | null
+          aprovado_em?: string | null
+          aprovado_por?: string | null
+          consultor_user_id: string
+          created_at?: string
+          data_execucao: string
+          descricao?: string | null
+          fase_id?: string | null
+          horas: number
+          id?: string
+          projeto_id: string
+          updated_at?: string
+        }
+        Update: {
+          aprovado?: boolean | null
+          aprovado_em?: string | null
+          aprovado_por?: string | null
+          consultor_user_id?: string
+          created_at?: string
+          data_execucao?: string
+          descricao?: string | null
+          fase_id?: string | null
+          horas?: number
+          id?: string
+          projeto_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "projeto_horas_lancadas_fase_id_fkey"
+            columns: ["fase_id"]
+            isOneToOne: false
+            referencedRelation: "projeto_fases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "projeto_horas_lancadas_projeto_id_fkey"
+            columns: ["projeto_id"]
+            isOneToOne: false
+            referencedRelation: "projetos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       projeto_modulos: {
         Row: {
           id: string
@@ -1035,6 +1095,59 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "projeto_perguntas_projeto_id_fkey"
+            columns: ["projeto_id"]
+            isOneToOne: false
+            referencedRelation: "projetos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      projeto_reunioes: {
+        Row: {
+          ata: string | null
+          created_at: string
+          criado_por: string
+          data_reuniao: string
+          duracao_min: number | null
+          id: string
+          link: string | null
+          participantes: string[]
+          pauta: string | null
+          projeto_id: string
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          ata?: string | null
+          created_at?: string
+          criado_por: string
+          data_reuniao: string
+          duracao_min?: number | null
+          id?: string
+          link?: string | null
+          participantes?: string[]
+          pauta?: string | null
+          projeto_id: string
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          ata?: string | null
+          created_at?: string
+          criado_por?: string
+          data_reuniao?: string
+          duracao_min?: number | null
+          id?: string
+          link?: string | null
+          participantes?: string[]
+          pauta?: string | null
+          projeto_id?: string
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "projeto_reunioes_projeto_id_fkey"
             columns: ["projeto_id"]
             isOneToOne: false
             referencedRelation: "projetos"
