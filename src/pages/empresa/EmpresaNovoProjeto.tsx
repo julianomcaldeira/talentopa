@@ -176,6 +176,19 @@ const EmpresaNovoProjeto = () => {
     const validFases = fases.filter(f => f.nome);
     if (validFases.length > 0) await supabase.from("projeto_fases").insert(validFases.map((f, i) => ({ projeto_id: projeto.id, nome: f.nome, descricao: f.descricao || null, ordem: i, prazo: f.prazo || null, valor: f.valor ? Number(f.valor) : null })));
 
+    // Perguntas de qualificação para os consultores
+    const validPerguntas = perguntas.filter(p => p.pergunta.trim());
+    if (validPerguntas.length > 0) {
+      await supabase.from("projeto_perguntas").insert(
+        validPerguntas.map((p, i) => ({
+          projeto_id: projeto.id,
+          pergunta: p.pergunta.trim(),
+          obrigatoria: p.obrigatoria,
+          ordem: i,
+        }))
+      );
+    }
+
     // Convidar consultor (recontratação): notificação + mensagem-convite no chat do projeto
     if (recontratarConsultor) {
       await supabase.from("notificacoes").insert({
