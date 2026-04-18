@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { FolderKanban, Search, Calendar, Building2, Users, Filter, Eye, ArrowUpDown, AlertTriangle } from "lucide-react";
+import { FolderKanban, Search, Calendar, Building2, Users, Filter, Eye, ArrowUpDown, AlertTriangle, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -37,6 +37,8 @@ const AdminProjetos = () => {
   const [statusFilter, setStatusFilter] = useState("todos");
   const [selectedProjeto, setSelectedProjeto] = useState<ProjetoRow | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 10;
   const { toast } = useToast();
 
   const fetchProjetos = async () => {
@@ -89,6 +91,12 @@ const AdminProjetos = () => {
     const matchesStatus = statusFilter === "todos" || p.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const paginated = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+
+  useEffect(() => { setPage(1); }, [search, statusFilter]);
 
   const statusCounts = {
     total: projetos.length,
@@ -146,7 +154,7 @@ const AdminProjetos = () => {
           <EmptyState message={search || statusFilter !== "todos" ? "Nenhum projeto encontrado" : "Nenhum projeto cadastrado"} icon={FolderKanban} />
         ) : (
           <div className="divide-y divide-border/60">
-            {filtered.map((projeto) => (
+            {paginated.map((projeto) => (
               <div
                 key={projeto.id}
                 className="p-4 px-5 table-row-interactive cursor-pointer"
@@ -175,6 +183,18 @@ const AdminProjetos = () => {
                       {projeto.propostas_count} proposta{projeto.propostas_count !== 1 ? "s" : ""}
                     </Badge>
                     <StatusBadge status={projeto.status} />
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedProjeto(projeto);
+                        setDetailOpen(true);
+                      }}
+                      className="h-8 gap-1.5"
+                    >
+                      <Eye size={14} /> Detalhes
+                    </Button>
                   </div>
                 </div>
                 {projeto.fases && projeto.fases.length > 0 && (
@@ -199,6 +219,43 @@ const AdminProjetos = () => {
           </div>
         )}
       </DataCard>
+
+      {/* Pagination */}
+      {!loading && filtered.length > PAGE_SIZE && (
+        <div className="flex items-center justify-between mt-4 px-1">
+          <p className="text-xs text-muted-foreground">
+            Mostrando <span className="font-semibold text-foreground">{(currentPage - 1) * PAGE_SIZE + 1}</span>
+            {" - "}
+            <span className="font-semibold text-foreground">{Math.min(currentPage * PAGE_SIZE, filtered.length)}</span>
+            {" de "}
+            <span className="font-semibold text-foreground">{filtered.length}</span> projetos
+          </p>
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setPage(p => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="h-8 gap-1"
+            >
+              <ChevronLeft size={14} /> Anterior
+            </Button>
+            <span className="text-xs text-muted-foreground px-2">
+              Página <span className="font-semibold text-foreground">{currentPage}</span> de{" "}
+              <span className="font-semibold text-foreground">{totalPages}</span>
+            </span>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className="h-8 gap-1"
+            >
+              Próxima <ChevronRight size={14} />
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Detail Dialog */}
       <Dialog open={detailOpen} onOpenChange={setDetailOpen}>
