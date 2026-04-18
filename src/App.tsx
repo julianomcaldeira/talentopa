@@ -71,7 +71,6 @@ const App = () => (
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/dashboard" element={<AuthRedirect />} />
-            <Route path="/projetos/:id/gestao" element={<ProtectedRoute allowedRoles={["empresa","consultor","admin"]}><ProjetoGestao /></ProtectedRoute>} />
 
             {/* Admin */}
             <Route path="/admin" element={<ProtectedRoute allowedRoles={["admin"]}><AdminLayout /></ProtectedRoute>}>
@@ -86,6 +85,7 @@ const App = () => (
               <Route path="metricas" element={<AdminMetricas />} />
               <Route path="relatorios" element={<AdminRelatorios />} />
               <Route path="audit-logs" element={<AdminAuditLogs />} />
+              <Route path="projetos/:id/gestao" element={<ProjetoGestao />} />
               <Route path="score-config" element={<AdminScoreConfig />} />
             </Route>
 
@@ -100,6 +100,7 @@ const App = () => (
               <Route path="score" element={<ConsultorScore />} />
               <Route path="portfolio/:userId" element={<ConsultorPortfolioPublico />} />
               <Route path="relatorios" element={<ConsultorRelatorios />} />
+              <Route path="projetos/:id/gestao" element={<ProjetoGestao />} />
             </Route>
 
             {/* Empresa */}
@@ -110,6 +111,7 @@ const App = () => (
               <Route path="novo-projeto" element={<EmpresaNovoProjeto />} />
               <Route path="perfil" element={<EmpresaPerfil />} />
               <Route path="relatorios" element={<EmpresaRelatorios />} />
+              <Route path="projetos/:id/gestao" element={<ProjetoGestao />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />
