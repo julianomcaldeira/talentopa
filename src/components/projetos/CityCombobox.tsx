@@ -14,6 +14,7 @@ interface CityComboboxProps {
   value: CityOption | null;
   onChange: (v: CityOption | null) => void;
   placeholder?: string;
+  count?: number;
 }
 
 interface IBGEMunicipio {
