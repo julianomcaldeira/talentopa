@@ -32,6 +32,8 @@ const EmpresaNovoProjeto = () => {
   const [modulos, setModulos] = useState<any[]>([]);
   const [funcionalidades, setFuncionalidades] = useState<any[]>([]);
   const [templates, setTemplates] = useState<any[]>([]);
+  const [meusProjetos, setMeusProjetos] = useState<any[]>([]);
+  const [espelhandoId, setEspelhandoId] = useState<string>("");
   const [saving, setSaving] = useState(false);
 
   const [form, setForm] = useState({
