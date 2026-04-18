@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ProjectCommunication } from "@/components/communication/ProjectCommunication";
 import { ModeloContratacaoBadge } from "@/components/projetos/ProjetoDetalhesDialog";
+import { ViewToggle, ViewMode } from "@/components/ui/view-toggle";
 
 const formatCurrency = (val: number) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(val);
