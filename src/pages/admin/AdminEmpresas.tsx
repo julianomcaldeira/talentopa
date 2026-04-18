@@ -143,8 +143,17 @@ const AdminEmpresas = () => {
 
   // Dialog detail data
   const [empresaProjetos, setEmpresaProjetos] = useState<ProjetoEmpresa[]>([]);
-  const [empresaUsers, setEmpresaUsers] = useState<any[]>([]);
+  const [empresaUsers, setEmpresaUsers] = useState<EmpresaUsuarioRow[]>([]);
   const [detailLoading, setDetailLoading] = useState(false);
+
+  // Add user form
+  const [addUserOpen, setAddUserOpen] = useState(false);
+  const [addingUser, setAddingUser] = useState(false);
+  const [newLink, setNewLink] = useState<{ email: string; papel: PapelEmpresa; observacoes: string }>({
+    email: "",
+    papel: "operacional",
+    observacoes: "",
+  });
 
   const { toast } = useToast();
 
