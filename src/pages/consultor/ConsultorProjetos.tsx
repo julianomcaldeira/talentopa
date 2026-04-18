@@ -283,6 +283,42 @@ const ConsultorProjetos = () => {
     setOnlyCompatible(false);
   };
 
+  const handleSaveSearch = async () => {
+    if (!user || !saveName.trim()) return;
+    const filtros = {
+      city: filterCity,
+      software: filterSoftware,
+      modulo: filterModulo,
+      segmento: filterSegmento,
+      onlyCompatible,
+    };
+    const { error } = await (supabase as any)
+      .from("consultor_buscas_favoritas")
+      .insert({ user_id: user.id, nome: saveName.trim(), filtros });
+    if (error) { toast({ title: "Erro ao salvar", description: error.message, variant: "destructive" }); return; }
+    toast({ title: "Busca salva!", description: `"${saveName.trim()}" foi adicionada às suas favoritas.` });
+    setSaveName("");
+    setSaveDialogOpen(false);
+    fetchSavedSearches();
+  };
+
+  const applySavedSearch = (s: SavedSearch) => {
+    const f = s.filtros || {};
+    setFilterCity(f.city || null);
+    setFilterSoftware(f.software || "all");
+    setFilterModulo(f.modulo || "all");
+    setFilterSegmento(f.segmento || "all");
+    setOnlyCompatible(!!f.onlyCompatible);
+    toast({ title: "Busca aplicada", description: s.nome });
+  };
+
+  const deleteSavedSearch = async (id: string, nome: string) => {
+    const { error } = await (supabase as any).from("consultor_buscas_favoritas").delete().eq("id", id);
+    if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
+    toast({ title: "Busca removida", description: nome });
+    fetchSavedSearches();
+  };
+
   return (
     <div>
       <PageHeader title="Projetos Disponíveis" description="Encontre projetos compatíveis com seu perfil técnico" />
