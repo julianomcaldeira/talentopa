@@ -18,9 +18,10 @@ import AdminEmpresas from "./pages/admin/AdminEmpresas";
 import AdminProjetos from "./pages/admin/AdminProjetos";
 import AdminFinanceiro from "./pages/admin/AdminFinanceiro";
 import AdminConsultores from "./pages/admin/AdminConsultores";
-import AdminBaseConhecimento from "./pages/admin/AdminBaseConhecimento";
 import AdminProjetoDetalhe from "./pages/admin/AdminProjetoDetalhe";
 import AdminModeracao from "./pages/admin/AdminModeracao";
+import AdminMetricas from "./pages/admin/AdminMetricas";
+import AdminAuditLogs from "./pages/admin/AdminAuditLogs";
 import ConsultorDashboard from "./pages/consultor/ConsultorDashboard";
 import ConsultorPerfil from "./pages/consultor/ConsultorPerfil";
 import ConsultorHabilidades from "./pages/consultor/ConsultorHabilidades";
@@ -79,8 +80,9 @@ const App = () => (
               <Route path="financeiro" element={<AdminFinanceiro />} />
               <Route path="catalogo" element={<AdminCatalogo />} />
               <Route path="moderacao" element={<AdminModeracao />} />
-              <Route path="base-conhecimento" element={<AdminBaseConhecimento />} />
+              <Route path="metricas" element={<AdminMetricas />} />
               <Route path="relatorios" element={<AdminRelatorios />} />
+              <Route path="audit-logs" element={<AdminAuditLogs />} />
               <Route path="score-config" element={<AdminScoreConfig />} />
             </Route>
 

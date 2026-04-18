@@ -14,6 +14,60 @@ export type Database = {
   }
   public: {
     Tables: {
+      audit_logs: {
+        Row: {
+          acao: string
+          actor_nome: string | null
+          actor_role: string | null
+          actor_user_id: string | null
+          categoria: string
+          created_at: string
+          dados_antigos: Json | null
+          dados_novos: Json | null
+          descricao: string | null
+          entidade: string | null
+          entidade_id: string | null
+          id: string
+          ip_address: string | null
+          metadata: Json | null
+          severidade: string
+        }
+        Insert: {
+          acao: string
+          actor_nome?: string | null
+          actor_role?: string | null
+          actor_user_id?: string | null
+          categoria: string
+          created_at?: string
+          dados_antigos?: Json | null
+          dados_novos?: Json | null
+          descricao?: string | null
+          entidade?: string | null
+          entidade_id?: string | null
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          severidade?: string
+        }
+        Update: {
+          acao?: string
+          actor_nome?: string | null
+          actor_role?: string | null
+          actor_user_id?: string | null
+          categoria?: string
+          created_at?: string
+          dados_antigos?: Json | null
+          dados_novos?: Json | null
+          descricao?: string | null
+          entidade?: string | null
+          entidade_id?: string | null
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          severidade?: string
+        }
+        Relationships: []
+      }
       avaliacoes: {
         Row: {
           avaliado_user_id: string
@@ -1216,6 +1270,7 @@ export type Database = {
     Functions: {
       aceitar_proposta: { Args: { p_proposta_id: string }; Returns: Json }
       concluir_projeto: { Args: { p_projeto_id: string }; Returns: Json }
+      get_admin_advanced_metrics: { Args: never; Returns: Json }
       get_monthly_project_stats: {
         Args: never
         Returns: {
@@ -1255,6 +1310,19 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      log_audit_event: {
+        Args: {
+          p_acao: string
+          p_categoria: string
+          p_dados_antigos?: Json
+          p_dados_novos?: Json
+          p_descricao: string
+          p_entidade: string
+          p_entidade_id: string
+          p_severidade?: string
+        }
+        Returns: undefined
       }
     }
     Enums: {
