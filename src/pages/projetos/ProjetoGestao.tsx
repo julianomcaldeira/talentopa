@@ -193,7 +193,7 @@ const ProjetoGestao = () => {
         </TabsContent>
 
         <TabsContent value="horas" className="mt-4">
-          <Timesheet projetoId={projeto.id} fases={fases} isConsultor={isConsultor && isMyProject} isEmpresa={isEmpresa && projeto.empresa_user_id === user?.id} />
+          <Timesheet projetoId={projeto.id} fases={fases} isConsultor={isConsultor && isMyProject} isEmpresa={isEmpresa && projeto.empresa_user_id === user?.id} projetoNome={projeto.nome} />
         </TabsContent>
 
         <TabsContent value="reunioes" className="mt-4">
