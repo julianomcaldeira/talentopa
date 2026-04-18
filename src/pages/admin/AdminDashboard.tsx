@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import {
   Building2, Users, FolderKanban, DollarSign, TrendingUp,
   AlertCircle, ArrowUpRight, Clock, Zap, Target,
-  CheckCircle2, XCircle, Timer, BarChart3, Sparkles, Shield, Send
+  CheckCircle2, XCircle, Timer, BarChart3, Sparkles, Shield, Send,
+  Wallet, Wrench, UserMinus
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { StatusBadge, SectionTitle, DataCard } from "@/components/dashboard/DashboardComponents";
@@ -31,6 +32,9 @@ interface DashboardData {
   alertas: any[];
   projetosPorStatus: { name: string; value: number; color: string }[];
   horasData: { fase: string; estimadas: number; executadas: number }[];
+  gapsFinanceiro: number;
+  gapsOperacional: number;
+  gapsApenasDono: number;
 }
 
 const statusColors: Record<string, string> = {
@@ -84,6 +88,8 @@ const AdminDashboard = () => {
           { data: recentProjects },
           { data: alertas },
           { data: fases },
+          { data: empresasGap },
+          { data: vinculos },
         ] = await Promise.all([
           supabase.from("user_roles").select("*", { count: "exact", head: true }).eq("role", "consultor"),
           supabase.from("user_roles").select("*", { count: "exact", head: true }).eq("role", "empresa"),
@@ -92,7 +98,23 @@ const AdminDashboard = () => {
           supabase.from("projetos").select("id, nome, status, created_at, empresa_user_id, protocolo, software_id, softwares(nome)").order("created_at", { ascending: false }).limit(5),
           supabase.from("projeto_alertas").select("*").eq("resolvido", false).order("created_at", { ascending: false }).limit(5),
           supabase.from("projeto_fases").select("nome, horas_estimadas, horas_executadas").limit(8),
+          supabase.from("empresa_perfil").select("user_id"),
+          supabase.from("empresa_usuarios").select("empresa_user_id, papel"),
         ]);
+
+        // Compute role gaps per empresa
+        const papeisPorEmpresa = new Map<string, Set<string>>();
+        (vinculos || []).forEach((v: any) => {
+          if (!papeisPorEmpresa.has(v.empresa_user_id)) papeisPorEmpresa.set(v.empresa_user_id, new Set());
+          papeisPorEmpresa.get(v.empresa_user_id)!.add(v.papel);
+        });
+        let gapsFinanceiro = 0, gapsOperacional = 0, gapsApenasDono = 0;
+        (empresasGap || []).forEach((e: any) => {
+          const papeis = papeisPorEmpresa.get(e.user_id) || new Set();
+          if (!papeis.has("financeiro")) gapsFinanceiro++;
+          if (!papeis.has("operacional")) gapsOperacional++;
+          if (papeis.size === 0) gapsApenasDono++;
+        });
 
         const statusCounts: Record<string, number> = {};
         (projetos || []).forEach((p: any) => {
@@ -125,6 +147,9 @@ const AdminDashboard = () => {
           alertas: alertas || [],
           projetosPorStatus,
           horasData,
+          gapsFinanceiro,
+          gapsOperacional,
+          gapsApenasDono,
         });
       } catch (err) {
         console.error("Dashboard fetch error:", err);
@@ -199,6 +224,60 @@ const AdminDashboard = () => {
           </div>
         </div>
       </motion.div>
+
+      {/* Critical Gaps Alert */}
+      {(data.gapsFinanceiro > 0 || data.gapsOperacional > 0 || data.gapsApenasDono > 0) && (
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.1 }}
+          className="relative overflow-hidden rounded-2xl border border-warning/30 bg-gradient-to-r from-warning/10 via-warning/5 to-transparent p-5 shadow-card"
+        >
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-start gap-3 flex-1">
+              <div className="icon-container icon-container-md bg-warning/15 rounded-xl shrink-0">
+                <AlertCircle className="h-5 w-5 text-warning" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-display font-semibold text-foreground text-[15px] flex items-center gap-2">
+                  Empresas com gaps de cadastro
+                </h3>
+                <p className="text-sm text-muted-foreground mt-0.5">
+                  Identifique empresas sem papéis críticos vinculados para garantir notificações corretas (faturamento, operação).
+                </p>
+                <div className="flex flex-wrap gap-2 mt-3">
+                  {data.gapsFinanceiro > 0 && (
+                    <Link to="/admin/empresas?gap=sem_financeiro">
+                      <Badge className="bg-warning/15 hover:bg-warning/25 text-warning border-warning/30 cursor-pointer transition-colors gap-1.5">
+                        <Wallet size={12} /> {data.gapsFinanceiro} sem financeiro
+                      </Badge>
+                    </Link>
+                  )}
+                  {data.gapsOperacional > 0 && (
+                    <Link to="/admin/empresas?gap=sem_operacional">
+                      <Badge className="bg-warning/15 hover:bg-warning/25 text-warning border-warning/30 cursor-pointer transition-colors gap-1.5">
+                        <Wrench size={12} /> {data.gapsOperacional} sem operacional
+                      </Badge>
+                    </Link>
+                  )}
+                  {data.gapsApenasDono > 0 && (
+                    <Link to="/admin/empresas?gap=apenas_dono">
+                      <Badge className="bg-muted hover:bg-muted/70 text-foreground border-border cursor-pointer transition-colors gap-1.5">
+                        <UserMinus size={12} /> {data.gapsApenasDono} só com dono
+                      </Badge>
+                    </Link>
+                  )}
+                </div>
+              </div>
+            </div>
+            <Button asChild variant="outline" size="sm" className="shrink-0">
+              <Link to="/admin/empresas">
+                Ver empresas <ArrowUpRight size={14} className="ml-1" />
+              </Link>
+            </Button>
+          </div>
+        </motion.div>
+      )}
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
