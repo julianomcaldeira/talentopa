@@ -483,9 +483,9 @@ const AdminEmpresas = () => {
         }
       />
 
-      {/* Search */}
-      <div className="mb-6">
-        <div className="relative max-w-md">
+      {/* Search + filtro de papel */}
+      <div className="mb-6 flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1 max-w-md">
           <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/60" />
           <Input
             placeholder="Buscar por razão social, CNPJ ou e-mail..."
@@ -494,6 +494,20 @@ const AdminEmpresas = () => {
             className="pl-10"
           />
         </div>
+        <Select value={papelFilter} onValueChange={setPapelFilter}>
+          <SelectTrigger className="w-full sm:w-72">
+            <SelectValue placeholder="Filtrar por papel" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="todos">Todas as empresas</SelectItem>
+            <SelectItem value="apenas_dono">Apenas dono cadastrado ({gapsCount.apenas_dono})</SelectItem>
+            <SelectItem value="sem_financeiro">Sem financeiro vinculado ({gapsCount.sem_financeiro})</SelectItem>
+            <SelectItem value="sem_operacional">Sem operacional vinculado ({gapsCount.sem_operacional})</SelectItem>
+            <SelectItem value="com_financeiro">Com financeiro vinculado</SelectItem>
+            <SelectItem value="com_operacional">Com operacional vinculado</SelectItem>
+            <SelectItem value="sem_responsavel">Sem responsável vinculado</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Stats */}
