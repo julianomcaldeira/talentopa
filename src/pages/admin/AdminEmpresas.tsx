@@ -62,6 +62,7 @@ interface EmpresaRow {
     avatar_url: string | null;
   };
   projetos_count?: number;
+  usuarios_count?: number;
 }
 
 interface CnpjData {
