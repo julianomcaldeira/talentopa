@@ -63,6 +63,7 @@ interface EmpresaRow {
   };
   projetos_count?: number;
   usuarios_count?: number;
+  usuarios_resumo?: { nome: string; papel: PapelEmpresa; isOwner?: boolean }[];
 }
 
 interface CnpjData {
