@@ -31,6 +31,9 @@ interface DashboardData {
   alertas: any[];
   projetosPorStatus: { name: string; value: number; color: string }[];
   horasData: { fase: string; estimadas: number; executadas: number }[];
+  gapsFinanceiro: number;
+  gapsOperacional: number;
+  gapsApenasDono: number;
 }
 
 const statusColors: Record<string, string> = {
@@ -84,6 +87,8 @@ const AdminDashboard = () => {
           { data: recentProjects },
           { data: alertas },
           { data: fases },
+          { data: empresasGap },
+          { data: vinculos },
         ] = await Promise.all([
           supabase.from("user_roles").select("*", { count: "exact", head: true }).eq("role", "consultor"),
           supabase.from("user_roles").select("*", { count: "exact", head: true }).eq("role", "empresa"),
@@ -92,7 +97,23 @@ const AdminDashboard = () => {
           supabase.from("projetos").select("id, nome, status, created_at, empresa_user_id, protocolo, software_id, softwares(nome)").order("created_at", { ascending: false }).limit(5),
           supabase.from("projeto_alertas").select("*").eq("resolvido", false).order("created_at", { ascending: false }).limit(5),
           supabase.from("projeto_fases").select("nome, horas_estimadas, horas_executadas").limit(8),
+          supabase.from("empresa_perfil").select("user_id"),
+          supabase.from("empresa_usuarios").select("empresa_user_id, papel"),
         ]);
+
+        // Compute role gaps per empresa
+        const papeisPorEmpresa = new Map<string, Set<string>>();
+        (vinculos || []).forEach((v: any) => {
+          if (!papeisPorEmpresa.has(v.empresa_user_id)) papeisPorEmpresa.set(v.empresa_user_id, new Set());
+          papeisPorEmpresa.get(v.empresa_user_id)!.add(v.papel);
+        });
+        let gapsFinanceiro = 0, gapsOperacional = 0, gapsApenasDono = 0;
+        (empresasGap || []).forEach((e: any) => {
+          const papeis = papeisPorEmpresa.get(e.user_id) || new Set();
+          if (!papeis.has("financeiro")) gapsFinanceiro++;
+          if (!papeis.has("operacional")) gapsOperacional++;
+          if (papeis.size === 0) gapsApenasDono++;
+        });
 
         const statusCounts: Record<string, number> = {};
         (projetos || []).forEach((p: any) => {
@@ -125,6 +146,9 @@ const AdminDashboard = () => {
           alertas: alertas || [],
           projetosPorStatus,
           horasData,
+          gapsFinanceiro,
+          gapsOperacional,
+          gapsApenasDono,
         });
       } catch (err) {
         console.error("Dashboard fetch error:", err);
