@@ -16,6 +16,7 @@ import { ProjectCommunication } from "@/components/communication/ProjectCommunic
 import { ProjetoDetalhesDialog, ModeloContratacaoBadge } from "@/components/projetos/ProjetoDetalhesDialog";
 import { CityCombobox, CityOption } from "@/components/projetos/CityCombobox";
 import { useScoreConfig } from "@/hooks/useScoreConfig";
+import { ViewToggle, ViewMode } from "@/components/ui/view-toggle";
 
 const ConsultorProjetos = () => {
   const { user, profile } = useAuth();
