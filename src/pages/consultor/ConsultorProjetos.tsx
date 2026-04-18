@@ -252,13 +252,14 @@ const ConsultorProjetos = () => {
     ).length;
   }, [projetos, filterCity, filterSoftware, filterModulo, filterSegmento, projetoScopes]);
 
-  const hasActiveFilters = filterCity || filterSoftware !== "all" || filterModulo !== "all" || filterSegmento !== "all";
+  const hasActiveFilters = filterCity || filterSoftware !== "all" || filterModulo !== "all" || filterSegmento !== "all" || onlyCompatible;
 
   const clearFilters = () => {
     setFilterCity(null);
     setFilterSoftware("all");
     setFilterModulo("all");
     setFilterSegmento("all");
+    setOnlyCompatible(false);
   };
 
   return (
