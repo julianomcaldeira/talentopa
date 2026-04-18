@@ -77,6 +77,30 @@ const EmpresaNovoProjeto = () => {
     fetch();
   }, [user]);
 
+  // Pré-carregar consultor sugerido via querystring (?recontratar=USER_ID)
+  useEffect(() => {
+    const uid = searchParams.get("recontratar");
+    if (!uid) return;
+    (async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("user_id, nome, avatar_url")
+        .eq("user_id", uid)
+        .maybeSingle();
+      if (data) {
+        setRecontratarConsultor({ user_id: data.user_id, nome: data.nome, avatar_url: data.avatar_url });
+        toast({ title: "Recontratação iniciada", description: `O projeto será sugerido a ${data.nome} assim que for publicado.` });
+      }
+    })();
+  }, [searchParams, toast]);
+
+  const limparRecontratacao = () => {
+    setRecontratarConsultor(null);
+    searchParams.delete("recontratar");
+    searchParams.delete("nome");
+    setSearchParams(searchParams, { replace: true });
+  };
+
   const espelharProjeto = (projetoId: string) => {
     if (!projetoId) {
       setEspelhandoId("");
