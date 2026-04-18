@@ -214,7 +214,7 @@ const EmpresaProjetos = () => {
 
                 {chatProjeto?.id === p.id && (
                   <div className="ml-[54px] mt-3">
-                    <ProjectCommunication projetoId={p.id} projetoNome={p.nome} isEmpresa={true} />
+                    <ProjectCommunication projetoId={p.id} projetoNome={p.nome} isEmpresa={true} empresaUserId={user?.id} />
                   </div>
                 )}
 
