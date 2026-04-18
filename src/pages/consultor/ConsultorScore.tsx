@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useScoreConfig } from "@/hooks/useScoreConfig";
 import { PageHeader, DataCard, SectionTitle } from "@/components/dashboard/DashboardComponents";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
@@ -34,6 +35,7 @@ const getLevel = (score: number) => {
 
 const ConsultorScore = () => {
   const { user } = useAuth();
+  const { config } = useScoreConfig();
   const [data, setData] = useState<ScoreData | null>(null);
   const [cases, setCases] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -41,7 +43,7 @@ const ConsultorScore = () => {
   useEffect(() => {
     if (!user) return;
     loadData();
-  }, [user]);
+  }, [user, config]);
 
   const loadData = async () => {
     if (!user) return;
