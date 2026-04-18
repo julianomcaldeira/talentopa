@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
-import { Building2, Search, MapPin, Phone, Mail, Globe, Users, Calendar, Eye, RefreshCw, UserPlus } from "lucide-react";
+import { Building2, Search, MapPin, Phone, Mail, Globe, Users, Calendar, Eye, RefreshCw, UserPlus, Briefcase, CheckCircle2, DollarSign, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { PageHeader, DataCard, EmptyState, LoadingState, StatusBadge, SectionTitle } from "@/components/dashboard/DashboardComponents";
@@ -47,14 +48,44 @@ interface CnpjData {
   email: string;
 }
 
+interface ProjetoEmpresa {
+  id: string;
+  nome: string;
+  status: string;
+  protocolo: string | null;
+  created_at: string;
+  prazo_estimado: string | null;
+  valor_contratado: number;
+}
+
 const formatCnpj = (cnpj: string) => {
   const c = cnpj.replace(/\D/g, '');
   if (c.length !== 14) return cnpj;
   return `${c.slice(0,2)}.${c.slice(2,5)}.${c.slice(5,8)}/${c.slice(8,12)}-${c.slice(12)}`;
 };
 
+const maskCnpjInput = (val: string) => {
+  const c = val.replace(/\D/g, '').slice(0, 14);
+  if (c.length <= 2) return c;
+  if (c.length <= 5) return `${c.slice(0,2)}.${c.slice(2)}`;
+  if (c.length <= 8) return `${c.slice(0,2)}.${c.slice(2,5)}.${c.slice(5)}`;
+  if (c.length <= 12) return `${c.slice(0,2)}.${c.slice(2,5)}.${c.slice(5,8)}/${c.slice(8)}`;
+  return `${c.slice(0,2)}.${c.slice(2,5)}.${c.slice(5,8)}/${c.slice(8,12)}-${c.slice(12)}`;
+};
+
 const formatCurrency = (val: number) => 
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
+
+const STATUS_LABELS: Record<string, string> = {
+  rascunho: "Rascunho",
+  publicado: "Publicado",
+  em_selecao: "Em seleção",
+  em_andamento: "Em andamento",
+  concluido: "Concluído",
+  cancelado: "Cancelado",
+};
+
+const ACTIVE_STATUSES = ["publicado", "em_selecao", "em_andamento"];
 
 const AdminEmpresas = () => {
   const [empresas, setEmpresas] = useState<EmpresaRow[]>([]);
@@ -66,7 +97,24 @@ const AdminEmpresas = () => {
   const [detailOpen, setDetailOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [creating, setCreating] = useState(false);
-  const [newEmpresa, setNewEmpresa] = useState({ nome: "", email: "", password: "", nome_fantasia: "", cnpj: "", segmento: "", endereco: "", numero_funcionarios: "" });
+  const [cnpjLookupLoading, setCnpjLookupLoading] = useState(false);
+  const [cnpjLookupDone, setCnpjLookupDone] = useState(false);
+  const [newEmpresa, setNewEmpresa] = useState({
+    cnpj: "",
+    nome: "",
+    email: "",
+    password: "",
+    nome_fantasia: "",
+    segmento: "",
+    endereco: "",
+    numero_funcionarios: "",
+  });
+
+  // Dialog detail data
+  const [empresaProjetos, setEmpresaProjetos] = useState<ProjetoEmpresa[]>([]);
+  const [empresaUsers, setEmpresaUsers] = useState<any[]>([]);
+  const [detailLoading, setDetailLoading] = useState(false);
+
   const { toast } = useToast();
 
   const fetchEmpresas = async () => {
@@ -83,7 +131,6 @@ const AdminEmpresas = () => {
 
     if (!empresaData) { setLoading(false); return; }
 
-    // Fetch profiles and project counts
     const userIds = empresaData.map(e => e.user_id);
     const [profilesRes, projetosRes] = await Promise.all([
       supabase.from("profiles").select("*").in("user_id", userIds),
@@ -112,9 +159,7 @@ const AdminEmpresas = () => {
     setCnpjLoading(true);
     setCnpjData(null);
     try {
-      const { data, error } = await supabase.functions.invoke('consulta-cnpj', {
-        body: { cnpj },
-      });
+      const { data, error } = await supabase.functions.invoke('consulta-cnpj', { body: { cnpj } });
       if (error) throw error;
       if (data.error) throw new Error(data.error);
       setCnpjData(data);
@@ -126,13 +171,55 @@ const AdminEmpresas = () => {
     }
   };
 
+  const fetchEmpresaDetails = async (empresa: EmpresaRow) => {
+    setDetailLoading(true);
+    setEmpresaProjetos([]);
+    setEmpresaUsers([]);
+
+    // Fetch all projects of this empresa
+    const { data: projetos } = await supabase
+      .from("projetos")
+      .select("id, nome, status, protocolo, created_at, prazo_estimado")
+      .eq("empresa_user_id", empresa.user_id)
+      .order("created_at", { ascending: false });
+
+    const projetoIds = (projetos || []).map(p => p.id);
+    let pagamentosByProjeto = new Map<string, number>();
+    if (projetoIds.length > 0) {
+      const { data: pagamentos } = await supabase
+        .from("pagamentos")
+        .select("projeto_id, valor_total")
+        .in("projeto_id", projetoIds);
+      (pagamentos || []).forEach(p => {
+        pagamentosByProjeto.set(p.projeto_id, (pagamentosByProjeto.get(p.projeto_id) || 0) + Number(p.valor_total || 0));
+      });
+    }
+
+    const projetosEnriched: ProjetoEmpresa[] = (projetos || []).map(p => ({
+      ...p,
+      valor_contratado: pagamentosByProjeto.get(p.id) || 0,
+    }));
+    setEmpresaProjetos(projetosEnriched);
+
+    // Fetch all users linked to this company (responsible profile)
+    // The empresa_perfil has a single user_id. We list it as the main user.
+    // If the system supports multiple users per company in the future, fetch them here.
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("user_id", empresa.user_id)
+      .maybeSingle();
+    if (profile) setEmpresaUsers([{ ...profile, papel: "Responsável" }]);
+
+    setDetailLoading(false);
+  };
+
   const openDetail = (empresa: EmpresaRow) => {
     setSelectedEmpresa(empresa);
     setCnpjData(null);
     setDetailOpen(true);
-    if (empresa.cnpj) {
-      consultarCnpj(empresa.cnpj);
-    }
+    fetchEmpresaDetails(empresa);
+    if (empresa.cnpj) consultarCnpj(empresa.cnpj);
   };
 
   const filtered = empresas.filter(e => {
@@ -143,6 +230,39 @@ const AdminEmpresas = () => {
       e.cnpj?.includes(term) ||
       e.profile?.email.toLowerCase().includes(term);
   });
+
+  const handleCnpjLookupForCreate = async () => {
+    const clean = newEmpresa.cnpj.replace(/\D/g, '');
+    if (clean.length !== 14) {
+      toast({ title: "CNPJ inválido", description: "Informe os 14 dígitos do CNPJ", variant: "destructive" });
+      return;
+    }
+    setCnpjLookupLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('consulta-cnpj', { body: { cnpj: clean } });
+      if (error) throw error;
+      if (data.error) throw new Error(data.error);
+      setNewEmpresa(prev => ({
+        ...prev,
+        nome: data.razao_social || prev.nome,
+        nome_fantasia: data.nome_fantasia || prev.nome_fantasia,
+        segmento: data.segmento || prev.segmento,
+        endereco: data.endereco || prev.endereco,
+        email: prev.email || data.email || "",
+      }));
+      setCnpjLookupDone(true);
+      toast({ title: "Dados preenchidos automaticamente!", description: "Confira e complete os campos restantes." });
+    } catch (err: any) {
+      toast({ title: "Erro ao buscar CNPJ", description: err.message, variant: "destructive" });
+    } finally {
+      setCnpjLookupLoading(false);
+    }
+  };
+
+  const resetCreateForm = () => {
+    setNewEmpresa({ cnpj: "", nome: "", email: "", password: "", nome_fantasia: "", segmento: "", endereco: "", numero_funcionarios: "" });
+    setCnpjLookupDone(false);
+  };
 
   const handleCreateEmpresa = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -155,7 +275,7 @@ const AdminEmpresas = () => {
           nome: newEmpresa.nome,
           tipo_usuario: "empresa",
           extra: {
-            cnpj: newEmpresa.cnpj,
+            cnpj: newEmpresa.cnpj.replace(/\D/g, ''),
             nome_fantasia: newEmpresa.nome_fantasia,
             segmento: newEmpresa.segmento,
             endereco: newEmpresa.endereco,
@@ -166,14 +286,19 @@ const AdminEmpresas = () => {
       if (res.data?.error) throw new Error(res.data.error);
       toast({ title: "Empresa cadastrada com sucesso!" });
       setCreateOpen(false);
-      setNewEmpresa({ nome: "", email: "", password: "", nome_fantasia: "", cnpj: "", segmento: "", endereco: "", numero_funcionarios: "" });
-      window.location.reload();
+      resetCreateForm();
+      fetchEmpresas();
     } catch (err: any) {
       toast({ title: "Erro ao cadastrar", description: err.message, variant: "destructive" });
     } finally {
       setCreating(false);
     }
   };
+
+  // Detail derived stats
+  const projetosAtivos = empresaProjetos.filter(p => ACTIVE_STATUSES.includes(p.status));
+  const projetosFinalizados = empresaProjetos.filter(p => p.status === "concluido");
+  const valorTotalContratado = empresaProjetos.reduce((s, p) => s + p.valor_contratado, 0);
 
   return (
     <div>
@@ -278,7 +403,7 @@ const AdminEmpresas = () => {
 
       {/* Detail Dialog */}
       <Dialog open={detailOpen} onOpenChange={setDetailOpen}>
-        <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-3xl max-h-[88vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="font-display text-lg flex items-center gap-2">
               <Building2 size={20} className="text-primary" />
@@ -287,96 +412,144 @@ const AdminEmpresas = () => {
           </DialogHeader>
 
           {selectedEmpresa && (
-            <div className="space-y-6 pt-2">
-              {/* Platform data */}
-              <div>
-                <SectionTitle>Dados na plataforma</SectionTitle>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <InfoItem label="Razão Social" value={selectedEmpresa.razao_social} />
-                  <InfoItem label="Nome Fantasia" value={selectedEmpresa.nome_fantasia} />
-                  <InfoItem label="CNPJ" value={selectedEmpresa.cnpj ? formatCnpj(selectedEmpresa.cnpj) : null} />
-                  <InfoItem label="Segmento" value={selectedEmpresa.segmento} />
-                  <InfoItem label="Endereço" value={selectedEmpresa.endereco} />
-                  <InfoItem label="Inscrição Estadual" value={selectedEmpresa.inscricao_estadual} />
-                  <InfoItem label="Nº Funcionários" value={selectedEmpresa.numero_funcionarios?.toString()} />
-                  <InfoItem label="Projetos" value={`${selectedEmpresa.projetos_count} projeto(s)`} />
-                </div>
-              </div>
+            <Tabs defaultValue="dados" className="mt-2">
+              <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="dados">Dados</TabsTrigger>
+                <TabsTrigger value="usuarios" className="gap-1.5">
+                  <Users size={13} /> Usuários ({empresaUsers.length})
+                </TabsTrigger>
+                <TabsTrigger value="ativos" className="gap-1.5">
+                  <Briefcase size={13} /> Ativos ({projetosAtivos.length})
+                </TabsTrigger>
+                <TabsTrigger value="finalizados" className="gap-1.5">
+                  <CheckCircle2 size={13} /> Finalizados ({projetosFinalizados.length})
+                </TabsTrigger>
+              </TabsList>
 
-              {/* Contact */}
-              {selectedEmpresa.profile && (
+              {/* Tab: Dados */}
+              <TabsContent value="dados" className="space-y-6 pt-4">
                 <div>
-                  <SectionTitle>Contato</SectionTitle>
+                  <SectionTitle>Dados na plataforma</SectionTitle>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <InfoItem label="Responsável" value={selectedEmpresa.profile.nome} icon={<Users size={14} />} />
-                    <InfoItem label="E-mail" value={selectedEmpresa.profile.email} icon={<Mail size={14} />} />
-                    <InfoItem label="Telefone" value={selectedEmpresa.profile.telefone} icon={<Phone size={14} />} />
-                    <InfoItem label="Localização" value={
-                      [selectedEmpresa.profile.cidade, selectedEmpresa.profile.estado].filter(Boolean).join(" - ") || null
-                    } icon={<MapPin size={14} />} />
+                    <InfoItem label="Razão Social" value={selectedEmpresa.razao_social} />
+                    <InfoItem label="Nome Fantasia" value={selectedEmpresa.nome_fantasia} />
+                    <InfoItem label="CNPJ" value={selectedEmpresa.cnpj ? formatCnpj(selectedEmpresa.cnpj) : null} />
+                    <InfoItem label="Segmento" value={selectedEmpresa.segmento} />
+                    <InfoItem label="Endereço" value={selectedEmpresa.endereco} />
+                    <InfoItem label="Inscrição Estadual" value={selectedEmpresa.inscricao_estadual} />
+                    <InfoItem label="Nº Funcionários" value={selectedEmpresa.numero_funcionarios?.toString()} />
+                    <InfoItem label="Total de Projetos" value={`${empresaProjetos.length} projeto(s)`} />
                   </div>
                 </div>
-              )}
 
-              {/* Receita Federal */}
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                  <SectionTitle>Dados da Receita Federal</SectionTitle>
-                  {selectedEmpresa.cnpj && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => consultarCnpj(selectedEmpresa.cnpj!)}
-                      disabled={cnpjLoading}
-                    >
-                      <RefreshCw size={14} className={cnpjLoading ? "animate-spin" : ""} />
-                      {cnpjLoading ? "Consultando..." : "Consultar"}
-                    </Button>
-                  )}
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <SectionTitle>Dados da Receita Federal</SectionTitle>
+                    {selectedEmpresa.cnpj && (
+                      <Button variant="outline" size="sm" onClick={() => consultarCnpj(selectedEmpresa.cnpj!)} disabled={cnpjLoading}>
+                        <RefreshCw size={14} className={cnpjLoading ? "animate-spin" : ""} />
+                        {cnpjLoading ? "Consultando..." : "Atualizar"}
+                      </Button>
+                    )}
+                  </div>
+
+                  {!selectedEmpresa.cnpj ? (
+                    <p className="text-sm text-muted-foreground bg-muted/50 rounded-xl p-4 text-center">CNPJ não informado pela empresa</p>
+                  ) : cnpjLoading ? (
+                    <div className="flex items-center justify-center py-8">
+                      <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                      <span className="ml-3 text-sm text-muted-foreground">Consultando Receita Federal...</span>
+                    </div>
+                  ) : cnpjData ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <InfoItem label="Razão Social (RF)" value={cnpjData.razao_social} highlight />
+                      <InfoItem label="Nome Fantasia (RF)" value={cnpjData.nome_fantasia} highlight />
+                      <InfoItem label="Situação Cadastral" value={cnpjData.situacao_cadastral} highlight />
+                      <InfoItem label="Porte" value={cnpjData.porte} highlight />
+                      <InfoItem label="Natureza Jurídica" value={cnpjData.natureza_juridica} highlight />
+                      <InfoItem label="Capital Social" value={cnpjData.capital_social ? formatCurrency(cnpjData.capital_social) : null} highlight />
+                      <InfoItem label="CNAE / Atividade" value={cnpjData.segmento} highlight />
+                      <InfoItem label="Data de Abertura" value={cnpjData.data_abertura} highlight />
+                      <InfoItem label="Endereço (RF)" value={cnpjData.endereco} highlight className="sm:col-span-2" />
+                      <InfoItem label="Telefone (RF)" value={cnpjData.telefone} highlight />
+                      <InfoItem label="E-mail (RF)" value={cnpjData.email} highlight />
+                    </div>
+                  ) : null}
                 </div>
 
-                {!selectedEmpresa.cnpj ? (
-                  <p className="text-sm text-muted-foreground bg-muted/50 rounded-xl p-4 text-center">
-                    CNPJ não informado pela empresa
-                  </p>
-                ) : cnpjLoading ? (
-                  <div className="flex items-center justify-center py-8">
-                    <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                    <span className="ml-3 text-sm text-muted-foreground">Consultando Receita Federal...</span>
-                  </div>
-                ) : cnpjData ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <InfoItem label="Razão Social (RF)" value={cnpjData.razao_social} highlight />
-                    <InfoItem label="Nome Fantasia (RF)" value={cnpjData.nome_fantasia} highlight />
-                    <InfoItem label="Situação Cadastral" value={cnpjData.situacao_cadastral} highlight />
-                    <InfoItem label="Porte" value={cnpjData.porte} highlight />
-                    <InfoItem label="Natureza Jurídica" value={cnpjData.natureza_juridica} highlight />
-                    <InfoItem label="Capital Social" value={cnpjData.capital_social ? formatCurrency(cnpjData.capital_social) : null} highlight />
-                    <InfoItem label="CNAE / Atividade" value={cnpjData.segmento} highlight />
-                    <InfoItem label="Data de Abertura" value={cnpjData.data_abertura} highlight />
-                    <InfoItem label="Endereço (RF)" value={cnpjData.endereco} highlight className="sm:col-span-2" />
-                    <InfoItem label="Telefone (RF)" value={cnpjData.telefone} highlight />
-                    <InfoItem label="E-mail (RF)" value={cnpjData.email} highlight />
-                  </div>
+                <div className="flex items-center gap-2 text-xs text-muted-foreground pt-2 border-t border-border/60">
+                  <Calendar size={12} /> Cadastrada em {new Date(selectedEmpresa.created_at).toLocaleDateString("pt-BR")}
+                </div>
+              </TabsContent>
+
+              {/* Tab: Usuários */}
+              <TabsContent value="usuarios" className="pt-4">
+                {detailLoading ? <LoadingState /> : empresaUsers.length === 0 ? (
+                  <EmptyState message="Nenhum usuário vinculado" icon={Users} />
                 ) : (
-                  <p className="text-sm text-muted-foreground bg-muted/50 rounded-xl p-4 text-center">
-                    Clique em "Consultar" para buscar dados da Receita Federal
-                  </p>
+                  <div className="space-y-2">
+                    {empresaUsers.map((u) => (
+                      <div key={u.user_id} className="flex items-center justify-between p-3.5 rounded-xl border border-border/60 bg-card">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="icon-container icon-container-md bg-primary/10">
+                            <Users size={16} className="text-primary" />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium text-foreground truncate">{u.nome}</p>
+                            <p className="text-xs text-muted-foreground truncate flex items-center gap-2">
+                              <Mail size={11} /> {u.email}
+                              {u.telefone && (<><span>·</span><Phone size={11} /> {u.telefone}</>)}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <Badge variant="outline" className="text-[10px]">{u.papel}</Badge>
+                          <StatusBadge status={u.status || "ativo"} labels={{ ativo: "Ativo", inativo: "Inativo" }} />
+                        </div>
+                      </div>
+                    ))}
+                    <p className="text-[11px] text-muted-foreground pt-2">
+                      A plataforma atualmente vincula um responsável principal por empresa.
+                    </p>
+                  </div>
                 )}
-              </div>
+              </TabsContent>
 
-              {/* Registration date */}
-              <div className="flex items-center gap-2 text-xs text-muted-foreground pt-2 border-t border-border/60">
-                <Calendar size={12} />
-                Cadastrada em {new Date(selectedEmpresa.created_at).toLocaleDateString("pt-BR")}
-              </div>
-            </div>
+              {/* Tab: Projetos Ativos */}
+              <TabsContent value="ativos" className="pt-4">
+                <ProjetosList
+                  projetos={projetosAtivos}
+                  loading={detailLoading}
+                  emptyMessage="Nenhum projeto ativo no momento"
+                  totalLabel="Valor contratado em projetos ativos"
+                />
+              </TabsContent>
+
+              {/* Tab: Projetos Finalizados */}
+              <TabsContent value="finalizados" className="pt-4">
+                <ProjetosList
+                  projetos={projetosFinalizados}
+                  loading={detailLoading}
+                  emptyMessage="Nenhum projeto finalizado ainda"
+                  totalLabel="Valor total contratado em projetos finalizados"
+                />
+                {projetosFinalizados.length > 0 && (
+                  <div className="mt-4 p-4 rounded-xl bg-primary/5 border border-primary/10 flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+                      <DollarSign size={16} className="text-primary" />
+                      Valor total contratado (todos os projetos)
+                    </div>
+                    <span className="text-base font-display font-bold text-primary">{formatCurrency(valorTotalContratado)}</span>
+                  </div>
+                )}
+              </TabsContent>
+            </Tabs>
           )}
         </DialogContent>
       </Dialog>
 
       {/* Create Empresa Dialog */}
-      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+      <Dialog open={createOpen} onOpenChange={(open) => { setCreateOpen(open); if (!open) resetCreateForm(); }}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="font-display flex items-center gap-2">
@@ -385,6 +558,29 @@ const AdminEmpresas = () => {
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleCreateEmpresa} className="space-y-4 pt-2">
+            {/* CNPJ FIRST with auto-lookup */}
+            <div className="space-y-2">
+              <Label htmlFor="e-cnpj">CNPJ * <span className="text-[11px] text-muted-foreground font-normal">(busca automática na Receita Federal)</span></Label>
+              <div className="flex gap-2">
+                <Input
+                  id="e-cnpj"
+                  required
+                  value={newEmpresa.cnpj}
+                  onChange={(e) => { setNewEmpresa({ ...newEmpresa, cnpj: maskCnpjInput(e.target.value) }); setCnpjLookupDone(false); }}
+                  placeholder="00.000.000/0000-00"
+                />
+                <Button type="button" variant="outline" onClick={handleCnpjLookupForCreate} disabled={cnpjLookupLoading || newEmpresa.cnpj.replace(/\D/g, '').length !== 14} className="flex-shrink-0">
+                  {cnpjLookupLoading ? <Loader2 size={14} className="animate-spin" /> : <Search size={14} />}
+                  {cnpjLookupLoading ? "Buscando..." : "Buscar"}
+                </Button>
+              </div>
+              {cnpjLookupDone && (
+                <p className="text-[11px] text-success flex items-center gap-1">
+                  <CheckCircle2 size={11} /> Dados preenchidos automaticamente
+                </p>
+              )}
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="e-nome">Razão Social *</Label>
               <Input id="e-nome" required value={newEmpresa.nome} onChange={(e) => setNewEmpresa({ ...newEmpresa, nome: e.target.value })} placeholder="Razão social da empresa" />
@@ -403,15 +599,9 @@ const AdminEmpresas = () => {
                 <Input id="e-password" type="password" required minLength={6} value={newEmpresa.password} onChange={(e) => setNewEmpresa({ ...newEmpresa, password: e.target.value })} placeholder="Mínimo 6 chars" />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <Label htmlFor="e-cnpj">CNPJ</Label>
-                <Input id="e-cnpj" value={newEmpresa.cnpj} onChange={(e) => setNewEmpresa({ ...newEmpresa, cnpj: e.target.value })} placeholder="00.000.000/0000-00" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="e-segmento">Segmento</Label>
-                <Input id="e-segmento" value={newEmpresa.segmento} onChange={(e) => setNewEmpresa({ ...newEmpresa, segmento: e.target.value })} placeholder="Tecnologia" />
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="e-segmento">Segmento</Label>
+              <Input id="e-segmento" value={newEmpresa.segmento} onChange={(e) => setNewEmpresa({ ...newEmpresa, segmento: e.target.value })} placeholder="Tecnologia" />
             </div>
             <div className="grid grid-cols-3 gap-3">
               <div className="space-y-2 col-span-2">
@@ -430,6 +620,43 @@ const AdminEmpresas = () => {
           </form>
         </DialogContent>
       </Dialog>
+    </div>
+  );
+};
+
+const ProjetosList = ({ projetos, loading, emptyMessage, totalLabel }: {
+  projetos: ProjetoEmpresa[]; loading: boolean; emptyMessage: string; totalLabel: string;
+}) => {
+  const total = projetos.reduce((s, p) => s + p.valor_contratado, 0);
+  if (loading) return <LoadingState />;
+  if (projetos.length === 0) return <EmptyState message={emptyMessage} icon={Briefcase} />;
+  return (
+    <div className="space-y-2">
+      {projetos.map((p) => (
+        <div key={p.id} className="flex items-center justify-between p-3.5 rounded-xl border border-border/60 bg-card">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="icon-container icon-container-md bg-accent/10">
+              <Briefcase size={16} className="text-accent" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-foreground truncate">{p.nome}</p>
+              <p className="text-xs text-muted-foreground truncate">
+                {p.protocolo || "Sem protocolo"} · {new Date(p.created_at).toLocaleDateString("pt-BR")}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3 flex-shrink-0">
+            <span className="text-sm font-semibold text-foreground tabular-nums">
+              {p.valor_contratado > 0 ? formatCurrency(p.valor_contratado) : <span className="text-muted-foreground font-normal">—</span>}
+            </span>
+            <StatusBadge status={p.status} labels={STATUS_LABELS} />
+          </div>
+        </div>
+      ))}
+      <div className="mt-3 p-3 rounded-xl bg-muted/40 flex items-center justify-between">
+        <span className="text-xs text-muted-foreground font-medium">{totalLabel}</span>
+        <span className="text-sm font-display font-bold text-foreground">{formatCurrency(total)}</span>
+      </div>
     </div>
   );
 };
