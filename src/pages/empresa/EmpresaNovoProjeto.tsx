@@ -163,6 +163,25 @@ const EmpresaNovoProjeto = () => {
     const validFases = fases.filter(f => f.nome);
     if (validFases.length > 0) await supabase.from("projeto_fases").insert(validFases.map((f, i) => ({ projeto_id: projeto.id, nome: f.nome, descricao: f.descricao || null, ordem: i, prazo: f.prazo || null, valor: f.valor ? Number(f.valor) : null })));
 
+    // Convidar consultor (recontratação): notificação + mensagem-convite no chat do projeto
+    if (recontratarConsultor) {
+      await supabase.from("notificacoes").insert({
+        user_id: recontratarConsultor.user_id,
+        tipo: "convite_projeto",
+        titulo: "Convite para novo projeto",
+        mensagem: `Você foi convidado(a) a enviar uma proposta para o projeto "${form.nome}".`,
+        referencia_id: projeto.id,
+        referencia_tipo: "projeto",
+      });
+      await supabase.from("mensagens").insert({
+        projeto_id: projeto.id,
+        sender_user_id: user.id,
+        recipient_user_id: recontratarConsultor.user_id,
+        tipo: "convite",
+        conteudo: `Olá ${recontratarConsultor.nome}! Gostaríamos de contar com você novamente neste projeto. Avalie o escopo e, se fizer sentido, envie sua proposta.`,
+      });
+    }
+
     toast({ title: "Projeto publicado com sucesso!" });
     navigate("/empresa/projetos");
     setSaving(false);
