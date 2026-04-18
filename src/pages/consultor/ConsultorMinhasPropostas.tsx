@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { PageHeader, DataCard, StatusBadge, EmptyState, LoadingState, StatCard } from "@/components/dashboard/DashboardComponents";
-import { Send, CheckCircle2, XCircle, Clock, Eye, MessageSquare, Filter, X, Search, Calendar } from "lucide-react";
+import { Send, CheckCircle2, XCircle, Clock, Eye, MessageSquare, Filter, X, Search, Calendar, Archive, ArchiveRestore, GripVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,6 +11,18 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { ProjectCommunication } from "@/components/communication/ProjectCommunication";
 import { ModeloContratacaoBadge } from "@/components/projetos/ProjetoDetalhesDialog";
 import { ViewToggle, ViewMode } from "@/components/ui/view-toggle";
+import { toast } from "sonner";
+import {
+  DndContext,
+  DragEndEvent,
+  DragOverlay,
+  DragStartEvent,
+  PointerSensor,
+  useDraggable,
+  useDroppable,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
 
 const formatCurrency = (val: number) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(val);
@@ -33,6 +45,28 @@ const ConsultorMinhasPropostas = () => {
   const [filterPeriodo, setFilterPeriodo] = useState<string>("all"); // 7, 30, 90, all
   const [page, setPage] = useState(1);
   const [viewMode, setViewMode] = useState<ViewMode>("list");
+  const [archivedIds, setArchivedIds] = useState<Set<string>>(new Set());
+  const [activeDragId, setActiveDragId] = useState<string | null>(null);
+
+  const archiveKey = user ? `propostas_arquivadas_${user.id}` : null;
+
+  useEffect(() => {
+    if (!archiveKey) return;
+    try {
+      const raw = localStorage.getItem(archiveKey);
+      if (raw) setArchivedIds(new Set(JSON.parse(raw)));
+    } catch {}
+  }, [archiveKey]);
+
+  const setArchivedFor = (id: string, archived: boolean) => {
+    const next = new Set(archivedIds);
+    if (archived) next.add(id); else next.delete(id);
+    setArchivedIds(next);
+    if (archiveKey) localStorage.setItem(archiveKey, JSON.stringify([...next]));
+    toast.success(archived ? "Proposta arquivada" : "Proposta restaurada");
+  };
+
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
   useEffect(() => {
     if (!user) return;
@@ -203,68 +237,136 @@ const ConsultorMinhasPropostas = () => {
           </div>
         );
 
-        const renderKanbanCard = (p: any) => (
-          <div key={p.id} className="bg-background border border-border/60 rounded-lg p-3 hover:border-primary/40 transition-colors">
-            <div className="flex items-start justify-between gap-2 mb-2">
-              <p className="text-xs font-semibold text-foreground line-clamp-2 flex-1">{p.projetos?.nome}</p>
-              <span className="text-[10px] text-muted-foreground tabular-nums shrink-0">{formatDate(p.created_at)}</span>
-            </div>
-            <p className="text-[10px] text-muted-foreground mb-2 truncate">
-              {p.projetos?.softwares?.nome} · {p.projetos?.protocolo}
-            </p>
-            <div className="flex items-center justify-between gap-2 mb-2">
-              <span className="text-[11px] font-bold text-foreground">{formatCurrency(p.valor_proposta || 0)}</span>
-              <span className="text-[10px] text-muted-foreground">{p.estimativa_horas || 0}h</span>
-            </div>
-            <div className="flex gap-1.5">
-              <Button variant="outline" size="sm" className="h-7 text-[11px] px-2" onClick={() => setDetalheProposta(p)}>
-                <Eye size={11} /> Detalhes
-              </Button>
-              <Button variant="outline" size="sm" className="h-7 text-[11px] px-2" onClick={() => setChatProposta(chatProposta?.id === p.id ? null : p)}>
-                <MessageSquare size={11} />
-              </Button>
-            </div>
-            {chatProposta?.id === p.id && p.projetos?.id && (
-              <div className="mt-3">
-                <ProjectCommunication projetoId={p.projetos.id} projetoNome={p.projetos.nome} isEmpresa={false} />
+        const KanbanCard = ({ p, isOverlay = false }: { p: any; isOverlay?: boolean }) => {
+          const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: p.id, data: { proposta: p } });
+          const isArchived = archivedIds.has(p.id);
+          return (
+            <div
+              ref={setNodeRef}
+              {...attributes}
+              className={`bg-background border border-border/60 rounded-lg p-3 hover:border-primary/40 transition-colors ${
+                isDragging && !isOverlay ? "opacity-30" : ""
+              } ${isOverlay ? "shadow-2xl rotate-2 cursor-grabbing" : ""}`}
+            >
+              <div className="flex items-start justify-between gap-2 mb-2">
+                <div className="flex items-start gap-1.5 flex-1 min-w-0">
+                  <button
+                    {...listeners}
+                    className="text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing touch-none mt-0.5"
+                    aria-label="Arrastar"
+                  >
+                    <GripVertical size={12} />
+                  </button>
+                  <p className="text-xs font-semibold text-foreground line-clamp-2 flex-1">{p.projetos?.nome}</p>
+                </div>
+                <span className="text-[10px] text-muted-foreground tabular-nums shrink-0">{formatDate(p.created_at)}</span>
               </div>
-            )}
-          </div>
-        );
+              <p className="text-[10px] text-muted-foreground mb-2 truncate ml-[18px]">
+                {p.projetos?.softwares?.nome} · {p.projetos?.protocolo}
+              </p>
+              <div className="flex items-center justify-between gap-2 mb-2 ml-[18px]">
+                <span className="text-[11px] font-bold text-foreground">{formatCurrency(p.valor_proposta || 0)}</span>
+                <span className="text-[10px] text-muted-foreground">{p.estimativa_horas || 0}h</span>
+              </div>
+              <div className="flex gap-1.5 ml-[18px] flex-wrap">
+                <Button variant="outline" size="sm" className="h-7 text-[11px] px-2" onClick={() => setDetalheProposta(p)}>
+                  <Eye size={11} /> Detalhes
+                </Button>
+                <Button variant="outline" size="sm" className="h-7 text-[11px] px-2" onClick={() => setChatProposta(chatProposta?.id === p.id ? null : p)}>
+                  <MessageSquare size={11} />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-7 text-[11px] px-2"
+                  onClick={() => setArchivedFor(p.id, !isArchived)}
+                  title={isArchived ? "Restaurar" : "Arquivar"}
+                >
+                  {isArchived ? <ArchiveRestore size={11} /> : <Archive size={11} />}
+                </Button>
+              </div>
+              {chatProposta?.id === p.id && p.projetos?.id && (
+                <div className="mt-3">
+                  <ProjectCommunication projetoId={p.projetos.id} projetoNome={p.projetos.nome} isEmpresa={false} />
+                </div>
+              )}
+            </div>
+          );
+        };
+
+        const KanbanColumn = ({ colKey, label, color, items }: { colKey: string; label: string; color: string; items: any[] }) => {
+          const { setNodeRef, isOver } = useDroppable({ id: colKey });
+          return (
+            <div
+              ref={setNodeRef}
+              className={`bg-muted/30 border rounded-xl p-3 min-h-[200px] transition-colors ${
+                isOver ? "border-primary/60 bg-primary/5" : "border-border/60"
+              }`}
+            >
+              <div className="flex items-center justify-between mb-3 px-1">
+                <div className="flex items-center gap-2">
+                  <span className={`w-2 h-2 rounded-full ${color}`} />
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-foreground">{label}</h4>
+                </div>
+                <span className="text-[11px] font-bold text-muted-foreground bg-background px-2 py-0.5 rounded-md border border-border/60">
+                  {items.length}
+                </span>
+              </div>
+              <div className="space-y-2">
+                {items.length === 0 ? (
+                  <p className="text-[11px] text-muted-foreground italic text-center py-6">
+                    {colKey === "arquivada" ? "Arraste aqui para arquivar" : "Nenhuma proposta"}
+                  </p>
+                ) : (
+                  items.map(p => <KanbanCard key={p.id} p={p} />)
+                )}
+              </div>
+            </div>
+          );
+        };
 
         if (loading) return <DataCard><LoadingState /></DataCard>;
         if (filtered.length === 0)
           return <DataCard><EmptyState message={propostas.length === 0 ? "Você ainda não enviou nenhuma proposta" : "Nenhuma proposta corresponde aos filtros"} icon={Send} /></DataCard>;
 
         if (viewMode === "kanban") {
+          const visiveis = filtered.filter(p => !archivedIds.has(p.id));
+          const arquivadas = filtered.filter(p => archivedIds.has(p.id));
           const cols = [
-            { key: "enviada", label: "Pendentes", color: "bg-info", icon: Clock, items: filtered.filter(p => p.status === "enviada") },
-            { key: "aceita", label: "Aceitas", color: "bg-success", icon: CheckCircle2, items: filtered.filter(p => p.status === "aceita") },
-            { key: "recusada", label: "Recusadas", color: "bg-destructive", icon: XCircle, items: filtered.filter(p => p.status === "recusada") },
+            { key: "enviada", label: "Pendentes", color: "bg-info", items: visiveis.filter(p => p.status === "enviada") },
+            { key: "aceita", label: "Aceitas", color: "bg-success", items: visiveis.filter(p => p.status === "aceita") },
+            { key: "recusada", label: "Recusadas", color: "bg-destructive", items: visiveis.filter(p => p.status === "recusada") },
+            { key: "arquivada", label: "Arquivadas", color: "bg-muted-foreground", items: arquivadas },
           ];
+
+          const handleDragEnd = (e: DragEndEvent) => {
+            setActiveDragId(null);
+            const id = e.active.id as string;
+            const overId = e.over?.id as string | undefined;
+            if (!overId) return;
+            const wasArchived = archivedIds.has(id);
+            if (overId === "arquivada" && !wasArchived) setArchivedFor(id, true);
+            else if (overId !== "arquivada" && wasArchived) setArchivedFor(id, false);
+          };
+
+          const activeProposta = activeDragId ? filtered.find(p => p.id === activeDragId) : null;
+
           return (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {cols.map(col => (
-                <div key={col.key} className="bg-muted/30 border border-border/60 rounded-xl p-3 min-h-[200px]">
-                  <div className="flex items-center justify-between mb-3 px-1">
-                    <div className="flex items-center gap-2">
-                      <span className={`w-2 h-2 rounded-full ${col.color}`} />
-                      <h4 className="text-xs font-semibold uppercase tracking-wider text-foreground">{col.label}</h4>
-                    </div>
-                    <span className="text-[11px] font-bold text-muted-foreground bg-background px-2 py-0.5 rounded-md border border-border/60">
-                      {col.items.length}
-                    </span>
-                  </div>
-                  <div className="space-y-2">
-                    {col.items.length === 0 ? (
-                      <p className="text-[11px] text-muted-foreground italic text-center py-6">Nenhuma proposta</p>
-                    ) : (
-                      col.items.map(renderKanbanCard)
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
+            <DndContext
+              sensors={sensors}
+              onDragStart={(e: DragStartEvent) => setActiveDragId(e.active.id as string)}
+              onDragCancel={() => setActiveDragId(null)}
+              onDragEnd={handleDragEnd}
+            >
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {cols.map(col => (
+                  <KanbanColumn key={col.key} colKey={col.key} label={col.label} color={col.color} items={col.items} />
+                ))}
+              </div>
+              <DragOverlay>
+                {activeProposta ? <KanbanCard p={activeProposta} isOverlay /> : null}
+              </DragOverlay>
+            </DndContext>
           );
         }
 
