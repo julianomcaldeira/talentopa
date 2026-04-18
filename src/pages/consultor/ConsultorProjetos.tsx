@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { PageHeader, DataCard, StatusBadge, EmptyState, LoadingState } from "@/components/dashboard/DashboardComponents";
 import { FolderKanban, Send, Calendar, Target, Star, MessageSquare, Eye, MapPin, Filter, X } from "lucide-react";
 import { ProjectCommunication } from "@/components/communication/ProjectCommunication";
@@ -40,6 +41,7 @@ const ConsultorProjetos = () => {
   const [filterSoftware, setFilterSoftware] = useState<string>("all");
   const [filterModulo, setFilterModulo] = useState<string>("all");
   const [filterSegmento, setFilterSegmento] = useState<string>("all");
+  const [onlyCompatible, setOnlyCompatible] = useState(false);
 
   // Default city from logged consultor profile
   useEffect(() => {
@@ -169,9 +171,10 @@ const ConsultorProjetos = () => {
         if (!scope || !scope.modulos.includes(filterModulo)) return false;
       }
       if (filterSegmento !== "all" && p.empresa_segmento !== filterSegmento) return false;
+      if (onlyCompatible && getMatchScore(p) <= 50) return false;
       return true;
     });
-  }, [projetos, filterCity, filterSoftware, filterModulo, filterSegmento, projetoScopes]);
+  }, [projetos, filterCity, filterSoftware, filterModulo, filterSegmento, onlyCompatible, projetoScopes, mySkills]);
 
   const sortedProjetos = useMemo(() => [...filteredProjetos].sort((a, b) => getMatchScore(b) - getMatchScore(a)), [filteredProjetos, mySkills, projetoScopes]);
   const totalPages = Math.max(1, Math.ceil(sortedProjetos.length / PAGE_SIZE));
@@ -179,7 +182,7 @@ const ConsultorProjetos = () => {
   const pagedProjetos = sortedProjetos.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   // Reset page when filters change
-  useEffect(() => { setPage(1); }, [filterCity, filterSoftware, filterModulo, filterSegmento]);
+  useEffect(() => { setPage(1); }, [filterCity, filterSoftware, filterModulo, filterSegmento, onlyCompatible]);
 
   const segmentosUnicos = useMemo(() => {
     const set = new Set<string>();
@@ -250,13 +253,14 @@ const ConsultorProjetos = () => {
     ).length;
   }, [projetos, filterCity, filterSoftware, filterModulo, filterSegmento, projetoScopes]);
 
-  const hasActiveFilters = filterCity || filterSoftware !== "all" || filterModulo !== "all" || filterSegmento !== "all";
+  const hasActiveFilters = filterCity || filterSoftware !== "all" || filterModulo !== "all" || filterSegmento !== "all" || onlyCompatible;
 
   const clearFilters = () => {
     setFilterCity(null);
     setFilterSoftware("all");
     setFilterModulo("all");
     setFilterSegmento("all");
+    setOnlyCompatible(false);
   };
 
   return (
@@ -318,6 +322,14 @@ const ConsultorProjetos = () => {
               </SelectContent>
             </Select>
           </div>
+        </div>
+        <div className="mt-4 pt-3 border-t border-border/60 flex items-center gap-3">
+          <Switch id="only-compatible" checked={onlyCompatible} onCheckedChange={setOnlyCompatible} />
+          <Label htmlFor="only-compatible" className="text-xs font-semibold text-foreground cursor-pointer flex items-center gap-1.5">
+            <Star size={12} className="text-success" />
+            Apenas projetos compatíveis com minhas habilidades
+            <span className="text-muted-foreground font-normal">(match &gt; 50%)</span>
+          </Label>
         </div>
       </DataCard>
 
