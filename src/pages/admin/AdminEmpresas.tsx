@@ -601,34 +601,56 @@ const AdminEmpresas = () => {
               </TabsContent>
 
               {/* Tab: Usuários */}
-              <TabsContent value="usuarios" className="pt-4">
+              <TabsContent value="usuarios" className="pt-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs text-muted-foreground">
+                    Vincule múltiplos usuários com papéis distintos (responsável, financeiro, operacional).
+                  </p>
+                  <Button size="sm" onClick={() => setAddUserOpen(true)} className="gap-1.5">
+                    <Plus size={14} /> Vincular usuário
+                  </Button>
+                </div>
+
                 {detailLoading ? <LoadingState /> : empresaUsers.length === 0 ? (
                   <EmptyState message="Nenhum usuário vinculado" icon={Users} />
                 ) : (
                   <div className="space-y-2">
-                    {empresaUsers.map((u) => (
-                      <div key={u.user_id} className="flex items-center justify-between p-3.5 rounded-xl border border-border/60 bg-card">
-                        <div className="flex items-center gap-3 min-w-0">
-                          <div className="icon-container icon-container-md bg-primary/10">
-                            <Users size={16} className="text-primary" />
+                    {empresaUsers.map((u) => {
+                      const Icon = PAPEL_ICONS[u.papel];
+                      return (
+                        <div key={u.id} className="flex items-center justify-between p-3.5 rounded-xl border border-border/60 bg-card">
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div className="icon-container icon-container-md bg-primary/10">
+                              <Icon size={16} className="text-primary" />
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-sm font-medium text-foreground truncate">
+                                {u.profile?.nome || "Usuário sem perfil"}
+                                {u.isOwner && <span className="ml-2 text-[10px] uppercase tracking-wider text-primary font-semibold">Dono</span>}
+                              </p>
+                              <p className="text-xs text-muted-foreground truncate flex items-center gap-2">
+                                <Mail size={11} /> {u.profile?.email || "—"}
+                                {u.profile?.telefone && (<><span>·</span><Phone size={11} /> {u.profile.telefone}</>)}
+                              </p>
+                              {u.observacoes && (
+                                <p className="text-[11px] text-muted-foreground/80 truncate mt-0.5">{u.observacoes}</p>
+                              )}
+                            </div>
                           </div>
-                          <div className="min-w-0">
-                            <p className="text-sm font-medium text-foreground truncate">{u.nome}</p>
-                            <p className="text-xs text-muted-foreground truncate flex items-center gap-2">
-                              <Mail size={11} /> {u.email}
-                              {u.telefone && (<><span>·</span><Phone size={11} /> {u.telefone}</>)}
-                            </p>
+                          <div className="flex items-center gap-2 flex-shrink-0">
+                            <Badge variant="outline" className="text-[10px] gap-1">
+                              <Icon size={10} /> {PAPEL_LABELS[u.papel]}
+                            </Badge>
+                            <StatusBadge status={u.profile?.status || "ativo"} labels={{ ativo: "Ativo", inativo: "Inativo" }} />
+                            {!u.isOwner && (
+                              <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => handleRemoveUserLink(u.id)}>
+                                <Trash2 size={14} />
+                              </Button>
+                            )}
                           </div>
                         </div>
-                        <div className="flex items-center gap-2 flex-shrink-0">
-                          <Badge variant="outline" className="text-[10px]">{u.papel}</Badge>
-                          <StatusBadge status={u.status || "ativo"} labels={{ ativo: "Ativo", inativo: "Inativo" }} />
-                        </div>
-                      </div>
-                    ))}
-                    <p className="text-[11px] text-muted-foreground pt-2">
-                      A plataforma atualmente vincula um responsável principal por empresa.
-                    </p>
+                      );
+                    })}
                   </div>
                 )}
               </TabsContent>
