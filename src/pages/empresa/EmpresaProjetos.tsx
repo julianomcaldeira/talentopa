@@ -7,12 +7,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { PageHeader, DataCard, StatusBadge, EmptyState, LoadingState } from "@/components/dashboard/DashboardComponents";
 import { ViewToggle, ViewMode } from "@/components/ui/view-toggle";
-import { FolderKanban, Eye, MapPin, Clock, DollarSign, User, MessageSquare, Pencil, Search, ChevronLeft, ChevronRight, Settings2 } from "lucide-react";
+import { FolderKanban, Eye, MapPin, Clock, DollarSign, User, MessageSquare, Pencil, Search, ChevronLeft, ChevronRight, Settings2, Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { ConsultorMatchList } from "@/components/matching/ConsultorMatchList";
 import { ProjectCommunication } from "@/components/communication/ProjectCommunication";
 import { ProjetoEditDialog } from "@/components/projetos/ProjetoEditDialog";
+import EmpresaNovoProjeto from "./EmpresaNovoProjeto";
 
 const PAGE_SIZE = 6;
 
@@ -40,6 +41,7 @@ const EmpresaProjetos = () => {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [page, setPage] = useState(1);
+  const [novoProjetoOpen, setNovoProjetoOpen] = useState(false);
 
   const refetch = async () => {
     if (!user) return;
@@ -167,7 +169,12 @@ const EmpresaProjetos = () => {
 
   return (
     <div>
-      <PageHeader title="Meus Projetos" description="Acompanhe e gerencie todos os seus projetos" />
+      <div className="flex items-start justify-between gap-4 flex-wrap mb-6">
+        <PageHeader title="Projetos" description="Acompanhe e gerencie todos os seus projetos" />
+        <Button size="lg" onClick={() => setNovoProjetoOpen(true)} className="shadow-lg shadow-primary/25 hover:shadow-primary/40">
+          <Plus size={16} /> Novo Projeto
+        </Button>
+      </div>
 
       <DataCard className="mb-4">
         <div className="flex flex-col md:flex-row md:items-center gap-3">
@@ -323,6 +330,18 @@ const EmpresaProjetos = () => {
         projeto={editProjeto}
         onSaved={() => { refetch(); }}
       />
+
+      <Dialog open={novoProjetoOpen} onOpenChange={setNovoProjetoOpen}>
+        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto custom-scrollbar">
+          <DialogHeader>
+            <DialogTitle className="font-display text-lg">Novo Projeto</DialogTitle>
+          </DialogHeader>
+          <EmpresaNovoProjeto
+            embedded
+            onSuccess={() => { setNovoProjetoOpen(false); refetch(); }}
+          />
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto custom-scrollbar">

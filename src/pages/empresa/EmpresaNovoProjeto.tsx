@@ -33,7 +33,12 @@ const PERGUNTAS_SUGERIDAS = [
   "Qual sua abordagem para mitigar atrasos em integrações?",
 ];
 
-const EmpresaNovoProjeto = () => {
+interface EmpresaNovoProjetoProps {
+  onSuccess?: () => void;
+  embedded?: boolean;
+}
+
+const EmpresaNovoProjeto = ({ onSuccess, embedded = false }: EmpresaNovoProjetoProps = {}) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -209,7 +214,8 @@ const EmpresaNovoProjeto = () => {
     }
 
     toast({ title: "Projeto publicado com sucesso!" });
-    navigate("/empresa/projetos");
+    if (onSuccess) onSuccess();
+    else navigate("/empresa/projetos");
     setSaving(false);
   };
 
