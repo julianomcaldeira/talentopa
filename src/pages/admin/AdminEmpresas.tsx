@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { PageHeader, DataCard, EmptyState, LoadingState, StatusBadge, SectionTitle } from "@/components/dashboard/DashboardComponents";
 import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 type PapelEmpresa = "responsavel" | "financeiro" | "operacional";
 
@@ -63,6 +64,7 @@ interface EmpresaRow {
   };
   projetos_count?: number;
   usuarios_count?: number;
+  usuarios_resumo?: { nome: string; papel: PapelEmpresa; isOwner?: boolean }[];
 }
 
 interface CnpjData {
@@ -176,7 +178,7 @@ const AdminEmpresas = () => {
     const [profilesRes, projetosRes, linksRes] = await Promise.all([
       supabase.from("profiles").select("*").in("user_id", userIds),
       supabase.from("projetos").select("id, empresa_user_id").in("empresa_user_id", userIds),
-      supabase.from("empresa_usuarios").select("empresa_user_id, user_id").in("empresa_user_id", userIds),
+      supabase.from("empresa_usuarios").select("empresa_user_id, user_id, papel").in("empresa_user_id", userIds),
     ]);
 
     const profileMap = new Map((profilesRes.data || []).map(p => [p.user_id, p]));
@@ -185,20 +187,40 @@ const AdminEmpresas = () => {
       projetoCountMap.set(p.empresa_user_id, (projetoCountMap.get(p.empresa_user_id) || 0) + 1);
     });
 
-    // Conta usuários únicos vinculados, incluindo sempre o dono da empresa
-    const usuariosSetMap = new Map<string, Set<string>>();
-    userIds.forEach(uid => usuariosSetMap.set(uid, new Set([uid])));
+    // Coleta IDs de usuários vinculados (não-dono) para buscar perfis
+    const linkedUserIds = Array.from(new Set((linksRes.data || []).map(l => l.user_id).filter(uid => !userIds.includes(uid))));
+    const linkedProfilesRes = linkedUserIds.length > 0
+      ? await supabase.from("profiles").select("user_id, nome").in("user_id", linkedUserIds)
+      : { data: [] as any[] };
+    const linkedProfileMap = new Map((linkedProfilesRes.data || []).map(p => [p.user_id, p]));
+
+    // Monta resumo de usuários por empresa: dono (responsavel) + vínculos
+    const resumoMap = new Map<string, { nome: string; papel: PapelEmpresa; isOwner?: boolean }[]>();
+    userIds.forEach(uid => {
+      const ownerProfile = profileMap.get(uid) as any;
+      resumoMap.set(uid, [{ nome: ownerProfile?.nome || "Dono", papel: "responsavel", isOwner: true }]);
+    });
     (linksRes.data || []).forEach(l => {
-      const set = usuariosSetMap.get(l.empresa_user_id);
-      if (set) set.add(l.user_id);
+      // Evita duplicar o dono caso esteja registrado como responsável
+      if (l.user_id === l.empresa_user_id && l.papel === "responsavel") return;
+      const arr = resumoMap.get(l.empresa_user_id);
+      if (!arr) return;
+      const profile = (profileMap.get(l.user_id) || linkedProfileMap.get(l.user_id)) as any;
+      arr.push({ nome: profile?.nome || "Usuário", papel: l.papel as PapelEmpresa });
     });
 
-    const enriched: EmpresaRow[] = empresaData.map(e => ({
-      ...e,
-      profile: profileMap.get(e.user_id) as any,
-      projetos_count: projetoCountMap.get(e.user_id) || 0,
-      usuarios_count: usuariosSetMap.get(e.user_id)?.size || 1,
-    }));
+    const enriched: EmpresaRow[] = empresaData.map(e => {
+      const resumo = resumoMap.get(e.user_id) || [];
+      // Conta usuários únicos por user_id
+      const uniqueIds = new Set<string>([e.user_id, ...((linksRes.data || []).filter(l => l.empresa_user_id === e.user_id).map(l => l.user_id))]);
+      return {
+        ...e,
+        profile: profileMap.get(e.user_id) as any,
+        projetos_count: projetoCountMap.get(e.user_id) || 0,
+        usuarios_count: uniqueIds.size,
+        usuarios_resumo: resumo,
+      };
+    });
 
     setEmpresas(enriched);
     setLoading(false);
@@ -519,10 +541,38 @@ const AdminEmpresas = () => {
                   <Badge variant="secondary" className="text-[11px]">
                     {empresa.projetos_count} projeto{empresa.projetos_count !== 1 ? "s" : ""}
                   </Badge>
-                  <Badge variant="outline" className="text-[11px] gap-1">
-                    <Users size={11} />
-                    {empresa.usuarios_count} usuário{empresa.usuarios_count !== 1 ? "s" : ""}
-                  </Badge>
+                  <TooltipProvider delayDuration={150}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Badge variant="outline" className="text-[11px] gap-1 cursor-help" onClick={(e) => e.stopPropagation()}>
+                          <Users size={11} />
+                          {empresa.usuarios_count} usuário{empresa.usuarios_count !== 1 ? "s" : ""}
+                        </Badge>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" align="end" className="max-w-xs p-0 overflow-hidden">
+                        <div className="px-3 py-2 border-b border-border/60 bg-muted/40">
+                          <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Usuários vinculados</p>
+                        </div>
+                        <div className="p-2 space-y-1.5 max-h-64 overflow-y-auto">
+                          {(empresa.usuarios_resumo || []).length === 0 ? (
+                            <p className="text-xs text-muted-foreground px-1 py-0.5">Nenhum usuário</p>
+                          ) : (
+                            (empresa.usuarios_resumo || []).map((u, i) => {
+                              const Icon = PAPEL_ICONS[u.papel];
+                              return (
+                                <div key={i} className="flex items-center gap-2 text-xs">
+                                  <Icon size={12} className="text-muted-foreground flex-shrink-0" />
+                                  <span className="font-medium text-foreground truncate">{u.nome}</span>
+                                  <span className="text-muted-foreground">·</span>
+                                  <span className="text-muted-foreground">{PAPEL_LABELS[u.papel]}{u.isOwner ? " (dono)" : ""}</span>
+                                </div>
+                              );
+                            })
+                          )}
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                   <StatusBadge status={empresa.profile?.status || "ativo"} labels={{ ativo: "Ativa", inativo: "Inativa" }} />
                   <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground">
                     <Eye size={14} />
