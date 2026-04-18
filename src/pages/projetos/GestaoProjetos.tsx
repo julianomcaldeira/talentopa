@@ -59,9 +59,8 @@ const GestaoProjetos = () => {
       {projetos.length === 0 ? (
         <DataCard>
           <EmptyState
-            message="Nenhum projeto ativo no momento"
+            message="Nenhum projeto ativo. Quando um projeto for aceito e iniciado, ele aparecerá aqui."
             icon={Briefcase}
-            description="Quando um projeto for aceito e iniciado, ele aparecerá aqui."
           />
         </DataCard>
       ) : (
