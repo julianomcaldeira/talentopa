@@ -541,10 +541,38 @@ const AdminEmpresas = () => {
                   <Badge variant="secondary" className="text-[11px]">
                     {empresa.projetos_count} projeto{empresa.projetos_count !== 1 ? "s" : ""}
                   </Badge>
-                  <Badge variant="outline" className="text-[11px] gap-1">
-                    <Users size={11} />
-                    {empresa.usuarios_count} usuário{empresa.usuarios_count !== 1 ? "s" : ""}
-                  </Badge>
+                  <TooltipProvider delayDuration={150}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Badge variant="outline" className="text-[11px] gap-1 cursor-help" onClick={(e) => e.stopPropagation()}>
+                          <Users size={11} />
+                          {empresa.usuarios_count} usuário{empresa.usuarios_count !== 1 ? "s" : ""}
+                        </Badge>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" align="end" className="max-w-xs p-0 overflow-hidden">
+                        <div className="px-3 py-2 border-b border-border/60 bg-muted/40">
+                          <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Usuários vinculados</p>
+                        </div>
+                        <div className="p-2 space-y-1.5 max-h-64 overflow-y-auto">
+                          {(empresa.usuarios_resumo || []).length === 0 ? (
+                            <p className="text-xs text-muted-foreground px-1 py-0.5">Nenhum usuário</p>
+                          ) : (
+                            (empresa.usuarios_resumo || []).map((u, i) => {
+                              const Icon = PAPEL_ICONS[u.papel];
+                              return (
+                                <div key={i} className="flex items-center gap-2 text-xs">
+                                  <Icon size={12} className="text-muted-foreground flex-shrink-0" />
+                                  <span className="font-medium text-foreground truncate">{u.nome}</span>
+                                  <span className="text-muted-foreground">·</span>
+                                  <span className="text-muted-foreground">{PAPEL_LABELS[u.papel]}{u.isOwner ? " (dono)" : ""}</span>
+                                </div>
+                              );
+                            })
+                          )}
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                   <StatusBadge status={empresa.profile?.status || "ativo"} labels={{ ativo: "Ativa", inativo: "Inativa" }} />
                   <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground">
                     <Eye size={14} />
