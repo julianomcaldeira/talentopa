@@ -325,14 +325,46 @@ const ConsultorProjetos = () => {
 
       {/* Filters */}
       <DataCard className="mb-4">
-        <div className="flex items-center gap-2 mb-3">
+        <div className="flex items-center gap-2 mb-3 flex-wrap">
           <Filter size={14} className="text-primary" />
           <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Filtros</h3>
-          {hasActiveFilters && (
-            <Button variant="ghost" size="sm" className="h-7 ml-auto text-xs" onClick={clearFilters}>
-              <X size={12} /> Limpar
-            </Button>
-          )}
+          <div className="ml-auto flex items-center gap-2">
+            {savedSearches.length > 0 && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="h-8 text-xs">
+                    <Bookmark size={12} /> Buscas favoritas ({savedSearches.length})
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-72">
+                  <DropdownMenuLabel className="text-xs">Aplicar busca salva</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  {savedSearches.map(s => (
+                    <DropdownMenuItem key={s.id} className="flex items-center justify-between gap-2 cursor-pointer" onSelect={(e) => e.preventDefault()}>
+                      <button onClick={() => applySavedSearch(s)} className="flex-1 text-left text-xs truncate">{s.nome}</button>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); deleteSavedSearch(s.id, s.nome); }}
+                        className="text-muted-foreground hover:text-destructive p-1"
+                        title="Remover"
+                      >
+                        <Trash2 size={12} />
+                      </button>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+            {hasActiveFilters && (
+              <>
+                <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => setSaveDialogOpen(true)}>
+                  <BookmarkPlus size={12} /> Salvar busca
+                </Button>
+                <Button variant="ghost" size="sm" className="h-8 text-xs" onClick={clearFilters}>
+                  <X size={12} /> Limpar
+                </Button>
+              </>
+            )}
+          </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
           <div className="space-y-1.5">
