@@ -7,7 +7,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { PageHeader, DataCard, StatusBadge, EmptyState, LoadingState, StatCard } from "@/components/dashboard/DashboardComponents";
-import { Users, Search, Star, FolderKanban, Clock, DollarSign, MapPin, Linkedin, Award, TrendingUp, CheckCircle2, Eye, Briefcase, RotateCcw } from "lucide-react";
+import { Users, Search, Star, FolderKanban, Clock, DollarSign, MapPin, Linkedin, Award, TrendingUp, CheckCircle2, Eye, Briefcase, RotateCcw, Download, FileSpreadsheet, FileText } from "lucide-react";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 type ConsultorAgg = {
   user_id: string;
@@ -208,6 +211,23 @@ const EmpresaConsultoresHistorico = () => {
       <PageHeader
         title="Histórico de Consultores"
         description="Todos os consultores que sua empresa já contratou e o histórico consolidado"
+        action={
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" disabled={filtered.length === 0}>
+                <Download size={14} /> Exportar
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={exportCSV}>
+                <FileSpreadsheet size={14} className="mr-2" /> Exportar CSV
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={exportPDF}>
+                <FileText size={14} className="mr-2" /> Exportar PDF
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        }
       />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
