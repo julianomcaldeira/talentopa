@@ -1,0 +1,1 @@
+ALTER TYPE status_proposta ADD VALUE IF NOT EXISTS 'aguardando_consultor';

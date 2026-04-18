@@ -39,6 +39,7 @@ import AdminRelatorios from "./pages/admin/AdminRelatorios";
 import AdminScoreConfig from "./pages/admin/AdminScoreConfig";
 import ConsultorRelatorios from "./pages/consultor/ConsultorRelatorios";
 import EmpresaRelatorios from "./pages/empresa/EmpresaRelatorios";
+import ProjetoGestao from "./pages/projetos/ProjetoGestao";
 const queryClient = new QueryClient();
 
 const AuthRedirect = () => {
@@ -70,6 +71,7 @@ const App = () => (
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/dashboard" element={<AuthRedirect />} />
+            <Route path="/projetos/:id/gestao" element={<ProtectedRoute allowedRoles={["empresa","consultor","admin"]}><ProjetoGestao /></ProtectedRoute>} />
 
             {/* Admin */}
             <Route path="/admin" element={<ProtectedRoute allowedRoles={["admin"]}><AdminLayout /></ProtectedRoute>}>
