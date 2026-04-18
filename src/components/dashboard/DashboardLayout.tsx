@@ -3,7 +3,7 @@ import { Link, useLocation, Outlet, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, Server, Puzzle, Cog, FileText, Users, Building2,
   FolderKanban, DollarSign, LogOut, Menu, X, ChevronRight, Search, 
-  Star, Settings, BarChart3, BookOpen, Brain, Sparkles, MessageSquare, Trophy, Bot, FileSpreadsheet, SlidersHorizontal, Activity, ScrollText
+  Star, Settings, BarChart3, BookOpen, Brain, Sparkles, MessageSquare, Trophy, Bot, FileSpreadsheet, SlidersHorizontal, Activity, ScrollText, Briefcase
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
@@ -191,6 +191,7 @@ const consultorLinks = [
   { to: "/consultor", icon: LayoutDashboard, label: "Dashboard" },
   { to: "/consultor/projetos", icon: FolderKanban, label: "Encontrar Projetos" },
   { to: "/consultor/minhas-propostas", icon: FileText, label: "Minhas Propostas" },
+  { to: "/consultor/gestao", icon: Briefcase, label: "Gestão de Projetos" },
   { to: "/consultor/perfil", icon: Users, label: "Meu Perfil" },
   { to: "/consultor/habilidades", icon: Star, label: "Habilidades" },
   { to: "/consultor/score", icon: Trophy, label: "Score & Portfólio" },
@@ -203,6 +204,7 @@ export const ConsultorLayout = () => <DashboardLayout links={consultorLinks} tit
 const empresaLinks = [
   { to: "/empresa", icon: LayoutDashboard, label: "Dashboard" },
   { to: "/empresa/projetos", icon: FolderKanban, label: "Projetos" },
+  { to: "/empresa/gestao", icon: Briefcase, label: "Gestão de Projetos" },
   { to: "/empresa/consultores", icon: Users, label: "Consultores" },
   { to: "/empresa/perfil", icon: Building2, label: "Perfil da Empresa" },
   { to: "/empresa/relatorios", icon: FileSpreadsheet, label: "Relatórios" },

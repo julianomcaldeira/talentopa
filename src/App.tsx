@@ -40,6 +40,7 @@ import AdminScoreConfig from "./pages/admin/AdminScoreConfig";
 import ConsultorRelatorios from "./pages/consultor/ConsultorRelatorios";
 import EmpresaRelatorios from "./pages/empresa/EmpresaRelatorios";
 import ProjetoGestao from "./pages/projetos/ProjetoGestao";
+import GestaoProjetos from "./pages/projetos/GestaoProjetos";
 const queryClient = new QueryClient();
 
 const AuthRedirect = () => {
@@ -100,6 +101,7 @@ const App = () => (
               <Route path="score" element={<ConsultorScore />} />
               <Route path="portfolio/:userId" element={<ConsultorPortfolioPublico />} />
               <Route path="relatorios" element={<ConsultorRelatorios />} />
+              <Route path="gestao" element={<GestaoProjetos />} />
               <Route path="projetos/:id/gestao" element={<ProjetoGestao />} />
             </Route>
 
@@ -111,6 +113,7 @@ const App = () => (
               <Route path="novo-projeto" element={<EmpresaNovoProjeto />} />
               <Route path="perfil" element={<EmpresaPerfil />} />
               <Route path="relatorios" element={<EmpresaRelatorios />} />
+              <Route path="gestao" element={<GestaoProjetos />} />
               <Route path="projetos/:id/gestao" element={<ProjetoGestao />} />
             </Route>
 

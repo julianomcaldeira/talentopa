@@ -12,6 +12,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, Upload, Link as LinkIcon, FileText, CheckCircle2, XCircle, Trash2, Download, Clock, Send } from "lucide-react";
 import { ProjectCommunication } from "@/components/communication/ProjectCommunication";
+import { TimelineFases } from "@/components/projetos/TimelineFases";
+import { ReunioesAtas } from "@/components/projetos/ReunioesAtas";
+import { Timesheet } from "@/components/projetos/Timesheet";
 
 const STATUS_FASE_OPTIONS = [
   { value: "pendente", label: "Pendente" },
@@ -178,9 +181,24 @@ const ProjetoGestao = () => {
       <Tabs defaultValue="fases">
         <TabsList>
           <TabsTrigger value="fases">Fases</TabsTrigger>
+          <TabsTrigger value="timeline">Cronograma</TabsTrigger>
           <TabsTrigger value="entregaveis">Entregáveis</TabsTrigger>
+          <TabsTrigger value="horas">Horas</TabsTrigger>
+          <TabsTrigger value="reunioes">Reuniões</TabsTrigger>
           <TabsTrigger value="comunicacao">Comunicação</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="timeline" className="mt-4">
+          <TimelineFases fases={fases} />
+        </TabsContent>
+
+        <TabsContent value="horas" className="mt-4">
+          <Timesheet projetoId={projeto.id} fases={fases} isConsultor={isConsultor && isMyProject} isEmpresa={isEmpresa && projeto.empresa_user_id === user?.id} />
+        </TabsContent>
+
+        <TabsContent value="reunioes" className="mt-4">
+          <ReunioesAtas projetoId={projeto.id} podeEscrever={isMyProject} />
+        </TabsContent>
 
         {/* FASES */}
         <TabsContent value="fases" className="mt-4 space-y-3">
