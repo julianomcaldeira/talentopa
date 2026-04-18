@@ -241,17 +241,95 @@ const AdminEmpresas = () => {
     }));
     setEmpresaProjetos(projetosEnriched);
 
-    // Fetch all users linked to this company (responsible profile)
-    // The empresa_perfil has a single user_id. We list it as the main user.
-    // If the system supports multiple users per company in the future, fetch them here.
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("user_id", empresa.user_id)
-      .maybeSingle();
-    if (profile) setEmpresaUsers([{ ...profile, papel: "Responsável" }]);
-
+    await loadEmpresaUsers(empresa);
     setDetailLoading(false);
+  };
+
+  const loadEmpresaUsers = async (empresa: EmpresaRow) => {
+    const [ownerRes, linksRes] = await Promise.all([
+      supabase.from("profiles").select("*").eq("user_id", empresa.user_id).maybeSingle(),
+      supabase.from("empresa_usuarios").select("*").eq("empresa_user_id", empresa.user_id).order("created_at", { ascending: true }),
+    ]);
+
+    const linkedUserIds = (linksRes.data || []).map(l => l.user_id);
+    const otherProfilesRes = linkedUserIds.length > 0
+      ? await supabase.from("profiles").select("*").in("user_id", linkedUserIds)
+      : { data: [] as any[] };
+    const profileMap = new Map((otherProfilesRes.data || []).map(p => [p.user_id, p]));
+
+    const rows: EmpresaUsuarioRow[] = [];
+    if (ownerRes.data) {
+      rows.push({
+        id: `owner-${empresa.user_id}`,
+        user_id: empresa.user_id,
+        papel: "responsavel",
+        observacoes: "Dono da empresa (cadastro original)",
+        created_at: empresa.created_at,
+        isOwner: true,
+        profile: ownerRes.data as any,
+      });
+    }
+    (linksRes.data || []).forEach(l => {
+      if (l.user_id === empresa.user_id && l.papel === "responsavel") return;
+      rows.push({
+        id: l.id,
+        user_id: l.user_id,
+        papel: l.papel as PapelEmpresa,
+        observacoes: l.observacoes,
+        created_at: l.created_at,
+        profile: profileMap.get(l.user_id) as any,
+      });
+    });
+    setEmpresaUsers(rows);
+  };
+
+  const handleAddUserLink = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedEmpresa) return;
+    setAddingUser(true);
+    try {
+      const { data: targetProfile, error: pErr } = await supabase
+        .from("profiles")
+        .select("user_id, nome, email")
+        .ilike("email", newLink.email.trim())
+        .maybeSingle();
+      if (pErr) throw pErr;
+      if (!targetProfile) {
+        throw new Error("Nenhum usuário cadastrado com esse e-mail. Cadastre o usuário primeiro.");
+      }
+
+      const { error: insErr } = await supabase.from("empresa_usuarios").insert({
+        empresa_user_id: selectedEmpresa.user_id,
+        user_id: targetProfile.user_id,
+        papel: newLink.papel,
+        observacoes: newLink.observacoes || null,
+      });
+      if (insErr) {
+        if ((insErr as any).code === "23505") throw new Error("Este usuário já está vinculado com este papel.");
+        throw insErr;
+      }
+
+      toast({ title: "Usuário vinculado!", description: `${targetProfile.nome} agora é ${PAPEL_LABELS[newLink.papel]}.` });
+      setNewLink({ email: "", papel: "operacional", observacoes: "" });
+      setAddUserOpen(false);
+      await loadEmpresaUsers(selectedEmpresa);
+    } catch (err: any) {
+      toast({ title: "Erro ao vincular", description: err.message, variant: "destructive" });
+    } finally {
+      setAddingUser(false);
+    }
+  };
+
+  const handleRemoveUserLink = async (linkId: string) => {
+    if (!selectedEmpresa) return;
+    if (!confirm("Remover este vínculo?")) return;
+    const { error } = await supabase.from("empresa_usuarios").delete().eq("id", linkId);
+    if (error) {
+      toast({ title: "Erro ao remover", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Vínculo removido" });
+    await loadEmpresaUsers(selectedEmpresa);
   };
 
   const openDetail = (empresa: EmpresaRow) => {
