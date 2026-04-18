@@ -1050,6 +1050,33 @@ export type Database = {
         }
         Relationships: []
       }
+      score_config_audit: {
+        Row: {
+          changed_at: string
+          changed_by: string | null
+          changes: Json
+          id: string
+          new_values: Json
+          old_values: Json
+        }
+        Insert: {
+          changed_at?: string
+          changed_by?: string | null
+          changes: Json
+          id?: string
+          new_values: Json
+          old_values: Json
+        }
+        Update: {
+          changed_at?: string
+          changed_by?: string | null
+          changes?: Json
+          id?: string
+          new_values?: Json
+          old_values?: Json
+        }
+        Relationships: []
+      }
       softwares: {
         Row: {
           created_at: string
