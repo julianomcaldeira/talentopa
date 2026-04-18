@@ -413,6 +413,9 @@ const EmpresaConsultoresHistorico = () => {
                           {p.nota !== null && (
                             <span className="flex items-center gap-1 text-warning"><Star size={11} fill="currentColor" /> {p.nota}</span>
                           )}
+                        </div>
+                      </div>
+                    ))}
                 </div>
               </div>
 
@@ -420,9 +423,6 @@ const EmpresaConsultoresHistorico = () => {
                 <Button onClick={() => { recontratar(selected); setSelected(null); }}>
                   <RotateCcw size={14} /> Recontratar este consultor
                 </Button>
-              </div>
-                    ))}
-                </div>
               </div>
             </>
           )}
