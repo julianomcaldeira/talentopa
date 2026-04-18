@@ -177,7 +177,7 @@ const AdminEmpresas = () => {
     const [profilesRes, projetosRes, linksRes] = await Promise.all([
       supabase.from("profiles").select("*").in("user_id", userIds),
       supabase.from("projetos").select("id, empresa_user_id").in("empresa_user_id", userIds),
-      supabase.from("empresa_usuarios").select("empresa_user_id, user_id").in("empresa_user_id", userIds),
+      supabase.from("empresa_usuarios").select("empresa_user_id, user_id, papel").in("empresa_user_id", userIds),
     ]);
 
     const profileMap = new Map((profilesRes.data || []).map(p => [p.user_id, p]));
@@ -186,20 +186,44 @@ const AdminEmpresas = () => {
       projetoCountMap.set(p.empresa_user_id, (projetoCountMap.get(p.empresa_user_id) || 0) + 1);
     });
 
-    // Conta usuários únicos vinculados, incluindo sempre o dono da empresa
-    const usuariosSetMap = new Map<string, Set<string>>();
-    userIds.forEach(uid => usuariosSetMap.set(uid, new Set([uid])));
+    // Coleta IDs de usuários vinculados (não-dono) para buscar perfis
+    const linkedUserIds = Array.from(new Set((linksRes.data || []).map(l => l.user_id).filter(uid => !userIds.includes(uid))));
+    const linkedProfilesRes = linkedUserIds.length > 0
+      ? await supabase.from("profiles").select("user_id, nome").in("user_id", linkedUserIds)
+      : { data: [] as any[] };
+    const linkedProfileMap = new Map((linkedProfilesRes.data || []).map(p => [p.user_id, p]));
+
+    // Monta resumo de usuários por empresa: dono (responsavel) + vínculos
+    const resumoMap = new Map<string, { nome: string; papel: PapelEmpresa; isOwner?: boolean }[]>();
+    userIds.forEach(uid => {
+      const ownerProfile = profileMap.get(uid) as any;
+      resumoMap.set(uid, [{ nome: ownerProfile?.nome || "Dono", papel: "responsavel", isOwner: true }]);
+    });
     (linksRes.data || []).forEach(l => {
-      const set = usuariosSetMap.get(l.empresa_user_id);
-      if (set) set.add(l.user_id);
+      // Evita duplicar o dono caso esteja registrado como responsável
+      if (l.user_id === l.empresa_user_id && l.papel === "responsavel") return;
+      const arr = resumoMap.get(l.empresa_user_id);
+      if (!arr) return;
+      const profile = (profileMap.get(l.user_id) || linkedProfileMap.get(l.user_id)) as any;
+      arr.push({ nome: profile?.nome || "Usuário", papel: l.papel as PapelEmpresa });
     });
 
-    const enriched: EmpresaRow[] = empresaData.map(e => ({
-      ...e,
-      profile: profileMap.get(e.user_id) as any,
-      projetos_count: projetoCountMap.get(e.user_id) || 0,
-      usuarios_count: usuariosSetMap.get(e.user_id)?.size || 1,
-    }));
+    const enriched: EmpresaRow[] = empresaData.map(e => {
+      const resumo = resumoMap.get(e.user_id) || [];
+      // Conta usuários únicos por user_id
+      const uniqueIds = new Set<string>([e.user_id, ...((linksRes.data || []).filter(l => l.empresa_user_id === e.user_id).map(l => l.user_id))]);
+      return {
+        ...e,
+        profile: profileMap.get(e.user_id) as any,
+        projetos_count: projetoCountMap.get(e.user_id) || 0,
+        usuarios_count: uniqueIds.size,
+        usuarios_resumo: resumo,
+      };
+    });
+
+    setEmpresas(enriched);
+    setLoading(false);
+  };
 
     setEmpresas(enriched);
     setLoading(false);
