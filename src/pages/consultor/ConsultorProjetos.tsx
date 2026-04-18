@@ -57,6 +57,19 @@ const ConsultorProjetos = () => {
     }
   }, [profile]);
 
+  // Load saved searches
+  const fetchSavedSearches = async () => {
+    if (!user) return;
+    const { data } = await (supabase as any)
+      .from("consultor_buscas_favoritas")
+      .select("id, nome, filtros")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false });
+    if (data) setSavedSearches(data);
+  };
+
+  useEffect(() => { fetchSavedSearches(); }, [user]);
+
   useEffect(() => {
     if (!user) return;
     const fetchAll = async () => {
