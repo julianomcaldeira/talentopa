@@ -297,6 +297,8 @@ const EmpresaConsultoresHistorico = () => {
 
     doc.save(`historico-consultores-${new Date().toISOString().slice(0, 10)}.pdf`);
   };
+
+  return (
     <div>
       <PageHeader
         title="Histórico de Consultores"
