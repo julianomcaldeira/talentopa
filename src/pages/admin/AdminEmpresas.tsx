@@ -760,6 +760,58 @@ const AdminEmpresas = () => {
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* Add User Link Dialog */}
+      <Dialog open={addUserOpen} onOpenChange={setAddUserOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-display flex items-center gap-2">
+              <UserPlus size={18} className="text-primary" />
+              Vincular usuário à empresa
+            </DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleAddUserLink} className="space-y-4 pt-2">
+            <div className="space-y-2">
+              <Label htmlFor="link-email">E-mail do usuário *</Label>
+              <Input
+                id="link-email"
+                type="email"
+                required
+                value={newLink.email}
+                onChange={(e) => setNewLink({ ...newLink, email: e.target.value })}
+                placeholder="usuario@empresa.com"
+              />
+              <p className="text-[11px] text-muted-foreground">O usuário precisa já ter cadastro na plataforma.</p>
+            </div>
+            <div className="space-y-2">
+              <Label>Papel na empresa *</Label>
+              <Select value={newLink.papel} onValueChange={(v) => setNewLink({ ...newLink, papel: v as PapelEmpresa })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="responsavel">Responsável</SelectItem>
+                  <SelectItem value="financeiro">Financeiro</SelectItem>
+                  <SelectItem value="operacional">Operacional</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="link-obs">Observações</Label>
+              <Input
+                id="link-obs"
+                value={newLink.observacoes}
+                onChange={(e) => setNewLink({ ...newLink, observacoes: e.target.value })}
+                placeholder="Ex: contato para faturamento"
+              />
+            </div>
+            <div className="flex justify-end gap-3 pt-2">
+              <Button type="button" variant="outline" onClick={() => setAddUserOpen(false)}>Cancelar</Button>
+              <Button type="submit" disabled={addingUser}>
+                {addingUser ? <><Loader2 size={14} className="animate-spin mr-1.5" />Vinculando...</> : "Vincular"}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
