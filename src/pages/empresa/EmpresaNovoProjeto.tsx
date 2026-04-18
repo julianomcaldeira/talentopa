@@ -10,7 +10,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { PageHeader, DataCard } from "@/components/dashboard/DashboardComponents";
-import { ArrowLeft, ArrowRight, Check, FileText, Target, Settings, Rocket, Plus, Trash2, Copy, Sparkles, UserCheck, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, FileText, Target, Settings, Rocket, Plus, Trash2, Copy, Sparkles, UserCheck, X, ClipboardList, Lightbulb } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 
 const SectionLabel = ({ children }: { children: React.ReactNode }) => (
   <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{children}</Label>
@@ -20,7 +21,16 @@ const steps = [
   { label: "Informações", icon: FileText },
   { label: "Escopo", icon: Target },
   { label: "Fases", icon: Settings },
+  { label: "Qualificação", icon: ClipboardList },
   { label: "Publicar", icon: Rocket },
+];
+
+const PERGUNTAS_SUGERIDAS = [
+  "Quantos projetos similares (mesmo ERP/módulos) você já entregou?",
+  "Qual sua disponibilidade semanal em horas para este projeto?",
+  "Você possui certificação oficial no ERP escolhido? Qual?",
+  "Cite 2 referências de clientes onde implantou esse escopo.",
+  "Qual sua abordagem para mitigar atrasos em integrações?",
 ];
 
 const EmpresaNovoProjeto = () => {
@@ -52,6 +62,9 @@ const EmpresaNovoProjeto = () => {
     { nome: "Treinamento", descricao: "", prazo: "", valor: "" },
     { nome: "Go-live", descricao: "", prazo: "", valor: "" },
   ]);
+  const [perguntas, setPerguntas] = useState<{ pergunta: string; obrigatoria: boolean }[]>([]);
+  const [novaPergunta, setNovaPergunta] = useState("");
+  const [novaObrigatoria, setNovaObrigatoria] = useState(true);
 
   useEffect(() => {
     const fetch = async () => {
@@ -162,6 +175,19 @@ const EmpresaNovoProjeto = () => {
     if (selectedFuncs.length > 0) await supabase.from("projeto_funcionalidades").insert(selectedFuncs.map(fid => ({ projeto_id: projeto.id, funcionalidade_id: fid })));
     const validFases = fases.filter(f => f.nome);
     if (validFases.length > 0) await supabase.from("projeto_fases").insert(validFases.map((f, i) => ({ projeto_id: projeto.id, nome: f.nome, descricao: f.descricao || null, ordem: i, prazo: f.prazo || null, valor: f.valor ? Number(f.valor) : null })));
+
+    // Perguntas de qualificação para os consultores
+    const validPerguntas = perguntas.filter(p => p.pergunta.trim());
+    if (validPerguntas.length > 0) {
+      await supabase.from("projeto_perguntas").insert(
+        validPerguntas.map((p, i) => ({
+          projeto_id: projeto.id,
+          pergunta: p.pergunta.trim(),
+          obrigatoria: p.obrigatoria,
+          ordem: i,
+        }))
+      );
+    }
 
     // Convidar consultor (recontratação): notificação + mensagem-convite no chat do projeto
     if (recontratarConsultor) {
@@ -376,6 +402,130 @@ const EmpresaNovoProjeto = () => {
 
         {step === 3 && (
           <div className="space-y-5">
+            <div className="flex items-start justify-between gap-3 mb-2">
+              <div>
+                <h3 className="font-display font-semibold text-foreground text-lg">Formulário de Qualificação</h3>
+                <p className="text-xs text-muted-foreground mt-1">Crie perguntas que os consultores deverão responder ao se candidatar. Ajuda a comparar e selecionar.</p>
+              </div>
+              <span className="text-[11px] text-muted-foreground bg-muted/50 px-2 py-1 rounded-md whitespace-nowrap">Opcional</span>
+            </div>
+
+            {/* Sugestões */}
+            {perguntas.length === 0 && (
+              <div className="rounded-xl border border-primary/20 bg-primary/5 p-3 space-y-2">
+                <div className="flex items-center gap-2">
+                  <Lightbulb size={14} className="text-primary" />
+                  <SectionLabel>Sugestões rápidas</SectionLabel>
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {PERGUNTAS_SUGERIDAS.map((q, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => setPerguntas(prev => [...prev, { pergunta: q, obrigatoria: true }])}
+                      className="text-[11px] px-2.5 py-1.5 rounded-lg bg-background border border-border hover:border-primary hover:bg-primary/5 transition-colors text-left"
+                    >
+                      + {q}
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => setPerguntas(PERGUNTAS_SUGERIDAS.map(q => ({ pergunta: q, obrigatoria: true })))}
+                    className="text-[11px] px-2.5 py-1.5 rounded-lg bg-primary/10 border border-primary/30 text-primary hover:bg-primary/15 transition-colors font-medium"
+                  >
+                    Adicionar todas
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Adicionar nova */}
+            <div className="rounded-xl border border-dashed border-border bg-muted/20 p-3 space-y-3">
+              <Input
+                value={novaPergunta}
+                onChange={(e) => setNovaPergunta(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && novaPergunta.trim()) {
+                    e.preventDefault();
+                    setPerguntas(prev => [...prev, { pergunta: novaPergunta.trim(), obrigatoria: novaObrigatoria }]);
+                    setNovaPergunta("");
+                  }
+                }}
+                placeholder="Digite uma pergunta para os consultores..."
+                className="text-sm"
+              />
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Switch checked={novaObrigatoria} onCheckedChange={setNovaObrigatoria} />
+                  <Label className="text-xs text-muted-foreground">Obrigatória</Label>
+                </div>
+                <Button
+                  size="sm"
+                  type="button"
+                  onClick={() => {
+                    if (!novaPergunta.trim()) return;
+                    setPerguntas(prev => [...prev, { pergunta: novaPergunta.trim(), obrigatoria: novaObrigatoria }]);
+                    setNovaPergunta("");
+                  }}
+                  disabled={!novaPergunta.trim()}
+                >
+                  <Plus size={14} /> Adicionar
+                </Button>
+              </div>
+            </div>
+
+            {/* Lista */}
+            {perguntas.length > 0 && (
+              <div className="space-y-2">
+                <SectionLabel>Perguntas adicionadas ({perguntas.length})</SectionLabel>
+                {perguntas.map((p, i) => (
+                  <div key={i} className="flex items-start gap-2 p-3 rounded-xl border border-border bg-card">
+                    <span className="text-[10px] font-bold text-muted-foreground bg-muted rounded-md px-1.5 py-0.5 mt-0.5 shrink-0">{i + 1}</span>
+                    <div className="flex-1 min-w-0 space-y-2">
+                      <Input
+                        value={p.pergunta}
+                        onChange={(e) => {
+                          const list = [...perguntas];
+                          list[i].pergunta = e.target.value;
+                          setPerguntas(list);
+                        }}
+                        className="text-sm"
+                      />
+                      <div className="flex items-center gap-2">
+                        <Switch
+                          checked={p.obrigatoria}
+                          onCheckedChange={(v) => {
+                            const list = [...perguntas];
+                            list[i].obrigatoria = v;
+                            setPerguntas(list);
+                          }}
+                        />
+                        <Label className="text-[11px] text-muted-foreground">Obrigatória</Label>
+                      </div>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 shrink-0"
+                      onClick={() => setPerguntas(perguntas.filter((_, j) => j !== i))}
+                    >
+                      <Trash2 size={13} className="text-destructive" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="flex justify-between pt-2">
+              <Button variant="outline" onClick={() => setStep(2)}><ArrowLeft size={14} /> Voltar</Button>
+              <Button onClick={() => setStep(4)}>Próximo <ArrowRight size={14} /></Button>
+            </div>
+          </div>
+        )}
+
+        {step === 4 && (
+          <div className="space-y-5">
             <h3 className="font-display font-semibold text-foreground text-lg mb-2">Revisar e Publicar</h3>
             <div className="space-y-3">
               <div className="bg-muted/30 rounded-xl p-4 space-y-2.5 border border-border/40">
@@ -385,7 +535,7 @@ const EmpresaNovoProjeto = () => {
                 <p className="text-base font-display font-semibold text-foreground">{form.nome}</p>
                 {form.descricao && <p className="text-sm text-muted-foreground">{form.descricao}</p>}
               </div>
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 <div className="bg-muted/30 rounded-xl p-3.5 border border-border/40 text-center">
                   <p className="text-lg font-display font-bold text-foreground">{form.software_id ? softwares.find(s => s.id === form.software_id)?.nome : "—"}</p>
                   <p className="text-[11px] text-muted-foreground font-medium uppercase">Software</p>
@@ -398,10 +548,14 @@ const EmpresaNovoProjeto = () => {
                   <p className="text-lg font-display font-bold text-foreground">{fases.filter(f => f.nome).length}</p>
                   <p className="text-[11px] text-muted-foreground font-medium uppercase">Fases</p>
                 </div>
+                <div className="bg-muted/30 rounded-xl p-3.5 border border-border/40 text-center">
+                  <p className="text-lg font-display font-bold text-foreground">{perguntas.filter(p => p.pergunta.trim()).length}</p>
+                  <p className="text-[11px] text-muted-foreground font-medium uppercase">Perguntas</p>
+                </div>
               </div>
             </div>
             <div className="flex justify-between pt-2">
-              <Button variant="outline" onClick={() => setStep(2)}><ArrowLeft size={14} /> Voltar</Button>
+              <Button variant="outline" onClick={() => setStep(3)}><ArrowLeft size={14} /> Voltar</Button>
               <Button variant="glow" onClick={handlePublish} disabled={saving}>
                 {saving ? "Publicando..." : <><Rocket size={14} /> Publicar Projeto</>}
               </Button>
