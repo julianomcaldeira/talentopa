@@ -192,6 +192,64 @@ const ConsultorProjetos = () => {
     return modulos.filter(m => m.software_id === filterSoftware);
   }, [modulos, filterSoftware]);
 
+  // Faceted counts: each filter dimension counts projects passing ALL OTHER filters
+  type FilterKey = "city" | "software" | "modulo" | "segmento";
+  const matchesExcept = (p: any, except: FilterKey) => {
+    if (except !== "city" && filterCity) {
+      if ((p.local_cidade || "").toLowerCase() !== filterCity.cidade.toLowerCase()
+        || (p.local_estado || "").toUpperCase() !== filterCity.estado.toUpperCase()) return false;
+    }
+    if (except !== "software" && filterSoftware !== "all" && p.software_id !== filterSoftware) return false;
+    if (except !== "modulo" && filterModulo !== "all") {
+      const scope = projetoScopes.get(p.id);
+      if (!scope || !scope.modulos.includes(filterModulo)) return false;
+    }
+    if (except !== "segmento" && filterSegmento !== "all" && p.empresa_segmento !== filterSegmento) return false;
+    return true;
+  };
+
+  const softwareCounts = useMemo(() => {
+    const m = new Map<string, number>();
+    let all = 0;
+    projetos.forEach(p => {
+      if (!matchesExcept(p, "software")) return;
+      all++;
+      if (p.software_id) m.set(p.software_id, (m.get(p.software_id) || 0) + 1);
+    });
+    return { all, byId: m };
+  }, [projetos, filterCity, filterModulo, filterSegmento, projetoScopes]);
+
+  const moduloCounts = useMemo(() => {
+    const m = new Map<string, number>();
+    let all = 0;
+    projetos.forEach(p => {
+      if (!matchesExcept(p, "modulo")) return;
+      all++;
+      const scope = projetoScopes.get(p.id);
+      scope?.modulos.forEach(modId => m.set(modId, (m.get(modId) || 0) + 1));
+    });
+    return { all, byId: m };
+  }, [projetos, filterCity, filterSoftware, filterSegmento, projetoScopes]);
+
+  const segmentoCounts = useMemo(() => {
+    const m = new Map<string, number>();
+    let all = 0;
+    projetos.forEach(p => {
+      if (!matchesExcept(p, "segmento")) return;
+      all++;
+      if (p.empresa_segmento) m.set(p.empresa_segmento, (m.get(p.empresa_segmento) || 0) + 1);
+    });
+    return { all, byId: m };
+  }, [projetos, filterCity, filterSoftware, filterModulo, projetoScopes]);
+
+  const cityCount = useMemo(() => {
+    if (!filterCity) return 0;
+    return projetos.filter(p => matchesExcept(p, "city")
+      && (p.local_cidade || "").toLowerCase() === filterCity.cidade.toLowerCase()
+      && (p.local_estado || "").toUpperCase() === filterCity.estado.toUpperCase()
+    ).length;
+  }, [projetos, filterCity, filterSoftware, filterModulo, filterSegmento, projetoScopes]);
+
   const hasActiveFilters = filterCity || filterSoftware !== "all" || filterModulo !== "all" || filterSegmento !== "all";
 
   const clearFilters = () => {
@@ -219,15 +277,18 @@ const ConsultorProjetos = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
           <div className="space-y-1.5">
             <Label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Cidade</Label>
-            <CityCombobox value={filterCity} onChange={setFilterCity} />
+            <CityCombobox value={filterCity} onChange={setFilterCity} count={filterCity ? cityCount : undefined} />
           </div>
           <div className="space-y-1.5">
             <Label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Linha de Produto</Label>
             <Select value={filterSoftware} onValueChange={(v) => { setFilterSoftware(v); setFilterModulo("all"); }}>
               <SelectTrigger><SelectValue placeholder="Todas" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todas as linhas</SelectItem>
-                {softwares.map(s => <SelectItem key={s.id} value={s.id}>{s.nome}</SelectItem>)}
+                <SelectItem value="all">Todas as linhas ({softwareCounts.all})</SelectItem>
+                {softwares.map(s => {
+                  const c = softwareCounts.byId.get(s.id) || 0;
+                  return <SelectItem key={s.id} value={s.id} disabled={c === 0 && filterSoftware !== s.id}>{s.nome} ({c})</SelectItem>;
+                })}
               </SelectContent>
             </Select>
           </div>
@@ -236,8 +297,11 @@ const ConsultorProjetos = () => {
             <Select value={filterModulo} onValueChange={setFilterModulo}>
               <SelectTrigger><SelectValue placeholder="Todos" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todos os módulos</SelectItem>
-                {modulosFiltrados.map(m => <SelectItem key={m.id} value={m.id}>{m.nome}</SelectItem>)}
+                <SelectItem value="all">Todos os módulos ({moduloCounts.all})</SelectItem>
+                {modulosFiltrados.map(m => {
+                  const c = moduloCounts.byId.get(m.id) || 0;
+                  return <SelectItem key={m.id} value={m.id} disabled={c === 0 && filterModulo !== m.id}>{m.nome} ({c})</SelectItem>;
+                })}
               </SelectContent>
             </Select>
           </div>
@@ -246,8 +310,11 @@ const ConsultorProjetos = () => {
             <Select value={filterSegmento} onValueChange={setFilterSegmento}>
               <SelectTrigger><SelectValue placeholder="Todos" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todos os segmentos</SelectItem>
-                {segmentosUnicos.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                <SelectItem value="all">Todos os segmentos ({segmentoCounts.all})</SelectItem>
+                {segmentosUnicos.map(s => {
+                  const c = segmentoCounts.byId.get(s) || 0;
+                  return <SelectItem key={s} value={s} disabled={c === 0 && filterSegmento !== s}>{s} ({c})</SelectItem>;
+                })}
               </SelectContent>
             </Select>
           </div>
