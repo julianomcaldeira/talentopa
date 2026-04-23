@@ -78,6 +78,7 @@ const EmpresaNovoProjeto = ({ onSuccess }: EmpresaNovoProjetoProps = {}) => {
 
   const [form, setForm] = useState({
     nome: "", descricao: "", problema_atual: "", objetivo: "", prazo_estimado: "",
+    prazo_propostas: "",
     software_id: "", observacoes: "",
     modelo_contratacao: "" as "" | "presencial" | "hibrido" | "remoto",
   });
