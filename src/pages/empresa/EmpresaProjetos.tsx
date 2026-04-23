@@ -40,6 +40,7 @@ const EmpresaProjetos = () => {
   const [view, setView] = useState<ViewMode>("list");
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [prazoFilter, setPrazoFilter] = useState<string>("all");
   const [page, setPage] = useState(1);
   const [novoProjetoOpen, setNovoProjetoOpen] = useState(false);
 
@@ -60,8 +61,21 @@ const EmpresaProjetos = () => {
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const in7 = new Date(today); in7.setDate(in7.getDate() + 7);
     return projetos.filter((p) => {
       if (statusFilter !== "all" && p.status !== statusFilter) return false;
+      if (prazoFilter !== "all") {
+        const prazo = p.prazo_propostas ? new Date(p.prazo_propostas + "T00:00:00") : null;
+        if (prazoFilter === "sem_prazo") {
+          if (prazo) return false;
+        } else {
+          if (!prazo) return false;
+          if (prazoFilter === "vencido" && !(prazo < today)) return false;
+          if (prazoFilter === "proximo" && !(prazo >= today && prazo <= in7)) return false;
+          if (prazoFilter === "dentro" && !(prazo > in7)) return false;
+        }
+      }
       if (!q) return true;
       return (
         p.nome?.toLowerCase().includes(q) ||
@@ -69,7 +83,7 @@ const EmpresaProjetos = () => {
         p.softwares?.nome?.toLowerCase().includes(q)
       );
     });
-  }, [projetos, search, statusFilter]);
+  }, [projetos, search, statusFilter, prazoFilter]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
@@ -78,7 +92,7 @@ const EmpresaProjetos = () => {
     [filtered, currentPage]
   );
 
-  useEffect(() => { setPage(1); }, [search, statusFilter, view]);
+  useEffect(() => { setPage(1); }, [search, statusFilter, prazoFilter, view]);
 
   const viewPropostas = async (projeto: any) => {
     setSelectedProjeto(projeto);
@@ -194,6 +208,16 @@ const EmpresaProjetos = () => {
               {KANBAN_COLUMNS.map(c => (
                 <SelectItem key={c.key} value={c.key}>{c.label}</SelectItem>
               ))}
+            </SelectContent>
+          </Select>
+          <Select value={prazoFilter} onValueChange={setPrazoFilter}>
+            <SelectTrigger className="md:w-56 h-9"><SelectValue placeholder="Prazo de propostas" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos os prazos</SelectItem>
+              <SelectItem value="vencido">Vencidos</SelectItem>
+              <SelectItem value="proximo">Próximos (≤ 7 dias)</SelectItem>
+              <SelectItem value="dentro">Dentro do prazo (&gt; 7 dias)</SelectItem>
+              <SelectItem value="sem_prazo">Sem prazo definido</SelectItem>
             </SelectContent>
           </Select>
           <ViewToggle value={view} onChange={setView} />
