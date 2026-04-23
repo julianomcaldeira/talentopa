@@ -227,7 +227,9 @@ const EmpresaNovoProjeto = ({ onSuccess }: EmpresaNovoProjetoProps = {}) => {
       const { data: projeto, error } = await supabase.from("projetos").insert({
         empresa_user_id: user.id, nome: form.nome, descricao: form.descricao || null,
         problema_atual: form.problema_atual || null, objetivo: form.objetivo || null,
-        prazo_estimado: form.prazo_estimado || null, software_id: form.software_id || null,
+        prazo_estimado: form.prazo_estimado || null,
+        prazo_propostas: form.prazo_propostas || null,
+        software_id: form.software_id || null,
         observacoes: form.observacoes || null,
         modelo_contratacao: (form.modelo_contratacao || null) as any,
         escopo_ia: classificacao?.escopo_sugerido || null,
