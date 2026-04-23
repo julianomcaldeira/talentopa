@@ -26,6 +26,7 @@ const editSchema = z.object({
   problema_atual: z.string().trim().max(2000, "Máximo 2000 caracteres").optional().nullable(),
   observacoes: z.string().trim().max(2000, "Máximo 2000 caracteres").optional().nullable(),
   prazo_estimado: z.string().optional().nullable(),
+  prazo_propostas: z.string().optional().nullable(),
   modelo_contratacao: z.enum(["presencial", "hibrido", "remoto"]).optional().nullable(),
 });
 
@@ -36,7 +37,7 @@ export const ProjetoEditDialog = ({ open, onOpenChange, projeto, onSaved }: Prop
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     descricao: "", objetivo: "", problema_atual: "", observacoes: "",
-    prazo_estimado: "", modelo_contratacao: "" as "" | "presencial" | "hibrido" | "remoto",
+    prazo_estimado: "", prazo_propostas: "", modelo_contratacao: "" as "" | "presencial" | "hibrido" | "remoto",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -56,6 +57,7 @@ export const ProjetoEditDialog = ({ open, onOpenChange, projeto, onSaved }: Prop
       problema_atual: projeto.problema_atual || "",
       observacoes: projeto.observacoes || "",
       prazo_estimado: projeto.prazo_estimado || "",
+      prazo_propostas: (projeto as any).prazo_propostas || "",
       modelo_contratacao: (projeto.modelo_contratacao as any) || "",
     });
     setErrors({});
@@ -98,6 +100,7 @@ export const ProjetoEditDialog = ({ open, onOpenChange, projeto, onSaved }: Prop
       problema_atual: form.problema_atual || null,
       observacoes: form.observacoes || null,
       prazo_estimado: form.prazo_estimado || null,
+      prazo_propostas: form.prazo_propostas || null,
       modelo_contratacao: (form.modelo_contratacao || null) as any,
     });
     if (!parsed.success) {
@@ -115,6 +118,7 @@ export const ProjetoEditDialog = ({ open, onOpenChange, projeto, onSaved }: Prop
         problema_atual: parsed.data.problema_atual,
         observacoes: parsed.data.observacoes,
         prazo_estimado: parsed.data.prazo_estimado || null,
+        prazo_propostas: parsed.data.prazo_propostas || null,
         modelo_contratacao: parsed.data.modelo_contratacao || null,
       })
       .eq("id", projeto.id);
@@ -239,13 +243,21 @@ export const ProjetoEditDialog = ({ open, onOpenChange, projeto, onSaved }: Prop
                 {errors.problema_atual && <p className="text-xs text-destructive mt-1">{errors.problema_atual}</p>}
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <Label className="text-xs flex items-center gap-1"><CalendarDays size={12} /> Prazo estimado</Label>
                   <Input
                     type="date"
                     value={form.prazo_estimado || ""}
                     onChange={e => setForm(f => ({ ...f, prazo_estimado: e.target.value }))}
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs flex items-center gap-1"><CalendarDays size={12} /> Prazo p/ propostas</Label>
+                  <Input
+                    type="date"
+                    value={form.prazo_propostas || ""}
+                    onChange={e => setForm(f => ({ ...f, prazo_propostas: e.target.value }))}
                   />
                 </div>
                 <div>
