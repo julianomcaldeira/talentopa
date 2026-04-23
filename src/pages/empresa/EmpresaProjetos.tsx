@@ -92,7 +92,7 @@ const EmpresaProjetos = () => {
     [filtered, currentPage]
   );
 
-  useEffect(() => { setPage(1); }, [search, statusFilter, view]);
+  useEffect(() => { setPage(1); }, [search, statusFilter, prazoFilter, view]);
 
   const viewPropostas = async (projeto: any) => {
     setSelectedProjeto(projeto);
