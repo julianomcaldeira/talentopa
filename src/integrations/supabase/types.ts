@@ -1211,6 +1211,7 @@ export type Database = {
           objetivo: string | null
           observacoes: string | null
           prazo_estimado: string | null
+          prazo_propostas: string | null
           problema_atual: string | null
           protocolo: string | null
           software_id: string | null
@@ -1232,6 +1233,7 @@ export type Database = {
           objetivo?: string | null
           observacoes?: string | null
           prazo_estimado?: string | null
+          prazo_propostas?: string | null
           problema_atual?: string | null
           protocolo?: string | null
           software_id?: string | null
@@ -1253,6 +1255,7 @@ export type Database = {
           objetivo?: string | null
           observacoes?: string | null
           prazo_estimado?: string | null
+          prazo_propostas?: string | null
           problema_atual?: string | null
           protocolo?: string | null
           software_id?: string | null

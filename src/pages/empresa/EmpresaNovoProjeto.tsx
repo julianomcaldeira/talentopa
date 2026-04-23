@@ -78,6 +78,7 @@ const EmpresaNovoProjeto = ({ onSuccess }: EmpresaNovoProjetoProps = {}) => {
 
   const [form, setForm] = useState({
     nome: "", descricao: "", problema_atual: "", objetivo: "", prazo_estimado: "",
+    prazo_propostas: "",
     software_id: "", observacoes: "",
     modelo_contratacao: "" as "" | "presencial" | "hibrido" | "remoto",
   });
@@ -146,6 +147,7 @@ const EmpresaNovoProjeto = ({ onSuccess }: EmpresaNovoProjetoProps = {}) => {
       problema_atual: p.problema_atual || "",
       objetivo: p.objetivo || "",
       prazo_estimado: "",
+      prazo_propostas: "",
       software_id: p.software_id || "",
       observacoes: p.observacoes || "",
       modelo_contratacao: (p.modelo_contratacao || "") as any,
@@ -225,7 +227,9 @@ const EmpresaNovoProjeto = ({ onSuccess }: EmpresaNovoProjetoProps = {}) => {
       const { data: projeto, error } = await supabase.from("projetos").insert({
         empresa_user_id: user.id, nome: form.nome, descricao: form.descricao || null,
         problema_atual: form.problema_atual || null, objetivo: form.objetivo || null,
-        prazo_estimado: form.prazo_estimado || null, software_id: form.software_id || null,
+        prazo_estimado: form.prazo_estimado || null,
+        prazo_propostas: form.prazo_propostas || null,
+        software_id: form.software_id || null,
         observacoes: form.observacoes || null,
         modelo_contratacao: (form.modelo_contratacao || null) as any,
         escopo_ia: classificacao?.escopo_sugerido || null,
@@ -439,9 +443,23 @@ const EmpresaNovoProjeto = ({ onSuccess }: EmpresaNovoProjetoProps = {}) => {
                 />
               </div>
 
-              <div className="space-y-2">
-                <SectionLabel>Prazo Estimado</SectionLabel>
-                <Input type="date" value={form.prazo_estimado} onChange={(e) => setForm({ ...form, prazo_estimado: e.target.value })} className="bg-background max-w-xs" />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <SectionLabel>Prazo Estimado de Entrega</SectionLabel>
+                  <Input type="date" value={form.prazo_estimado} onChange={(e) => setForm({ ...form, prazo_estimado: e.target.value })} className="bg-background" />
+                  <p className="text-[11px] text-muted-foreground">Data desejada para conclusão do projeto.</p>
+                </div>
+                <div className="space-y-2">
+                  <SectionLabel>Prazo para receber propostas *</SectionLabel>
+                  <Input
+                    type="date"
+                    value={form.prazo_propostas}
+                    min={new Date().toISOString().slice(0, 10)}
+                    onChange={(e) => setForm({ ...form, prazo_propostas: e.target.value })}
+                    className="bg-background border-primary/20 focus-visible:border-primary"
+                  />
+                  <p className="text-[11px] text-muted-foreground">Até quando os consultores podem enviar propostas. Você pode editar depois.</p>
+                </div>
               </div>
 
               <Button
@@ -517,7 +535,7 @@ const EmpresaNovoProjeto = ({ onSuccess }: EmpresaNovoProjetoProps = {}) => {
             </div>
 
             <div className="flex justify-end pt-2">
-              <Button onClick={() => setStep(1)} disabled={!form.nome || !form.modelo_contratacao || !form.software_id}>
+              <Button onClick={() => setStep(1)} disabled={!form.nome || !form.modelo_contratacao || !form.software_id || !form.prazo_propostas}>
                 Próximo <ArrowRight size={14} />
               </Button>
             </div>
@@ -730,7 +748,8 @@ const EmpresaNovoProjeto = ({ onSuccess }: EmpresaNovoProjetoProps = {}) => {
               <div className="flex flex-wrap gap-2 pt-1">
                 {softwareNome && <Badge variant="outline" className="text-[11px]">ERP: {softwareNome}</Badge>}
                 {form.modelo_contratacao && <Badge variant="outline" className="text-[11px] capitalize">{form.modelo_contratacao}</Badge>}
-                {form.prazo_estimado && <Badge variant="outline" className="text-[11px]">Prazo: {new Date(form.prazo_estimado).toLocaleDateString("pt-BR")}</Badge>}
+                {form.prazo_estimado && <Badge variant="outline" className="text-[11px]">Entrega: {new Date(form.prazo_estimado).toLocaleDateString("pt-BR")}</Badge>}
+                {form.prazo_propostas && <Badge variant="outline" className="text-[11px] border-primary/40 text-primary">Propostas até: {new Date(form.prazo_propostas).toLocaleDateString("pt-BR")}</Badge>}
               </div>
             </div>
 
