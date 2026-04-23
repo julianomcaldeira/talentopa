@@ -535,7 +535,7 @@ const EmpresaNovoProjeto = ({ onSuccess }: EmpresaNovoProjetoProps = {}) => {
             </div>
 
             <div className="flex justify-end pt-2">
-              <Button onClick={() => setStep(1)} disabled={!form.nome || !form.modelo_contratacao || !form.software_id}>
+              <Button onClick={() => setStep(1)} disabled={!form.nome || !form.modelo_contratacao || !form.software_id || !form.prazo_propostas}>
                 Próximo <ArrowRight size={14} />
               </Button>
             </div>
