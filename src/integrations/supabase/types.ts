@@ -757,6 +757,47 @@ export type Database = {
           },
         ]
       }
+      projeto_anexos: {
+        Row: {
+          arquivo_url: string
+          created_at: string
+          id: string
+          mime_type: string | null
+          nome: string
+          projeto_id: string
+          tamanho_bytes: number | null
+          uploader_user_id: string
+        }
+        Insert: {
+          arquivo_url: string
+          created_at?: string
+          id?: string
+          mime_type?: string | null
+          nome: string
+          projeto_id: string
+          tamanho_bytes?: number | null
+          uploader_user_id: string
+        }
+        Update: {
+          arquivo_url?: string
+          created_at?: string
+          id?: string
+          mime_type?: string | null
+          nome?: string
+          projeto_id?: string
+          tamanho_bytes?: number | null
+          uploader_user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "projeto_anexos_projeto_id_fkey"
+            columns: ["projeto_id"]
+            isOneToOne: false
+            referencedRelation: "projetos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       projeto_aprendizados: {
         Row: {
           created_at: string
@@ -1157,9 +1198,11 @@ export type Database = {
       }
       projetos: {
         Row: {
+          classificacao_ia: Json | null
           created_at: string
           descricao: string | null
           empresa_user_id: string
+          escopo_ia: string | null
           id: string
           modelo_contratacao:
             | Database["public"]["Enums"]["modelo_contratacao"]
@@ -1176,9 +1219,11 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          classificacao_ia?: Json | null
           created_at?: string
           descricao?: string | null
           empresa_user_id: string
+          escopo_ia?: string | null
           id?: string
           modelo_contratacao?:
             | Database["public"]["Enums"]["modelo_contratacao"]
@@ -1195,9 +1240,11 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          classificacao_ia?: Json | null
           created_at?: string
           descricao?: string | null
           empresa_user_id?: string
+          escopo_ia?: string | null
           id?: string
           modelo_contratacao?:
             | Database["public"]["Enums"]["modelo_contratacao"]
