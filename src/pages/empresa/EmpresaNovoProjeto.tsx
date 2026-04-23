@@ -147,6 +147,7 @@ const EmpresaNovoProjeto = ({ onSuccess }: EmpresaNovoProjetoProps = {}) => {
       problema_atual: p.problema_atual || "",
       objetivo: p.objetivo || "",
       prazo_estimado: "",
+      prazo_propostas: "",
       software_id: p.software_id || "",
       observacoes: p.observacoes || "",
       modelo_contratacao: (p.modelo_contratacao || "") as any,
