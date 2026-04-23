@@ -40,6 +40,7 @@ const EmpresaProjetos = () => {
   const [view, setView] = useState<ViewMode>("list");
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [prazoFilter, setPrazoFilter] = useState<string>("all");
   const [page, setPage] = useState(1);
   const [novoProjetoOpen, setNovoProjetoOpen] = useState(false);
 
