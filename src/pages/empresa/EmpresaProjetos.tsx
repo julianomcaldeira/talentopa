@@ -210,6 +210,16 @@ const EmpresaProjetos = () => {
               ))}
             </SelectContent>
           </Select>
+          <Select value={prazoFilter} onValueChange={setPrazoFilter}>
+            <SelectTrigger className="md:w-56 h-9"><SelectValue placeholder="Prazo de propostas" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos os prazos</SelectItem>
+              <SelectItem value="vencido">Vencidos</SelectItem>
+              <SelectItem value="proximo">Próximos (≤ 7 dias)</SelectItem>
+              <SelectItem value="dentro">Dentro do prazo (&gt; 7 dias)</SelectItem>
+              <SelectItem value="sem_prazo">Sem prazo definido</SelectItem>
+            </SelectContent>
+          </Select>
           <ViewToggle value={view} onChange={setView} />
         </div>
         <div className="text-xs text-muted-foreground mt-3">
