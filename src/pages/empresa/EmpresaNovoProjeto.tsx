@@ -748,7 +748,8 @@ const EmpresaNovoProjeto = ({ onSuccess }: EmpresaNovoProjetoProps = {}) => {
               <div className="flex flex-wrap gap-2 pt-1">
                 {softwareNome && <Badge variant="outline" className="text-[11px]">ERP: {softwareNome}</Badge>}
                 {form.modelo_contratacao && <Badge variant="outline" className="text-[11px] capitalize">{form.modelo_contratacao}</Badge>}
-                {form.prazo_estimado && <Badge variant="outline" className="text-[11px]">Prazo: {new Date(form.prazo_estimado).toLocaleDateString("pt-BR")}</Badge>}
+                {form.prazo_estimado && <Badge variant="outline" className="text-[11px]">Entrega: {new Date(form.prazo_estimado).toLocaleDateString("pt-BR")}</Badge>}
+                {form.prazo_propostas && <Badge variant="outline" className="text-[11px] border-primary/40 text-primary">Propostas até: {new Date(form.prazo_propostas).toLocaleDateString("pt-BR")}</Badge>}
               </div>
             </div>
 
