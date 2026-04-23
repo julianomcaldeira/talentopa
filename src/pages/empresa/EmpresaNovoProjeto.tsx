@@ -441,9 +441,23 @@ const EmpresaNovoProjeto = ({ onSuccess }: EmpresaNovoProjetoProps = {}) => {
                 />
               </div>
 
-              <div className="space-y-2">
-                <SectionLabel>Prazo Estimado</SectionLabel>
-                <Input type="date" value={form.prazo_estimado} onChange={(e) => setForm({ ...form, prazo_estimado: e.target.value })} className="bg-background max-w-xs" />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <SectionLabel>Prazo Estimado de Entrega</SectionLabel>
+                  <Input type="date" value={form.prazo_estimado} onChange={(e) => setForm({ ...form, prazo_estimado: e.target.value })} className="bg-background" />
+                  <p className="text-[11px] text-muted-foreground">Data desejada para conclusão do projeto.</p>
+                </div>
+                <div className="space-y-2">
+                  <SectionLabel>Prazo para receber propostas *</SectionLabel>
+                  <Input
+                    type="date"
+                    value={form.prazo_propostas}
+                    min={new Date().toISOString().slice(0, 10)}
+                    onChange={(e) => setForm({ ...form, prazo_propostas: e.target.value })}
+                    className="bg-background border-primary/20 focus-visible:border-primary"
+                  />
+                  <p className="text-[11px] text-muted-foreground">Até quando os consultores podem enviar propostas. Você pode editar depois.</p>
+                </div>
               </div>
 
               <Button
