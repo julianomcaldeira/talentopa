@@ -61,8 +61,21 @@ const EmpresaProjetos = () => {
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const in7 = new Date(today); in7.setDate(in7.getDate() + 7);
     return projetos.filter((p) => {
       if (statusFilter !== "all" && p.status !== statusFilter) return false;
+      if (prazoFilter !== "all") {
+        const prazo = p.prazo_propostas ? new Date(p.prazo_propostas + "T00:00:00") : null;
+        if (prazoFilter === "sem_prazo") {
+          if (prazo) return false;
+        } else {
+          if (!prazo) return false;
+          if (prazoFilter === "vencido" && !(prazo < today)) return false;
+          if (prazoFilter === "proximo" && !(prazo >= today && prazo <= in7)) return false;
+          if (prazoFilter === "dentro" && !(prazo > in7)) return false;
+        }
+      }
       if (!q) return true;
       return (
         p.nome?.toLowerCase().includes(q) ||
@@ -70,7 +83,7 @@ const EmpresaProjetos = () => {
         p.softwares?.nome?.toLowerCase().includes(q)
       );
     });
-  }, [projetos, search, statusFilter]);
+  }, [projetos, search, statusFilter, prazoFilter]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
