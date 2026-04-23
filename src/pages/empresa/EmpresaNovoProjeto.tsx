@@ -262,9 +262,7 @@ const EmpresaNovoProjeto = ({ onSuccess }: EmpresaNovoProjetoProps = {}) => {
           const path = `${user.id}/${projeto.id}/${Date.now()}_${a.file.name}`;
           const { error: upErr } = await supabase.storage.from("projeto-anexos").upload(path, a.file);
           if (upErr) { console.error("upload error", upErr); continue; }
-          const { data: pub } = supabase.storage.from("projeto-anexos").createSignedUrl
-            ? { data: null } : { data: null };
-          // armazena path interno; URL será gerada sob demanda
+          // armazena path interno; URLs assinadas são geradas sob demanda
           await supabase.from("projeto_anexos").insert({
             projeto_id: projeto.id,
             uploader_user_id: user.id,
