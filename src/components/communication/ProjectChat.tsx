@@ -97,6 +97,10 @@ export const ProjectChat = ({ projetoId, projetoNome }: ProjectChatProps) => {
   const sendMessage = async () => {
     if (!user || !newMessage.trim() || sending) return;
     if (!conversationOpen) {
+      await (supabase as any).rpc("registrar_mensagem_bloqueada_pre_aprovacao", {
+        p_projeto_id: projetoId,
+        p_escopo: "compartilhado",
+      });
       toast({
         title: "Conversa ainda bloqueada",
         description: "A troca de mensagens com consultores só é liberada após a pré-aprovação.",
@@ -242,14 +246,13 @@ export const ProjectChat = ({ projetoId, projetoNome }: ProjectChatProps) => {
             onChange={(e) => setNewMessage(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Digite sua mensagem..."
-            disabled={!conversationOpen}
             rows={1}
             className="resize-none min-h-[40px] max-h-[100px] text-sm rounded-xl"
           />
           <Button
             size="icon"
             onClick={sendMessage}
-            disabled={!conversationOpen || !newMessage.trim() || sending}
+            disabled={!newMessage.trim() || sending}
             className="shrink-0 rounded-xl h-10 w-10"
           >
             <Send size={16} />
