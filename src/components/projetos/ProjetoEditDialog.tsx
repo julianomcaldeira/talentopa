@@ -12,7 +12,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { FileText, CalendarDays, Layers, Loader2, Plus, X, Bell, History, Users } from "lucide-react";
+import { FileText, CalendarDays, Layers, Loader2, Plus, X, Bell, History, Users, Lock, AlertTriangle } from "lucide-react";
 
 interface Props {
   open: boolean;
@@ -199,6 +199,10 @@ export const ProjetoEditDialog = ({ open, onOpenChange, projeto, onSaved }: Prop
   };
 
   const handleSaveScope = async () => {
+    if (projeto?.status === "concluido") {
+      toast({ title: "Escopo bloqueado", description: "Projeto concluído: módulos, funcionalidades e fases não podem mais ser alterados.", variant: "destructive" });
+      return;
+    }
     setSavingScope(true);
     try {
       // Replace módulos
@@ -253,6 +257,8 @@ export const ProjetoEditDialog = ({ open, onOpenChange, projeto, onSaved }: Prop
   };
 
   if (!projeto) return null;
+
+  const isCompleted = projeto.status === "concluido";
 
   const funcsByModulo = new Map<string, any[]>();
   allFuncs.forEach((f: any) => {
