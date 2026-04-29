@@ -22,6 +22,12 @@ const SectionLabel = ({ children }: { children: React.ReactNode }) => (
   <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{children}</Label>
 );
 
+const PhaseFieldLabel = ({ children }: { children: React.ReactNode }) => (
+  <Label className="inline-flex w-fit items-center rounded-md border border-primary/20 bg-primary/10 px-2 py-1 text-[11px] font-semibold uppercase tracking-wider text-primary">
+    {children}
+  </Label>
+);
+
 const steps = [
   { label: "Informações", icon: FileText },
   { label: "Fases", icon: Settings },
@@ -87,12 +93,12 @@ const EmpresaNovoProjeto = ({ onSuccess }: EmpresaNovoProjetoProps = {}) => {
   });
   const [anexos, setAnexos] = useState<AnexoLocal[]>([]);
   const [classificacao, setClassificacao] = useState<ClassificacaoIA | null>(null);
-  const [fases, setFases] = useState<{ nome: string; descricao: string; prazo: string; percentual: string }[]>([
-    { nome: "Planejamento", descricao: "", prazo: "", percentual: "15" },
-    { nome: "Implantação", descricao: "", prazo: "", percentual: "40" },
-    { nome: "Testes", descricao: "", prazo: "", percentual: "15" },
-    { nome: "Treinamento", descricao: "", prazo: "", percentual: "15" },
-    { nome: "Go-live", descricao: "", prazo: "", percentual: "15" },
+  const [fases, setFases] = useState<{ nome: string; descricao: string; percentual: string }[]>([
+    { nome: "Planejamento", descricao: "", percentual: "15" },
+    { nome: "Implantação", descricao: "", percentual: "40" },
+    { nome: "Testes", descricao: "", percentual: "15" },
+    { nome: "Treinamento", descricao: "", percentual: "15" },
+    { nome: "Go-live", descricao: "", percentual: "15" },
   ]);
   const [perguntas, setPerguntas] = useState<{ pergunta: string; obrigatoria: boolean }[]>([]);
   const [novaPergunta, setNovaPergunta] = useState("");
@@ -156,7 +162,7 @@ const EmpresaNovoProjeto = ({ onSuccess }: EmpresaNovoProjetoProps = {}) => {
         supabase.from("softwares").select("*").order("nome"),
         user ? supabase
           .from("projetos")
-          .select("id, nome, descricao, problema_atual, objetivo, prazo_estimado, software_id, observacoes, modelo_contratacao, status, created_at, projeto_fases(nome, descricao, ordem, prazo)")
+          .select("id, nome, descricao, problema_atual, objetivo, prazo_estimado, software_id, observacoes, modelo_contratacao, status, created_at, projeto_fases(nome, descricao, ordem)")
           .eq("empresa_user_id", user.id)
           .neq("status", "rascunho")
           .order("created_at", { ascending: false })
@@ -261,7 +267,6 @@ const EmpresaNovoProjeto = ({ onSuccess }: EmpresaNovoProjetoProps = {}) => {
         setFases(result.fases_sugeridas.map(f => ({
           nome: f.nome,
           descricao: f.descricao || "",
-          prazo: "",
           percentual: String(f.percentual_tempo ?? ""),
         })));
       }
