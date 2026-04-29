@@ -410,9 +410,7 @@ const EmpresaProjetos = () => {
                     )}
                     {(p.status === "publicado" || p.status === "em_selecao" || p.status === "em_andamento" || p.status === "concluido") && (
                       <div className="flex flex-wrap gap-1">
-                        {p.status !== "concluido" && (
-                          {renderPropostasButton(p, true)}
-                        )}
+                        {p.status !== "concluido" && renderPropostasButton(p, true)}
                         <Button size="sm" variant="outline" className="h-7 px-2 text-[11px]" onClick={() => setEditProjeto(p)}>
                           <Pencil size={11} /> Editar
                         </Button>
