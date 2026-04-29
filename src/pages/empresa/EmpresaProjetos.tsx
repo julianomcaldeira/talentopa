@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { PageHeader, DataCard, StatusBadge, EmptyState, LoadingState } from "@/components/dashboard/DashboardComponents";
 import { ViewToggle, ViewMode } from "@/components/ui/view-toggle";
-import { FolderKanban, Eye, MapPin, Clock, DollarSign, User, MessageSquare, Pencil, Search, ChevronLeft, ChevronRight, Settings2, Plus } from "lucide-react";
+import { FolderKanban, Eye, MapPin, Clock, DollarSign, User, MessageSquare, Pencil, Search, ChevronLeft, ChevronRight, Settings2, Plus, BadgeCheck, CheckCircle2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { ConsultorMatchList } from "@/components/matching/ConsultorMatchList";
@@ -132,6 +132,17 @@ const EmpresaProjetos = () => {
     refetch();
   };
 
+  const preApproveProposal = async (propostaId: string) => {
+    const { error } = await (supabase as any).rpc("empresa_pre_aprovar_proposta", { p_proposta_id: propostaId });
+    if (error) {
+      toast({ title: "Erro ao pré-aprovar", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Projeto pré-aprovado", description: "A comunicação foi liberada para alinhamento com o consultor." });
+    if (selectedProjeto) await viewPropostas(selectedProjeto);
+    refetch();
+  };
+
   const renderProgress = (p: any) => {
     if (!p.projeto_fases || p.projeto_fases.length === 0) return null;
     return (
@@ -150,14 +161,18 @@ const EmpresaProjetos = () => {
 
   const renderActions = (p: any) => (
     <div className="flex flex-wrap items-center gap-2">
-      {(p.status === "publicado" || p.status === "em_selecao" || p.status === "em_andamento") && (
+      {(p.status === "publicado" || p.status === "em_selecao" || p.status === "em_andamento" || p.status === "concluido") && (
         <>
-          <Button size="sm" variant="outline" onClick={() => viewPropostas(p)}>
-            <Eye size={14} /> Ver propostas
-          </Button>
-          <Button size="sm" variant="outline" onClick={() => setChatProjeto(chatProjeto?.id === p.id ? null : p)}>
-            <MessageSquare size={14} /> Comunicação
-          </Button>
+          {p.status !== "concluido" && (
+            <Button size="sm" variant="outline" onClick={() => viewPropostas(p)}>
+              <Eye size={14} /> Ver propostas
+            </Button>
+          )}
+          {p.status !== "concluido" && (
+            <Button size="sm" variant="outline" onClick={() => setChatProjeto(chatProjeto?.id === p.id ? null : p)}>
+              <MessageSquare size={14} /> Comunicação
+            </Button>
+          )}
           <Button size="sm" variant="outline" onClick={() => setEditProjeto(p)}>
             <Pencil size={14} /> Editar
           </Button>
