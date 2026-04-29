@@ -1,21 +1,35 @@
 import { useState, useEffect, useMemo } from "react";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { PageHeader, DataCard, StatusBadge, EmptyState, LoadingState } from "@/components/dashboard/DashboardComponents";
 import { ViewToggle, ViewMode } from "@/components/ui/view-toggle";
-import { FolderKanban, Eye, MapPin, Clock, DollarSign, User, MessageSquare, Pencil, Search, ChevronLeft, ChevronRight, Settings2, Plus, BadgeCheck, CheckCircle2 } from "lucide-react";
+import { FolderKanban, Eye, MapPin, Clock, DollarSign, User, MessageSquare, Pencil, Search, ChevronLeft, ChevronRight, Settings2, Plus, BadgeCheck, CheckCircle2, CalendarIcon, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { ConsultorMatchList } from "@/components/matching/ConsultorMatchList";
 import { ProjectCommunication } from "@/components/communication/ProjectCommunication";
 import { ProjetoEditDialog } from "@/components/projetos/ProjetoEditDialog";
+import { cn } from "@/lib/utils";
 import EmpresaNovoProjeto from "./EmpresaNovoProjeto";
 
 const PAGE_SIZE = 6;
+const PROPOSTAS_PAGE_SIZE = 5;
+const PROPOSTA_STATUS_OPTIONS = [
+  { value: "all", label: "Todos os status" },
+  { value: "enviada", label: "Enviada" },
+  { value: "pre_aprovada", label: "Pré-aprovada" },
+  { value: "aguardando_consultor", label: "Aguardando consultor" },
+  { value: "aceita", label: "Aceita" },
+  { value: "recusada", label: "Recusada" },
+];
 
 const preApproveMatchedConsultor = async (projeto: any, consultorUserId: string, toast: ReturnType<typeof useToast>["toast"], refetch: () => Promise<void>) => {
   const { error } = await (supabase as any).rpc("empresa_pre_aprovar_consultor", {
@@ -58,6 +72,10 @@ const EmpresaProjetos = () => {
   const [prazoFilter, setPrazoFilter] = useState<string>("all");
   const [page, setPage] = useState(1);
   const [novoProjetoOpen, setNovoProjetoOpen] = useState(false);
+  const [propostaStatusFilter, setPropostaStatusFilter] = useState("all");
+  const [propostaDataInicio, setPropostaDataInicio] = useState<Date | undefined>();
+  const [propostaDataFim, setPropostaDataFim] = useState<Date | undefined>();
+  const [propostaPage, setPropostaPage] = useState(1);
 
   const refetch = async () => {
     if (!user) return;
@@ -126,8 +144,35 @@ const EmpresaProjetos = () => {
 
   useEffect(() => { setPage(1); }, [search, statusFilter, prazoFilter, view]);
 
+  const propostasFiltradas = useMemo(() => {
+    const start = propostaDataInicio ? new Date(propostaDataInicio) : null;
+    const end = propostaDataFim ? new Date(propostaDataFim) : null;
+    start?.setHours(0, 0, 0, 0);
+    end?.setHours(23, 59, 59, 999);
+    return propostas.filter((prop) => {
+      if (propostaStatusFilter !== "all" && prop.status !== propostaStatusFilter) return false;
+      const created = new Date(prop.created_at);
+      if (start && created < start) return false;
+      if (end && created > end) return false;
+      return true;
+    });
+  }, [propostas, propostaStatusFilter, propostaDataInicio, propostaDataFim]);
+
+  const propostaTotalPages = Math.max(1, Math.ceil(propostasFiltradas.length / PROPOSTAS_PAGE_SIZE));
+  const propostaCurrentPage = Math.min(propostaPage, propostaTotalPages);
+  const propostasPaginadas = useMemo(
+    () => propostasFiltradas.slice((propostaCurrentPage - 1) * PROPOSTAS_PAGE_SIZE, propostaCurrentPage * PROPOSTAS_PAGE_SIZE),
+    [propostasFiltradas, propostaCurrentPage]
+  );
+
+  useEffect(() => { setPropostaPage(1); }, [propostaStatusFilter, propostaDataInicio, propostaDataFim, selectedProjeto?.id]);
+
   const viewPropostas = async (projeto: any) => {
     setSelectedProjeto(projeto);
+    setPropostaStatusFilter("all");
+    setPropostaDataInicio(undefined);
+    setPropostaDataFim(undefined);
+    setPropostaPage(1);
     const { data: propostasData } = await supabase
       .from("propostas")
       .select("*")
@@ -214,6 +259,30 @@ const EmpresaProjetos = () => {
     if (selectedProjeto) await viewPropostas(selectedProjeto);
     refetch();
   };
+
+  const renderDateFilter = (label: string, date: Date | undefined, onSelect: (date: Date | undefined) => void) => (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          size="sm"
+          className={cn("h-9 justify-start text-left font-normal", !date && "text-muted-foreground")}
+        >
+          <CalendarIcon size={14} />
+          {date ? format(date, "dd/MM/yyyy", { locale: ptBR }) : label}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0" align="start">
+        <Calendar
+          mode="single"
+          selected={date}
+          onSelect={onSelect}
+          initialFocus
+          className={cn("p-3 pointer-events-auto")}
+        />
+      </PopoverContent>
+    </Popover>
+  );
 
   const renderProgress = (p: any) => {
     if (!p.projeto_fases || p.projeto_fases.length === 0) return null;
@@ -464,7 +533,34 @@ const EmpresaProjetos = () => {
             <EmptyState message="Nenhuma proposta recebida ainda" icon={User} />
           ) : (
             <div className="space-y-3">
-              {propostas.map((prop) => (
+              <div className="rounded-xl border border-border/60 bg-muted/10 p-3 space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  <Select value={propostaStatusFilter} onValueChange={setPropostaStatusFilter}>
+                    <SelectTrigger className="h-9"><SelectValue placeholder="Status" /></SelectTrigger>
+                    <SelectContent>
+                      {PROPOSTA_STATUS_OPTIONS.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {renderDateFilter("Data inicial", propostaDataInicio, setPropostaDataInicio)}
+                  {renderDateFilter("Data final", propostaDataFim, setPropostaDataFim)}
+                </div>
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-xs text-muted-foreground">
+                    {propostasFiltradas.length} de {propostas.length} propostas
+                  </p>
+                  {(propostaStatusFilter !== "all" || propostaDataInicio || propostaDataFim) && (
+                    <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => { setPropostaStatusFilter("all"); setPropostaDataInicio(undefined); setPropostaDataFim(undefined); }}>
+                      <X size={12} /> Limpar filtros
+                    </Button>
+                  )}
+                </div>
+              </div>
+
+              {propostasFiltradas.length === 0 ? (
+                <EmptyState message="Nenhuma proposta encontrada com os filtros atuais" icon={Search} />
+              ) : propostasPaginadas.map((prop) => (
                 <div key={prop.id} className="border border-border/60 rounded-xl p-4 bg-muted/10">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2.5">
@@ -509,6 +605,21 @@ const EmpresaProjetos = () => {
                   </div>
                 </div>
               ))}
+              {propostaTotalPages > 1 && (
+                <div className="flex items-center justify-between gap-2 pt-1">
+                  <p className="text-xs text-muted-foreground">
+                    Página {propostaCurrentPage} de {propostaTotalPages}
+                  </p>
+                  <div className="flex items-center gap-1">
+                    <Button size="sm" variant="outline" disabled={propostaCurrentPage === 1} onClick={() => setPropostaPage((p) => Math.max(1, p - 1))}>
+                      <ChevronLeft size={14} /> Anterior
+                    </Button>
+                    <Button size="sm" variant="outline" disabled={propostaCurrentPage === propostaTotalPages} onClick={() => setPropostaPage((p) => Math.min(propostaTotalPages, p + 1))}>
+                      Próxima <ChevronRight size={14} />
+                    </Button>
+                  </div>
+                </div>
+              )}
               <div className="border-t border-border pt-3 mt-4">
                 <h4 className="text-sm font-semibold text-foreground mb-2">Histórico de visualização</h4>
                 {visualizacoesHistorico.length === 0 ? (
