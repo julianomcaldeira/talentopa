@@ -25,7 +25,7 @@ const SectionLabel = ({ children }: { children: React.ReactNode }) => (
 const PHASE_NAME_LABEL = "Nome da fase sugerida";
 
 const PhaseFieldLabel = ({ children }: { children: React.ReactNode }) => (
-  <Label className="inline-flex w-fit items-center rounded-md border border-primary/20 bg-primary/10 px-2 py-1 text-[11px] font-semibold text-primary">
+  <Label className="text-xs font-semibold text-muted-foreground">
     {children}
   </Label>
 );
@@ -688,7 +688,7 @@ const EmpresaNovoProjeto = ({ onSuccess }: EmpresaNovoProjetoProps = {}) => {
                           max={100}
                           value={fase.percentual}
                           onChange={(e) => { const f = [...fases]; f[i].percentual = e.target.value; setFases(f); }}
-                          className="pr-7"
+                          className="pr-7 font-bold"
                         />
                         <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">%</span>
                       </div>
