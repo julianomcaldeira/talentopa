@@ -275,9 +275,10 @@ export const ProjetoEditDialog = ({ open, onOpenChange, projeto, onSaved }: Prop
         </DialogHeader>
 
         <Tabs defaultValue="info" className="flex-1 flex flex-col overflow-hidden">
-          <TabsList className="mx-6 mt-3 grid grid-cols-2 h-9">
+          <TabsList className="mx-6 mt-3 grid grid-cols-3 h-9">
             <TabsTrigger value="info" className="text-xs"><FileText size={13} className="mr-1.5" />Informações</TabsTrigger>
             <TabsTrigger value="escopo" className="text-xs"><Layers size={13} className="mr-1.5" />Escopo técnico</TabsTrigger>
+            <TabsTrigger value="historico" className="text-xs"><History size={13} className="mr-1.5" />Histórico</TabsTrigger>
           </TabsList>
 
           <ScrollArea className="flex-1 px-6 py-4">
@@ -466,6 +467,30 @@ export const ProjetoEditDialog = ({ open, onOpenChange, projeto, onSaved }: Prop
                     </div>
                   )}
 
+                  <div className="rounded-xl border border-border/60 bg-muted/30 p-3 space-y-3">
+                    <label className="flex items-start gap-2.5 cursor-pointer">
+                      <Checkbox checked={notifyConsultants} onCheckedChange={(v) => setNotifyConsultants(v === true)} className="mt-0.5" />
+                      <span>
+                        <span className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
+                          <Bell size={13} className="text-primary" /> Notificar consultores vinculados
+                        </span>
+                        <span className="block text-[11px] text-muted-foreground mt-0.5">
+                          Use quando a mudança no escopo impactar proposta, prazo, esforço ou alinhamento técnico.
+                        </span>
+                      </span>
+                    </label>
+                    {notifyConsultants && (
+                      <Textarea
+                        value={notificationMessage}
+                        onChange={(e) => setNotificationMessage(e.target.value.slice(0, 500))}
+                        rows={2}
+                        maxLength={500}
+                        placeholder="Mensagem para os consultores vinculados..."
+                        className="text-sm"
+                      />
+                    )}
+                  </div>
+
                   <div className="flex items-center justify-between pt-2 border-t border-border">
                     <p className="text-xs text-muted-foreground">
                       {selectedModulos.size} módulo(s) · {selectedFuncs.size} funcionalidade(s)
@@ -477,6 +502,53 @@ export const ProjetoEditDialog = ({ open, onOpenChange, projeto, onSaved }: Prop
                   </div>
                 </>
               )}
+            </TabsContent>
+
+            <TabsContent value="historico" className="mt-0 space-y-3">
+              {history.length === 0 ? (
+                <div className="rounded-xl border border-border/60 bg-muted/30 p-4 text-sm text-muted-foreground">
+                  Nenhuma alteração significativa registrada para este projeto.
+                </div>
+              ) : history.map((item) => {
+                const notified = Array.isArray(item.consultores_notificados) ? item.consultores_notificados : [];
+                return (
+                  <div key={item.id} className="rounded-xl border border-border/60 bg-card p-4 space-y-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-semibold text-foreground">{item.descricao || "Alteração registrada"}</p>
+                        <p className="text-[11px] text-muted-foreground mt-0.5">
+                          {new Date(item.created_at).toLocaleString("pt-BR")} · {item.tipo_alteracao?.replace(/_/g, " ")}
+                        </p>
+                      </div>
+                      {item.notificar_consultores && (
+                        <Badge variant="outline" className="border-primary/30 text-primary">
+                          <Bell size={11} className="mr-1" /> Notificado
+                        </Badge>
+                      )}
+                    </div>
+                    {item.campos_alterados?.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5">
+                        {item.campos_alterados.map((campo: string) => (
+                          <Badge key={campo} variant="secondary" className="text-[10px]">{campo.replace(/_/g, " ")}</Badge>
+                        ))}
+                      </div>
+                    )}
+                    {item.mensagem_notificacao && (
+                      <p className="rounded-lg bg-muted/40 border border-border/50 p-2.5 text-xs text-foreground/80">{item.mensagem_notificacao}</p>
+                    )}
+                    {item.notificar_consultores && (
+                      <div className="text-[11px] text-muted-foreground flex items-start gap-2">
+                        <Users size={13} className="mt-0.5 text-primary" />
+                        <span>
+                          {notified.length > 0
+                            ? `${notified.length} consultor(es) notificado(s) em ${item.notificado_em ? new Date(item.notificado_em).toLocaleString("pt-BR") : "—"}: ${notified.map((c: any) => c.nome || "Consultor").join(", ")}`
+                            : `Nenhum consultor vinculado elegível para notificação em ${item.notificado_em ? new Date(item.notificado_em).toLocaleString("pt-BR") : "—"}.`}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </TabsContent>
           </ScrollArea>
         </Tabs>
