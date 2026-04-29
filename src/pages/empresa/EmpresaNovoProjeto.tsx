@@ -913,7 +913,7 @@ const EmpresaNovoProjeto = ({ onSuccess }: EmpresaNovoProjetoProps = {}) => {
                 {fases.filter(f => f.nome).map((f, i) => (
                   <div key={i} className="flex items-center justify-between text-xs">
                     <span className="text-foreground">{i + 1}. {f.nome}</span>
-                    <span className="text-muted-foreground">{f.percentual || 0}%{f.prazo && ` · ${new Date(f.prazo).toLocaleDateString("pt-BR")}`}</span>
+                    <span className="text-muted-foreground">{f.percentual || 0}%</span>
                   </div>
                 ))}
               </div>
