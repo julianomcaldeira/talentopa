@@ -20,6 +20,7 @@ import AdminFinanceiro from "./pages/admin/AdminFinanceiro";
 import AdminConsultores from "./pages/admin/AdminConsultores";
 import AdminProjetoDetalhe from "./pages/admin/AdminProjetoDetalhe";
 import AdminModeracao from "./pages/admin/AdminModeracao";
+import AdminTentativasBloqueadas from "./pages/admin/AdminTentativasBloqueadas";
 import AdminMetricas from "./pages/admin/AdminMetricas";
 import AdminAuditLogs from "./pages/admin/AdminAuditLogs";
 import ConsultorDashboard from "./pages/consultor/ConsultorDashboard";
@@ -85,6 +86,7 @@ const App = () => (
               <Route path="financeiro" element={<AdminFinanceiro />} />
               <Route path="catalogo" element={<AdminCatalogo />} />
               <Route path="moderacao" element={<AdminModeracao />} />
+              <Route path="moderacao/tentativas-bloqueadas" element={<AdminTentativasBloqueadas />} />
               <Route path="metricas" element={<AdminMetricas />} />
               <Route path="relatorios" element={<AdminRelatorios />} />
               <Route path="audit-logs" element={<AdminAuditLogs />} />
