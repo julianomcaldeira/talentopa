@@ -251,7 +251,7 @@ export const ProjectInternalChat = ({ projetoId, projetoNome, empresaUserId }: P
                         <Lock size={9} /> Interno
                       </Badge>
                     )}
-                    {m.escopo === "interno_empresa" && (
+                    {m.escopo === "interno_empresa" && sharedConversationOpen && (
                       <button
                         onClick={() => releaseToConsultor(m.id)}
                         className={`text-[9px] underline hover:no-underline ${isMe(m.sender_user_id) ? "text-primary-foreground" : "text-primary"}`}
@@ -330,10 +330,10 @@ export const ProjectInternalChat = ({ projetoId, projetoNome, empresaUserId }: P
         </div>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Switch id="share-toggle" checked={shareWithConsultor} onCheckedChange={setShareWithConsultor} />
+            <Switch id="share-toggle" checked={shareWithConsultor} onCheckedChange={setShareWithConsultor} disabled={!sharedConversationOpen} />
             <Label htmlFor="share-toggle" className="text-[11px] cursor-pointer flex items-center gap-1">
               {shareWithConsultor ? <Eye size={11} className="text-primary" /> : <Lock size={11} />}
-              {shareWithConsultor ? "Visível ao consultor" : "Apenas equipe interna"}
+              {shareWithConsultor ? "Visível ao consultor" : sharedConversationOpen ? "Apenas equipe interna" : "Consultor bloqueado até pré-aprovação"}
             </Label>
           </div>
           <p className="text-[10px] text-muted-foreground">Shift+Enter = nova linha</p>
