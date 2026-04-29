@@ -48,6 +48,7 @@ const EmpresaProjetos = () => {
   const [loading, setLoading] = useState(true);
   const [selectedProjeto, setSelectedProjeto] = useState<any>(null);
   const [propostas, setPropostas] = useState<any[]>([]);
+  const [visualizacoesHistorico, setVisualizacoesHistorico] = useState<any[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [chatProjeto, setChatProjeto] = useState<any>(null);
   const [editProjeto, setEditProjeto] = useState<any>(null);
@@ -157,6 +158,17 @@ const EmpresaProjetos = () => {
       setSelectedProjeto((prev: any) => prev?.id === projeto.id ? { ...prev, propostas_nao_visualizadas: 0 } : prev);
       void refetch();
     }
+    const { data: historicoData } = await (supabase as any)
+      .from("proposta_visualizacoes_historico")
+      .select("*")
+      .eq("projeto_id", projeto.id)
+      .order("visualizado_em", { ascending: false });
+    const viewerIds: string[] = Array.from(new Set((historicoData || []).map((h: any) => String(h.visualizado_por))));
+    const { data: viewerProfiles } = viewerIds.length
+      ? await supabase.from("profiles").select("user_id, nome").in("user_id", viewerIds)
+      : { data: [] as any[] };
+    const viewerMap = new Map((viewerProfiles || []).map((p: any) => [p.user_id, p.nome]));
+    setVisualizacoesHistorico((historicoData || []).map((h: any) => ({ ...h, visualizador_nome: viewerMap.get(h.visualizado_por) || "Usuário" })));
     setDialogOpen(true);
   };
 
@@ -497,6 +509,26 @@ const EmpresaProjetos = () => {
                   </div>
                 </div>
               ))}
+              <div className="border-t border-border pt-3 mt-4">
+                <h4 className="text-sm font-semibold text-foreground mb-2">Histórico de visualização</h4>
+                {visualizacoesHistorico.length === 0 ? (
+                  <p className="text-xs text-muted-foreground">Nenhuma visualização auditada ainda.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {visualizacoesHistorico.map((item) => (
+                      <div key={item.id} className="flex items-center justify-between gap-3 rounded-lg border border-border/60 bg-background px-3 py-2">
+                        <div className="min-w-0">
+                          <p className="text-xs font-medium text-foreground truncate">{item.visualizador_nome}</p>
+                          <p className="text-[11px] text-muted-foreground">marcou proposta como visualizada</p>
+                        </div>
+                        <span className="text-[11px] text-muted-foreground whitespace-nowrap">
+                          {new Date(item.visualizado_em).toLocaleString("pt-BR")}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </DialogContent>
