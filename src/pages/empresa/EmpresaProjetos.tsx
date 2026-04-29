@@ -292,7 +292,12 @@ const EmpresaProjetos = () => {
 
                 {(p.status === "publicado" || p.status === "em_selecao") && (
                   <div className="ml-[54px]">
-                    <ConsultorMatchList projetoId={p.id} projetoNome={p.nome} softwareId={p.software_id} />
+                    <ConsultorMatchList
+                      projetoId={p.id}
+                      projetoNome={p.nome}
+                      softwareId={p.software_id}
+                      onInvite={(consultorUserId) => preApproveMatchedConsultor(p, consultorUserId, toast, refetch)}
+                    />
                   </div>
                 )}
               </DataCard>
@@ -358,11 +363,13 @@ const EmpresaProjetos = () => {
                     {p.projeto_fases && p.projeto_fases.length > 0 && (
                       <div className="mb-2.5">{renderProgress(p)}</div>
                     )}
-                    {(p.status === "publicado" || p.status === "em_selecao" || p.status === "em_andamento") && (
+                    {(p.status === "publicado" || p.status === "em_selecao" || p.status === "em_andamento" || p.status === "concluido") && (
                       <div className="flex flex-wrap gap-1">
-                        <Button size="sm" variant="outline" className="h-7 px-2 text-[11px]" onClick={() => viewPropostas(p)}>
-                          <Eye size={11} /> Propostas
-                        </Button>
+                        {p.status !== "concluido" && (
+                          <Button size="sm" variant="outline" className="h-7 px-2 text-[11px]" onClick={() => viewPropostas(p)}>
+                            <Eye size={11} /> Propostas
+                          </Button>
+                        )}
                         <Button size="sm" variant="outline" className="h-7 px-2 text-[11px]" onClick={() => setEditProjeto(p)}>
                           <Pencil size={11} /> Editar
                         </Button>
