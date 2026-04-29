@@ -1587,6 +1587,10 @@ export type Database = {
         }
         Returns: Json
       }
+      can_user_message_project: {
+        Args: { p_escopo?: string; p_projeto_id: string; p_user_id?: string }
+        Returns: boolean
+      }
       concluir_projeto: { Args: { p_projeto_id: string }; Returns: Json }
       consultor_confirmar_inicio: {
         Args: { p_proposta_id: string }
