@@ -3,7 +3,7 @@ import { Link, useLocation, Outlet, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, Server, Puzzle, Cog, FileText, Users, Building2,
   FolderKanban, DollarSign, LogOut, Menu, X, ChevronRight, Search, 
-  Star, Settings, BarChart3, BookOpen, Brain, Sparkles, MessageSquare, Trophy, Bot, FileSpreadsheet, SlidersHorizontal, Activity, ScrollText, Briefcase
+  Star, Settings, BarChart3, BookOpen, Brain, Sparkles, MessageSquare, Trophy, Bot, FileSpreadsheet, SlidersHorizontal, Activity, ScrollText, Briefcase, Workflow
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
@@ -174,6 +174,7 @@ const DashboardLayout = ({
 const adminLinks = [
   { to: "/admin", icon: LayoutDashboard, label: "Dashboard" },
   { to: "/admin/projetos", icon: FolderKanban, label: "Projetos" },
+  { to: "/admin/estados-projeto", icon: Workflow, label: "Estados do Projeto" },
   { to: "/admin/consultores", icon: Users, label: "Consultores" },
   { to: "/admin/empresas", icon: Building2, label: "Empresas" },
   { to: "/admin/moderacao", icon: MessageSquare, label: "Moderação" },
@@ -193,6 +194,7 @@ const consultorLinks = [
   { to: "/consultor/projetos", icon: FolderKanban, label: "Encontrar Projetos" },
   { to: "/consultor/minhas-propostas", icon: FileText, label: "Minhas Propostas" },
   { to: "/consultor/gestao", icon: Briefcase, label: "Gestão de Projetos" },
+  { to: "/consultor/estados-projeto", icon: Workflow, label: "Estados do Projeto" },
   { to: "/consultor/perfil", icon: Users, label: "Meu Perfil" },
   { to: "/consultor/habilidades", icon: Star, label: "Habilidades" },
   { to: "/consultor/score", icon: Trophy, label: "Score & Portfólio" },
@@ -206,6 +208,7 @@ const empresaLinks = [
   { to: "/empresa", icon: LayoutDashboard, label: "Dashboard" },
   { to: "/empresa/projetos", icon: FolderKanban, label: "Projetos" },
   { to: "/empresa/gestao", icon: Briefcase, label: "Gestão de Projetos" },
+  { to: "/empresa/estados-projeto", icon: Workflow, label: "Estados do Projeto" },
   { to: "/empresa/consultores", icon: Users, label: "Consultores" },
   { to: "/empresa/perfil", icon: Building2, label: "Perfil da Empresa" },
   { to: "/empresa/relatorios", icon: FileSpreadsheet, label: "Relatórios" },
