@@ -327,11 +327,22 @@ export const ConsultorPrivateChat = ({ projetoId, projetoNome, consultorUserId, 
                   {msg.bloqueado ? (
                     <p className="text-xs text-destructive italic">⚠️ Mensagem removida por violação das regras</p>
                   ) : parseAttachment(msg.conteudo) ? (
-                    <button type="button" onClick={() => previewAttachment(parseAttachment(msg.conteudo)!.path, msg.sender_user_id)} className="flex max-w-full items-center gap-2 text-left text-sm hover:underline">
-                      <FileText size={16} className="shrink-0" />
-                      <span className="truncate">{parseAttachment(msg.conteudo)!.nome}</span>
-                      <Eye size={14} className="shrink-0 opacity-70" />
-                    </button>
+                    <>
+                      <button type="button" onClick={() => previewAttachment(parseAttachment(msg.conteudo)!, msg)} className="flex max-w-full items-center gap-2 text-left text-sm hover:underline">
+                        <FileText size={16} className="shrink-0" />
+                        <span className="truncate">{parseAttachment(msg.conteudo)!.nome}</span>
+                        <Eye size={14} className="shrink-0 opacity-70" />
+                      </button>
+                      {getAttachmentEvents(msg).length > 0 && (
+                        <div className={`mt-2 space-y-0.5 border-t pt-1.5 ${isMe(msg.sender_user_id) ? "border-primary-foreground/20" : "border-border"}`}>
+                          {getAttachmentEvents(msg).map((event) => (
+                            <p key={event.id} className={`text-[10px] leading-snug ${isMe(msg.sender_user_id) ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
+                              {formatEventLabel(event.evento)} por {event.actor?.nome || "Usuário"} em {new Date(event.created_at).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "2-digit", hour: "2-digit", minute: "2-digit" })}
+                            </p>
+                          ))}
+                        </div>
+                      )}
+                    </>
                   ) : (
                     <p className="text-sm whitespace-pre-wrap break-words">{msg.conteudo}</p>
                   )}
