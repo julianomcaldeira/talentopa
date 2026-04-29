@@ -86,6 +86,11 @@ export const ConsultorPrivateChat = ({ projetoId, projetoNome, consultorUserId, 
   const sendMessage = async () => {
     if (!user || !newMessage.trim() || sending) return;
     if (!conversationOpen) {
+      await (supabase as any).rpc("registrar_mensagem_bloqueada_pre_aprovacao", {
+        p_projeto_id: projetoId,
+        p_recipient_user_id: consultorUserId,
+        p_escopo: "compartilhado",
+      });
       toast({ title: "Conversa ainda bloqueada", description: "Este consultor precisa estar pré-aprovado para liberar a troca de mensagens.", variant: "destructive" });
       return;
     }
@@ -201,11 +206,10 @@ export const ConsultorPrivateChat = ({ projetoId, projetoNome, consultorUserId, 
             onChange={(e) => setNewMessage(e.target.value.slice(0, MAX_LEN))}
             onKeyDown={handleKeyDown}
             placeholder={`Mensagem privada para ${consultorNome}...`}
-            disabled={!conversationOpen}
             rows={1}
             className="resize-none min-h-[40px] max-h-[100px] text-sm rounded-xl"
           />
-          <Button size="icon" onClick={sendMessage} disabled={!conversationOpen || !newMessage.trim() || sending} className="shrink-0 rounded-xl h-10 w-10">
+          <Button size="icon" onClick={sendMessage} disabled={!newMessage.trim() || sending} className="shrink-0 rounded-xl h-10 w-10">
             <Send size={16} />
           </Button>
         </div>
