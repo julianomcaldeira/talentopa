@@ -1,21 +1,35 @@
 import { useState, useEffect, useMemo } from "react";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { PageHeader, DataCard, StatusBadge, EmptyState, LoadingState } from "@/components/dashboard/DashboardComponents";
 import { ViewToggle, ViewMode } from "@/components/ui/view-toggle";
-import { FolderKanban, Eye, MapPin, Clock, DollarSign, User, MessageSquare, Pencil, Search, ChevronLeft, ChevronRight, Settings2, Plus, BadgeCheck, CheckCircle2 } from "lucide-react";
+import { FolderKanban, Eye, MapPin, Clock, DollarSign, User, MessageSquare, Pencil, Search, ChevronLeft, ChevronRight, Settings2, Plus, BadgeCheck, CheckCircle2, CalendarIcon, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { ConsultorMatchList } from "@/components/matching/ConsultorMatchList";
 import { ProjectCommunication } from "@/components/communication/ProjectCommunication";
 import { ProjetoEditDialog } from "@/components/projetos/ProjetoEditDialog";
+import { cn } from "@/lib/utils";
 import EmpresaNovoProjeto from "./EmpresaNovoProjeto";
 
 const PAGE_SIZE = 6;
+const PROPOSTAS_PAGE_SIZE = 5;
+const PROPOSTA_STATUS_OPTIONS = [
+  { value: "all", label: "Todos os status" },
+  { value: "enviada", label: "Enviada" },
+  { value: "pre_aprovada", label: "Pré-aprovada" },
+  { value: "aguardando_consultor", label: "Aguardando consultor" },
+  { value: "aceita", label: "Aceita" },
+  { value: "recusada", label: "Recusada" },
+];
 
 const preApproveMatchedConsultor = async (projeto: any, consultorUserId: string, toast: ReturnType<typeof useToast>["toast"], refetch: () => Promise<void>) => {
   const { error } = await (supabase as any).rpc("empresa_pre_aprovar_consultor", {
