@@ -10,6 +10,18 @@ A Workz é uma plataforma SaaS B2B que conecta empresas que usam ERPs a consulto
 A IA deve responder somente assuntos relacionados ao core da Workz: projetos ERP, consultores, empresas, propostas, matching, gestão, relatórios, performance e operação da plataforma.
 Se o usuário pedir algo fora do escopo, recuse educadamente com: "Não consigo responder sobre esse tema. Meu foco é apoiar usuários dentro da plataforma Workz, em assuntos relacionados a projetos ERP, consultores, empresas, propostas, matching, gestão, relatórios e operação da plataforma."`;
 
+const OUT_OF_SCOPE_MESSAGE = "Não consigo responder sobre esse tema. Meu foco é apoiar usuários dentro da plataforma Workz, em assuntos relacionados a projetos ERP, consultores, empresas, propostas, matching, gestão, relatórios e operação da plataforma.";
+
+function createSseMessage(content: string) {
+  const chunk = JSON.stringify({
+    choices: [{ index: 0, delta: { role: "assistant", content }, finish_reason: null }],
+  });
+  const done = JSON.stringify({
+    choices: [{ index: 0, delta: { role: "assistant", content: "" }, finish_reason: "stop" }],
+  });
+  return `data: ${chunk}\n\ndata: ${done}\n\ndata: [DONE]\n\n`;
+}
+
 async function loadMasterContext() {
   const url = Deno.env.get("SUPABASE_URL");
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -25,6 +37,58 @@ async function loadMasterContext() {
   } catch {
     return DEFAULT_MASTER_CONTEXT;
   }
+}
+
+async function isInScope({ messages, mode, projectData, masterContext, apiKey }: {
+  messages: Array<{ role: string; content: string }>;
+  mode: string;
+  projectData?: unknown;
+  masterContext: string;
+  apiKey: string;
+}) {
+  const lastUserMessage = [...messages].reverse().find((message) => message.role === "user")?.content?.trim();
+  if (!lastUserMessage) return { allowed: true };
+
+  const tools = [{
+    type: "function",
+    function: {
+      name: "verificar_escopo_workz",
+      description: "Verifica se a mensagem do usuário está dentro do escopo permitido da plataforma Workz.",
+      parameters: {
+        type: "object",
+        properties: {
+          permitido: { type: "boolean", description: "True somente se a pergunta for relacionada ao core da Workz." },
+          motivo: { type: "string", description: "Motivo curto da classificação." },
+        },
+        required: ["permitido", "motivo"],
+        additionalProperties: false,
+      },
+    },
+  }];
+
+  const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "google/gemini-3-flash-preview",
+      messages: [
+        { role: "system", content: `${masterContext}\n\nVocê é uma barreira de escopo. Responda apenas chamando a função. Marque permitido=false para perguntas fora do domínio Workz, mesmo que sejam simples, educativas ou gerais.` },
+        { role: "user", content: JSON.stringify({ mode, mensagem: lastUserMessage, contexto_projeto: projectData ? JSON.stringify(projectData).slice(0, 2500) : null }) },
+      ],
+      tools,
+      tool_choice: { type: "function", function: { name: "verificar_escopo_workz" } },
+    }),
+  });
+
+  if (!response.ok) return { allowed: true };
+  const data = await response.json();
+  const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
+  if (!toolCall?.function?.arguments) return { allowed: true };
+  const args = JSON.parse(toolCall.function.arguments);
+  return { allowed: args.permitido !== false, reason: args.motivo as string | undefined };
 }
 
 const SYSTEM_PROMPTS: Record<string, string> = {
@@ -133,6 +197,13 @@ serve(async (req) => {
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
     const masterContext = await loadMasterContext();
+    const scope = await isInScope({ messages, mode, projectData, masterContext, apiKey: LOVABLE_API_KEY });
+    if (!scope.allowed) {
+      return new Response(createSseMessage(OUT_OF_SCOPE_MESSAGE), {
+        headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
+      });
+    }
+
     const systemPrompt = `${masterContext}\n\nINSTRUÇÕES ESPECÍFICAS DO ASSISTENTE:\n${SYSTEM_PROMPTS[mode] || SYSTEM_PROMPTS["erp-knowledge"]}`;
 
     // For project-manager, inject project data into the system prompt
