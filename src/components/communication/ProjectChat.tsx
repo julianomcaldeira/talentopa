@@ -164,7 +164,7 @@ export const ProjectChat = ({ projetoId, projetoNome }: ProjectChatProps) => {
   };
 
   const sendAttachment = async (file?: File) => {
-    if (!user || !file || sending) return;
+    if (!user || sending) return;
     if (!conversationOpen) {
       await (supabase as any).rpc("registrar_mensagem_bloqueada_pre_aprovacao", {
         p_projeto_id: projetoId,
@@ -173,6 +173,7 @@ export const ProjectChat = ({ projetoId, projetoNome }: ProjectChatProps) => {
       toast({ title: "Anexo bloqueado", description: "Anexos no chat só são liberados após a pré-aprovação.", variant: "destructive" });
       return;
     }
+    if (!file) return;
 
     setSending(true);
     try {
