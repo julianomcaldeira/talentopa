@@ -22,8 +22,10 @@ const SectionLabel = ({ children }: { children: React.ReactNode }) => (
   <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{children}</Label>
 );
 
+const PHASE_NAME_LABEL = "Nome da fase sugerida";
+
 const PhaseFieldLabel = ({ children }: { children: React.ReactNode }) => (
-  <Label className="inline-flex w-fit items-center rounded-md border border-primary/20 bg-primary/10 px-2 py-1 text-[11px] font-semibold uppercase tracking-wider text-primary">
+  <Label className="inline-flex w-fit items-center rounded-md border border-primary/20 bg-primary/10 px-2 py-1 text-[11px] font-semibold text-primary">
     {children}
   </Label>
 );
@@ -674,7 +676,7 @@ const EmpresaNovoProjeto = ({ onSuccess }: EmpresaNovoProjetoProps = {}) => {
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div className="space-y-1">
-                      <PhaseFieldLabel>Nome da fase sugerida</PhaseFieldLabel>
+                      <PhaseFieldLabel>{PHASE_NAME_LABEL}</PhaseFieldLabel>
                       <Input className="font-bold" value={fase.nome} onChange={(e) => { const f = [...fases]; f[i].nome = e.target.value; setFases(f); }} />
                     </div>
                     <div className="space-y-1">
