@@ -260,6 +260,30 @@ const EmpresaProjetos = () => {
     refetch();
   };
 
+  const renderDateFilter = (label: string, date: Date | undefined, onSelect: (date: Date | undefined) => void) => (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          size="sm"
+          className={cn("h-9 justify-start text-left font-normal", !date && "text-muted-foreground")}
+        >
+          <CalendarIcon size={14} />
+          {date ? format(date, "dd/MM/yyyy", { locale: ptBR }) : label}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0" align="start">
+        <Calendar
+          mode="single"
+          selected={date}
+          onSelect={onSelect}
+          initialFocus
+          className={cn("p-3 pointer-events-auto")}
+        />
+      </PopoverContent>
+    </Popover>
+  );
+
   const renderProgress = (p: any) => {
     if (!p.projeto_fases || p.projeto_fases.length === 0) return null;
     return (
