@@ -77,6 +77,7 @@ const EmpresaNovoProjeto = ({ onSuccess }: EmpresaNovoProjetoProps = {}) => {
   const [recontratarConsultor, setRecontratarConsultor] = useState<{ user_id: string; nome: string; avatar_url: string | null } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const recognitionRef = useRef<any>(null);
+  const transcriptBaseRef = useRef("");
 
   const [form, setForm] = useState({
     nome: "", descricao: "", problema_atual: "", objetivo: "", prazo_estimado: "",
@@ -116,6 +117,7 @@ const EmpresaNovoProjeto = ({ onSuccess }: EmpresaNovoProjetoProps = {}) => {
     recognition.interimResults = true;
 
     let textoFinal = "";
+    transcriptBaseRef.current = form[campo];
     setGravandoCampo(campo);
     recognitionRef.current = recognition;
 
@@ -130,9 +132,8 @@ const EmpresaNovoProjeto = ({ onSuccess }: EmpresaNovoProjetoProps = {}) => {
       if (!transcricao) return;
       setForm(prev => ({
         ...prev,
-        [campo]: `${prev[campo]}${prev[campo] ? " " : ""}${transcricao}`.replace(/\s+/g, " ").trim(),
+        [campo]: `${transcriptBaseRef.current}${transcriptBaseRef.current ? " " : ""}${transcricao}`.replace(/\s+/g, " ").trim(),
       }));
-      textoFinal = "";
     };
 
     recognition.onerror = () => {
