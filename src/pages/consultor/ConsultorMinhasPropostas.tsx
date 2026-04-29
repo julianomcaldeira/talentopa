@@ -83,6 +83,7 @@ const ConsultorMinhasPropostas = () => {
   }, [user]);
 
   const enviadas = propostas.filter((p) => p.status === "enviada").length;
+  const preAprovadas = propostas.filter((p) => p.status === "pre_aprovada" || p.status === "aguardando_consultor").length;
   const aceitas = propostas.filter((p) => p.status === "aceita").length;
   const recusadas = propostas.filter((p) => p.status === "recusada").length;
 
@@ -123,8 +124,9 @@ const ConsultorMinhasPropostas = () => {
     <div className="space-y-6">
       <PageHeader title="Minhas Propostas" description="Acompanhe o status de todas as suas propostas enviadas" />
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
         <StatCard icon={Clock} label="Pendentes" value={enviadas.toString()} iconColor="text-info" iconBg="bg-info/10" />
+          <StatCard icon={MessageSquare} label="Pré-aprovadas" value={preAprovadas.toString()} iconColor="text-primary" iconBg="bg-primary/10" />
         <StatCard icon={CheckCircle2} label="Aceitas" value={aceitas.toString()} iconColor="text-success" iconBg="bg-success/10" />
         <StatCard icon={XCircle} label="Recusadas" value={recusadas.toString()} iconColor="text-destructive" iconBg="bg-destructive/10" />
       </div>
@@ -155,6 +157,8 @@ const ConsultorMinhasPropostas = () => {
               <SelectContent>
                 <SelectItem value="all">Todos</SelectItem>
                 <SelectItem value="enviada">Pendente</SelectItem>
+                <SelectItem value="pre_aprovada">Pré-aprovada</SelectItem>
+                <SelectItem value="aguardando_consultor">Aguardando confirmação</SelectItem>
                 <SelectItem value="aceita">Aceita</SelectItem>
                 <SelectItem value="recusada">Recusada</SelectItem>
               </SelectContent>
