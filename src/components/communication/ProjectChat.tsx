@@ -389,6 +389,7 @@ export const ProjectChat = ({ projetoId, projetoNome }: ProjectChatProps) => {
                           </p>
                         ))}
                       </div>
+                    )}
                     </>
                   ) : (
                     <p className="text-sm whitespace-pre-wrap break-words">{msg.conteudo}</p>
