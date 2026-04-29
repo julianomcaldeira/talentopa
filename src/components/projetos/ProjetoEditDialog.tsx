@@ -12,7 +12,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { FileText, CalendarDays, Layers, Loader2, Plus, X, Bell } from "lucide-react";
+import { FileText, CalendarDays, Layers, Loader2, Plus, X, Bell, History, Users } from "lucide-react";
 
 interface Props {
   open: boolean;
@@ -49,6 +49,9 @@ export const ProjetoEditDialog = ({ open, onOpenChange, projeto, onSaved }: Prop
   const [allFuncs, setAllFuncs] = useState<ScopeItem[]>([]);
   const [selectedModulos, setSelectedModulos] = useState<Set<string>>(new Set());
   const [selectedFuncs, setSelectedFuncs] = useState<Set<string>>(new Set());
+  const [initialModulos, setInitialModulos] = useState<Set<string>>(new Set());
+  const [initialFuncs, setInitialFuncs] = useState<Set<string>>(new Set());
+  const [history, setHistory] = useState<any[]>([]);
   const [loadingScope, setLoadingScope] = useState(true);
   const [savingScope, setSavingScope] = useState(false);
 
@@ -67,15 +70,39 @@ export const ProjetoEditDialog = ({ open, onOpenChange, projeto, onSaved }: Prop
     setNotificationMessage(`Houve uma atualização importante no projeto "${projeto.nome}". Acesse a plataforma para revisar os detalhes.`);
     setErrors({});
     loadScope();
+    loadHistory();
   }, [open, projeto?.id]);
 
-  const notifyLinkedConsultants = async () => {
-    if (!notifyConsultants) return;
-    const { error } = await (supabase as any).rpc("notify_project_linked_consultants", {
+  const loadHistory = async () => {
+    if (!projeto?.id) return;
+    const { data } = await (supabase as any)
+      .from("projeto_alteracoes_historico")
+      .select("*")
+      .eq("projeto_id", projeto.id)
+      .order("created_at", { ascending: false })
+      .limit(20);
+    setHistory(data || []);
+  };
+
+  const registerChangeHistory = async (payload: {
+    tipo: string;
+    descricao: string;
+    campos: string[];
+    antigos: Record<string, any>;
+    novos: Record<string, any>;
+  }) => {
+    const { error } = await (supabase as any).rpc("registrar_projeto_alteracao", {
       p_projeto_id: projeto.id,
+      p_tipo_alteracao: payload.tipo,
+      p_descricao: payload.descricao,
+      p_campos_alterados: payload.campos,
+      p_dados_anteriores: payload.antigos,
+      p_dados_novos: payload.novos,
+      p_notificar_consultores: notifyConsultants,
       p_mensagem: notificationMessage,
     });
     if (error) throw error;
+    await loadHistory();
   };
 
   const loadScope = async () => {
@@ -91,6 +118,7 @@ export const ProjetoEditDialog = ({ open, onOpenChange, projeto, onSaved }: Prop
     setAllModulos(modulos);
     const selMods = new Set((projModsRes.data || []).map((m: any) => m.modulo_id));
     setSelectedModulos(selMods);
+    setInitialModulos(new Set(selMods));
 
     const moduloIds = modulos.map(m => m.id);
     if (moduloIds.length > 0) {
@@ -99,9 +127,11 @@ export const ProjetoEditDialog = ({ open, onOpenChange, projeto, onSaved }: Prop
         supabase.from("projeto_funcionalidades").select("funcionalidade_id").eq("projeto_id", projeto.id),
       ]);
       setAllFuncs((funcsRes.data || []) as ScopeItem[]);
-      setSelectedFuncs(new Set((projFuncsRes.data || []).map((f: any) => f.funcionalidade_id)));
+      const selFuncs = new Set((projFuncsRes.data || []).map((f: any) => f.funcionalidade_id));
+      setSelectedFuncs(selFuncs);
+      setInitialFuncs(new Set(selFuncs));
     } else {
-      setAllFuncs([]); setSelectedFuncs(new Set());
+      setAllFuncs([]); setSelectedFuncs(new Set()); setInitialFuncs(new Set());
     }
     setLoadingScope(false);
   };
@@ -139,7 +169,28 @@ export const ProjetoEditDialog = ({ open, onOpenChange, projeto, onSaved }: Prop
     setSaving(false);
     try {
       if (error) throw error;
-      await notifyLinkedConsultants();
+      const antigos = {
+        descricao: projeto.descricao || null,
+        objetivo: projeto.objetivo || null,
+        problema_atual: projeto.problema_atual || null,
+        observacoes: projeto.observacoes || null,
+        prazo_estimado: projeto.prazo_estimado || null,
+        prazo_propostas: (projeto as any).prazo_propostas || null,
+        modelo_contratacao: projeto.modelo_contratacao || null,
+      };
+      const novos = {
+        descricao: parsed.data.descricao,
+        objetivo: parsed.data.objetivo,
+        problema_atual: parsed.data.problema_atual,
+        observacoes: parsed.data.observacoes,
+        prazo_estimado: parsed.data.prazo_estimado || null,
+        prazo_propostas: parsed.data.prazo_propostas || null,
+        modelo_contratacao: parsed.data.modelo_contratacao || null,
+      };
+      const campos = Object.keys(novos).filter((key) => JSON.stringify((antigos as any)[key]) !== JSON.stringify((novos as any)[key]));
+      if (campos.length > 0 || notifyConsultants) {
+        await registerChangeHistory({ tipo: "informacoes", descricao: "Informações do projeto atualizadas", campos, antigos, novos });
+      }
       toast({ title: "Projeto atualizado", description: notifyConsultants ? "As informações foram salvas e os consultores vinculados foram notificados." : "As informações foram salvas com sucesso." });
       onSaved?.();
     } catch (err: any) {
@@ -167,7 +218,15 @@ export const ProjetoEditDialog = ({ open, onOpenChange, projeto, onSaved }: Prop
         const { error } = await supabase.from("projeto_funcionalidades").insert(rows);
         if (error) throw error;
       }
-      await notifyLinkedConsultants();
+      const antigos = { modulos: Array.from(initialModulos), funcionalidades: Array.from(initialFuncs) };
+      const novos = { modulos: Array.from(selectedModulos), funcionalidades: validFuncIds };
+      const campos = [
+        JSON.stringify(antigos.modulos.sort()) !== JSON.stringify([...novos.modulos].sort()) ? "modulos" : null,
+        JSON.stringify(antigos.funcionalidades.sort()) !== JSON.stringify([...novos.funcionalidades].sort()) ? "funcionalidades" : null,
+      ].filter(Boolean) as string[];
+      if (campos.length > 0 || notifyConsultants) {
+        await registerChangeHistory({ tipo: "escopo_tecnico", descricao: "Escopo técnico do projeto atualizado", campos, antigos, novos });
+      }
       toast({ title: "Escopo atualizado", description: notifyConsultants ? "Módulos, funcionalidades e notificação foram atualizados." : "Módulos e funcionalidades foram atualizados." });
       onSaved?.();
     } catch (err: any) {
@@ -216,9 +275,10 @@ export const ProjetoEditDialog = ({ open, onOpenChange, projeto, onSaved }: Prop
         </DialogHeader>
 
         <Tabs defaultValue="info" className="flex-1 flex flex-col overflow-hidden">
-          <TabsList className="mx-6 mt-3 grid grid-cols-2 h-9">
+          <TabsList className="mx-6 mt-3 grid grid-cols-3 h-9">
             <TabsTrigger value="info" className="text-xs"><FileText size={13} className="mr-1.5" />Informações</TabsTrigger>
             <TabsTrigger value="escopo" className="text-xs"><Layers size={13} className="mr-1.5" />Escopo técnico</TabsTrigger>
+            <TabsTrigger value="historico" className="text-xs"><History size={13} className="mr-1.5" />Histórico</TabsTrigger>
           </TabsList>
 
           <ScrollArea className="flex-1 px-6 py-4">
@@ -407,6 +467,30 @@ export const ProjetoEditDialog = ({ open, onOpenChange, projeto, onSaved }: Prop
                     </div>
                   )}
 
+                  <div className="rounded-xl border border-border/60 bg-muted/30 p-3 space-y-3">
+                    <label className="flex items-start gap-2.5 cursor-pointer">
+                      <Checkbox checked={notifyConsultants} onCheckedChange={(v) => setNotifyConsultants(v === true)} className="mt-0.5" />
+                      <span>
+                        <span className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
+                          <Bell size={13} className="text-primary" /> Notificar consultores vinculados
+                        </span>
+                        <span className="block text-[11px] text-muted-foreground mt-0.5">
+                          Use quando a mudança no escopo impactar proposta, prazo, esforço ou alinhamento técnico.
+                        </span>
+                      </span>
+                    </label>
+                    {notifyConsultants && (
+                      <Textarea
+                        value={notificationMessage}
+                        onChange={(e) => setNotificationMessage(e.target.value.slice(0, 500))}
+                        rows={2}
+                        maxLength={500}
+                        placeholder="Mensagem para os consultores vinculados..."
+                        className="text-sm"
+                      />
+                    )}
+                  </div>
+
                   <div className="flex items-center justify-between pt-2 border-t border-border">
                     <p className="text-xs text-muted-foreground">
                       {selectedModulos.size} módulo(s) · {selectedFuncs.size} funcionalidade(s)
@@ -418,6 +502,53 @@ export const ProjetoEditDialog = ({ open, onOpenChange, projeto, onSaved }: Prop
                   </div>
                 </>
               )}
+            </TabsContent>
+
+            <TabsContent value="historico" className="mt-0 space-y-3">
+              {history.length === 0 ? (
+                <div className="rounded-xl border border-border/60 bg-muted/30 p-4 text-sm text-muted-foreground">
+                  Nenhuma alteração significativa registrada para este projeto.
+                </div>
+              ) : history.map((item) => {
+                const notified = Array.isArray(item.consultores_notificados) ? item.consultores_notificados : [];
+                return (
+                  <div key={item.id} className="rounded-xl border border-border/60 bg-card p-4 space-y-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-semibold text-foreground">{item.descricao || "Alteração registrada"}</p>
+                        <p className="text-[11px] text-muted-foreground mt-0.5">
+                          {new Date(item.created_at).toLocaleString("pt-BR")} · {item.tipo_alteracao?.replace(/_/g, " ")}
+                        </p>
+                      </div>
+                      {item.notificar_consultores && (
+                        <Badge variant="outline" className="border-primary/30 text-primary">
+                          <Bell size={11} className="mr-1" /> Notificado
+                        </Badge>
+                      )}
+                    </div>
+                    {item.campos_alterados?.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5">
+                        {item.campos_alterados.map((campo: string) => (
+                          <Badge key={campo} variant="secondary" className="text-[10px]">{campo.replace(/_/g, " ")}</Badge>
+                        ))}
+                      </div>
+                    )}
+                    {item.mensagem_notificacao && (
+                      <p className="rounded-lg bg-muted/40 border border-border/50 p-2.5 text-xs text-foreground/80">{item.mensagem_notificacao}</p>
+                    )}
+                    {item.notificar_consultores && (
+                      <div className="text-[11px] text-muted-foreground flex items-start gap-2">
+                        <Users size={13} className="mt-0.5 text-primary" />
+                        <span>
+                          {notified.length > 0
+                            ? `${notified.length} consultor(es) notificado(s) em ${item.notificado_em ? new Date(item.notificado_em).toLocaleString("pt-BR") : "—"}: ${notified.map((c: any) => c.nome || "Consultor").join(", ")}`
+                            : `Nenhum consultor vinculado elegível para notificação em ${item.notificado_em ? new Date(item.notificado_em).toLocaleString("pt-BR") : "—"}.`}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </TabsContent>
           </ScrollArea>
         </Tabs>

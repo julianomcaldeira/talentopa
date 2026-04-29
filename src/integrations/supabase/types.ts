@@ -784,6 +784,54 @@ export type Database = {
           },
         ]
       }
+      projeto_alteracoes_historico: {
+        Row: {
+          alterado_por: string
+          campos_alterados: string[]
+          consultores_notificados: Json
+          created_at: string
+          dados_anteriores: Json
+          dados_novos: Json
+          descricao: string | null
+          id: string
+          mensagem_notificacao: string | null
+          notificado_em: string | null
+          notificar_consultores: boolean
+          projeto_id: string
+          tipo_alteracao: string
+        }
+        Insert: {
+          alterado_por: string
+          campos_alterados?: string[]
+          consultores_notificados?: Json
+          created_at?: string
+          dados_anteriores?: Json
+          dados_novos?: Json
+          descricao?: string | null
+          id?: string
+          mensagem_notificacao?: string | null
+          notificado_em?: string | null
+          notificar_consultores?: boolean
+          projeto_id: string
+          tipo_alteracao?: string
+        }
+        Update: {
+          alterado_por?: string
+          campos_alterados?: string[]
+          consultores_notificados?: Json
+          created_at?: string
+          dados_anteriores?: Json
+          dados_novos?: Json
+          descricao?: string | null
+          id?: string
+          mensagem_notificacao?: string | null
+          notificado_em?: string | null
+          notificar_consultores?: boolean
+          projeto_id?: string
+          tipo_alteracao?: string
+        }
+        Relationships: []
+      }
       projeto_anexos: {
         Row: {
           arquivo_url: string
@@ -1633,6 +1681,19 @@ export type Database = {
       notify_project_linked_consultants: {
         Args: { p_mensagem: string; p_projeto_id: string }
         Returns: Json
+      }
+      registrar_projeto_alteracao: {
+        Args: {
+          p_campos_alterados: string[]
+          p_dados_anteriores: Json
+          p_dados_novos: Json
+          p_descricao: string
+          p_mensagem: string
+          p_notificar_consultores: boolean
+          p_projeto_id: string
+          p_tipo_alteracao: string
+        }
+        Returns: string
       }
     }
     Enums: {
