@@ -24,10 +24,11 @@ const preApproveMatchedConsultor = async (projeto: any, consultorUserId: string,
   });
   if (error) {
     toast({ title: "Erro ao pré-aprovar", description: error.message, variant: "destructive" });
-    return;
+    return false;
   }
   toast({ title: "Consultor pré-aprovado", description: "A conversa foi liberada para alinhamento antes da aprovação final." });
   refetch();
+  return true;
 };
 
 const KANBAN_COLUMNS: { key: string; label: string; tone: string }[] = [
