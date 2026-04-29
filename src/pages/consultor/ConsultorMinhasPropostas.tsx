@@ -204,10 +204,11 @@ const ConsultorMinhasPropostas = () => {
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3.5 min-w-0">
                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                  p.status === "aceita" ? "bg-success/10" : p.status === "recusada" ? "bg-destructive/10" : "bg-info/10"
+                  p.status === "aceita" ? "bg-success/10" : p.status === "recusada" ? "bg-destructive/10" : p.status === "pre_aprovada" || p.status === "aguardando_consultor" ? "bg-primary/10" : "bg-info/10"
                 }`}>
                   {p.status === "aceita" ? <CheckCircle2 size={18} className="text-success" />
                     : p.status === "recusada" ? <XCircle size={18} className="text-destructive" />
+                    : p.status === "pre_aprovada" || p.status === "aguardando_consultor" ? <MessageSquare size={18} className="text-primary" />
                     : <Clock size={18} className="text-info" />}
                 </div>
                 <div className="min-w-0">
@@ -232,6 +233,11 @@ const ConsultorMinhasPropostas = () => {
               <Button variant="outline" size="sm" onClick={() => setChatProposta(chatProposta?.id === p.id ? null : p)}>
                 <MessageSquare size={14} /> Comunicação
               </Button>
+              {p.status === "pre_aprovada" && (
+                <span className="inline-flex items-center rounded-lg border border-primary/20 bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">
+                  Comunicação liberada para alinhamento
+                </span>
+              )}
               {p.status === "aguardando_consultor" && (
                 <>
                   <Button size="sm" onClick={async () => {
