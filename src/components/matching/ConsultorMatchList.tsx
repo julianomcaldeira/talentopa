@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { DataCard, LoadingState, EmptyState } from "@/components/dashboard/DashboardComponents";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Star, MapPin, Award, Zap, ChevronDown, ChevronUp, Trophy, Eye, MessageSquare } from "lucide-react";
+import { Star, MapPin, Award, Zap, ChevronDown, ChevronUp, Trophy, Eye, BadgeCheck } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import { useScoreConfig } from "@/hooks/useScoreConfig";
@@ -291,10 +291,10 @@ export const ConsultorMatchList = ({ projetoId, projetoNome, softwareId, onInvit
                             </Button>
                             <Button
                               size="sm"
-                              onClick={() => { setSelected(m); setDetailOpen(true); }}
+                              onClick={() => onInvite ? onInvite(m.user_id) : (setSelected(m), setDetailOpen(true))}
                               className="h-8 text-xs"
                             >
-                              <MessageSquare size={12} /> Conversar
+                              <BadgeCheck size={12} /> Pré-aprovar
                             </Button>
                           </div>
                         </div>
