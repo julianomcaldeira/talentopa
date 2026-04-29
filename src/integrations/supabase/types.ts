@@ -1406,6 +1406,33 @@ export type Database = {
           },
         ]
       }
+      proposta_visualizacoes_historico: {
+        Row: {
+          created_at: string
+          id: string
+          projeto_id: string
+          proposta_id: string
+          visualizado_em: string
+          visualizado_por: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          projeto_id: string
+          proposta_id: string
+          visualizado_em?: string
+          visualizado_por: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          projeto_id?: string
+          proposta_id?: string
+          visualizado_em?: string
+          visualizado_por?: string
+        }
+        Relationships: []
+      }
       propostas: {
         Row: {
           comentarios: string | null
