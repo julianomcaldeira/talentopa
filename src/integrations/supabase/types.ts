@@ -1552,6 +1552,10 @@ export type Database = {
         Args: { p_proposta_id: string }
         Returns: Json
       }
+      empresa_pre_aprovar_consultor: {
+        Args: { p_consultor_user_id: string; p_projeto_id: string }
+        Returns: Json
+      }
       empresa_pre_aprovar_proposta: {
         Args: { p_proposta_id: string }
         Returns: Json
