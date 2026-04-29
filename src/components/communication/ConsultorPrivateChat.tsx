@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, Shield, AlertTriangle, MessageSquare, Lock } from "lucide-react";
+import { Send, Shield, AlertTriangle, MessageSquare, Lock, Paperclip, FileText, Download } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface Props {
@@ -35,6 +35,7 @@ export const ConsultorPrivateChat = ({ projetoId, projetoNome, consultorUserId, 
   const [loading, setLoading] = useState(true);
   const [conversationOpen, setConversationOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const fetchConversationAccess = async () => {
     if (!user) return;
@@ -126,6 +127,76 @@ export const ConsultorPrivateChat = ({ projetoId, projetoNome, consultorUserId, 
     setSending(false);
   };
 
+  const parseAttachment = (content: string) => {
+    try {
+      const parsed = JSON.parse(content);
+      return parsed?.path && parsed?.nome ? parsed : null;
+    } catch {
+      return null;
+    }
+  };
+
+  const downloadAttachment = async (path: string) => {
+    const { data, error } = await supabase.storage.from("projeto-anexos").createSignedUrl(path, 60);
+    if (error || !data?.signedUrl) {
+      toast({ title: "Erro ao abrir anexo", description: error?.message || "Arquivo indisponível.", variant: "destructive" });
+      return;
+    }
+    window.open(data.signedUrl, "_blank");
+  };
+
+  const sendAttachment = async (file?: File) => {
+    if (!user || sending) return;
+    if (!conversationOpen) {
+      await (supabase as any).rpc("registrar_mensagem_bloqueada_pre_aprovacao", {
+        p_projeto_id: projetoId,
+        p_recipient_user_id: consultorUserId,
+        p_escopo: "compartilhado",
+      });
+      toast({ title: "Anexo bloqueado", description: "Este consultor precisa estar pré-aprovado para liberar anexos no chat.", variant: "destructive" });
+      return;
+    }
+    if (!file) return;
+
+    setSending(true);
+    try {
+      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+      const path = `${user.id}/${projetoId}/chat/${Date.now()}-${safeName}`;
+      const { error: uploadError } = await supabase.storage.from("projeto-anexos").upload(path, file);
+      if (uploadError) throw uploadError;
+
+      const { error: attachmentError } = await (supabase as any).from("projeto_anexos").insert({
+        projeto_id: projetoId,
+        uploader_user_id: user.id,
+        nome: file.name,
+        arquivo_url: path,
+        tamanho_bytes: file.size,
+        mime_type: file.type || "application/octet-stream",
+        origem: "chat",
+        escopo: "compartilhado",
+        recipient_user_id: consultorUserId,
+      });
+      if (attachmentError) throw attachmentError;
+
+      const { error: messageError } = await supabase.from("mensagens").insert({
+        projeto_id: projetoId,
+        sender_user_id: user.id,
+        recipient_user_id: consultorUserId,
+        conteudo: JSON.stringify({ nome: file.name, path, mime_type: file.type || "application/octet-stream", tamanho_bytes: file.size }),
+        tipo: "anexo",
+        escopo: "compartilhado",
+        moderado: true,
+      });
+      if (messageError) throw messageError;
+      toast({ title: "Anexo enviado", description: "O envio foi registrado na auditoria." });
+    } catch (err: any) {
+      toast({ title: "Erro ao enviar anexo", description: err.message, variant: "destructive" });
+    } finally {
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      setSending(false);
+    }
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -186,6 +257,12 @@ export const ConsultorPrivateChat = ({ projetoId, projetoNome, consultorUserId, 
                 }`}>
                   {msg.bloqueado ? (
                     <p className="text-xs text-destructive italic">⚠️ Mensagem removida por violação das regras</p>
+                  ) : parseAttachment(msg.conteudo) ? (
+                    <button type="button" onClick={() => downloadAttachment(parseAttachment(msg.conteudo)!.path)} className="flex max-w-full items-center gap-2 text-left text-sm hover:underline">
+                      <FileText size={16} className="shrink-0" />
+                      <span className="truncate">{parseAttachment(msg.conteudo)!.nome}</span>
+                      <Download size={14} className="shrink-0 opacity-70" />
+                    </button>
                   ) : (
                     <p className="text-sm whitespace-pre-wrap break-words">{msg.conteudo}</p>
                   )}
@@ -201,11 +278,15 @@ export const ConsultorPrivateChat = ({ projetoId, projetoNome, consultorUserId, 
 
       <div className="px-3 py-3 border-t border-border bg-card">
         <div className="flex gap-2">
+          <input ref={fileInputRef} type="file" className="hidden" onChange={(e) => sendAttachment(e.target.files?.[0])} />
+          <Button size="icon" variant="outline" onClick={() => conversationOpen ? fileInputRef.current?.click() : sendAttachment(undefined)} disabled={sending} className="shrink-0 rounded-xl h-10 w-10" title={conversationOpen ? "Anexar arquivo" : "Anexos bloqueados até a pré-aprovação"}>
+            <Paperclip size={16} />
+          </Button>
           <Textarea
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value.slice(0, MAX_LEN))}
             onKeyDown={handleKeyDown}
-            placeholder={`Mensagem privada para ${consultorNome}...`}
+            placeholder={conversationOpen ? `Mensagem privada para ${consultorNome}...` : "Conversa bloqueada até a pré-aprovação"}
             rows={1}
             className="resize-none min-h-[40px] max-h-[100px] text-sm rounded-xl"
           />
