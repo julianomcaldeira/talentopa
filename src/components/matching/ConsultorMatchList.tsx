@@ -31,7 +31,7 @@ interface Props {
   projetoId: string;
   projetoNome?: string;
   softwareId: string | null;
-  onInvite?: (userId: string) => void;
+  onInvite?: (userId: string) => void | Promise<void>;
 }
 
 export const ConsultorMatchList = ({ projetoId, projetoNome, softwareId, onInvite }: Props) => {
