@@ -5,7 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Send, Shield, AlertTriangle, MessageSquare } from "lucide-react";
+import { Send, Shield, AlertTriangle, MessageSquare, Lock } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface ProjectChatProps {
@@ -31,7 +31,16 @@ export const ProjectChat = ({ projetoId, projetoNome }: ProjectChatProps) => {
   const [newMessage, setNewMessage] = useState("");
   const [sending, setSending] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [conversationOpen, setConversationOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  const fetchConversationAccess = async () => {
+    const { data } = await (supabase as any).rpc("can_user_message_project", {
+      p_projeto_id: projetoId,
+      p_escopo: "compartilhado",
+    });
+    setConversationOpen(Boolean(data));
+  };
 
   const fetchMessages = async () => {
     const { data } = await supabase
@@ -61,6 +70,7 @@ export const ProjectChat = ({ projetoId, projetoNome }: ProjectChatProps) => {
   };
 
   useEffect(() => {
+    fetchConversationAccess();
     fetchMessages();
 
     const channel = supabase
@@ -86,6 +96,14 @@ export const ProjectChat = ({ projetoId, projetoNome }: ProjectChatProps) => {
 
   const sendMessage = async () => {
     if (!user || !newMessage.trim() || sending) return;
+    if (!conversationOpen) {
+      toast({
+        title: "Conversa ainda bloqueada",
+        description: "A troca de mensagens com consultores só é liberada após a pré-aprovação.",
+        variant: "destructive",
+      });
+      return;
+    }
     setSending(true);
 
     try {
@@ -147,6 +165,14 @@ export const ProjectChat = ({ projetoId, projetoNome }: ProjectChatProps) => {
       </div>
 
       {/* Policy notice */}
+      {!conversationOpen && (
+        <div className="mx-3 mt-3 mb-1 p-2.5 rounded-lg bg-muted border border-border">
+          <p className="text-[11px] text-muted-foreground flex items-start gap-1.5">
+            <Lock size={12} className="mt-0.5 shrink-0 text-primary" />
+            <span>Conversa bloqueada até a pré-aprovação. Após essa etapa, empresa e consultor poderão trocar mensagens neste projeto.</span>
+          </p>
+        </div>
+      )}
       <div className="mx-3 mt-3 mb-1 p-2.5 rounded-lg bg-warning/10 border border-warning/20">
         <p className="text-[11px] text-warning-foreground flex items-start gap-1.5">
           <AlertTriangle size={12} className="mt-0.5 shrink-0 text-warning" />
@@ -165,8 +191,8 @@ export const ProjectChat = ({ projetoId, projetoNome }: ProjectChatProps) => {
           </div>
         ) : messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-32 text-muted-foreground">
-            <MessageSquare size={24} className="mb-2 opacity-40" />
-            <p className="text-xs">Nenhuma mensagem ainda. Inicie a conversa!</p>
+            {conversationOpen ? <MessageSquare size={24} className="mb-2 opacity-40" /> : <Lock size={24} className="mb-2 opacity-40" />}
+            <p className="text-xs">{conversationOpen ? "Nenhuma mensagem ainda. Inicie a conversa!" : "A conversa será exibida após a pré-aprovação."}</p>
           </div>
         ) : (
           <AnimatePresence initial={false}>
@@ -216,13 +242,14 @@ export const ProjectChat = ({ projetoId, projetoNome }: ProjectChatProps) => {
             onChange={(e) => setNewMessage(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Digite sua mensagem..."
+            disabled={!conversationOpen}
             rows={1}
             className="resize-none min-h-[40px] max-h-[100px] text-sm rounded-xl"
           />
           <Button
             size="icon"
             onClick={sendMessage}
-            disabled={!newMessage.trim() || sending}
+            disabled={!conversationOpen || !newMessage.trim() || sending}
             className="shrink-0 rounded-xl h-10 w-10"
           >
             <Send size={16} />
