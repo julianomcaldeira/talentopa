@@ -1650,6 +1650,7 @@ export type Database = {
         | "aceita"
         | "recusada"
         | "aguardando_consultor"
+        | "pre_aprovada"
       tipo_fatura: "empresa" | "consultor" | "plataforma"
     }
     CompositeTypes: {
@@ -1806,6 +1807,7 @@ export const Constants = {
         "aceita",
         "recusada",
         "aguardando_consultor",
+        "pre_aprovada",
       ],
       tipo_fatura: ["empresa", "consultor", "plataforma"],
     },

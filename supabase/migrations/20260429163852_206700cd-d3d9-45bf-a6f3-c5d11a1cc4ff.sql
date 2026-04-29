@@ -1,0 +1,1 @@
+ALTER TYPE public.status_proposta ADD VALUE IF NOT EXISTS 'pre_aprovada';
