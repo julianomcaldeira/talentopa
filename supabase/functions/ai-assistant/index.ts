@@ -39,6 +39,75 @@ async function loadMasterContext() {
   }
 }
 
+function getUserIdFromRequest(req: Request) {
+  const token = req.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
+  if (!token) return null;
+
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/")));
+    return typeof payload?.sub === "string" ? payload.sub : null;
+  } catch {
+    return null;
+  }
+}
+
+async function logOutOfScopeBlock({ userId, mode, message, reason }: {
+  userId: string | null;
+  mode: string;
+  message: string;
+  reason?: string;
+}) {
+  const url = Deno.env.get("SUPABASE_URL");
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!url || !serviceKey) return;
+
+  try {
+    let actorNome = "Usuário não identificado";
+    let actorRole = "desconhecido";
+
+    if (userId) {
+      const profileResponse = await fetch(`${url}/rest/v1/profiles?user_id=eq.${userId}&select=nome`, {
+        headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` },
+      });
+      const roleResponse = await fetch(`${url}/rest/v1/user_roles?user_id=eq.${userId}&select=role&limit=1`, {
+        headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` },
+      });
+
+      if (profileResponse.ok) {
+        const profiles = await profileResponse.json();
+        actorNome = profiles?.[0]?.nome || actorNome;
+      }
+      if (roleResponse.ok) {
+        const roles = await roleResponse.json();
+        actorRole = roles?.[0]?.role || actorRole;
+      }
+    }
+
+    await fetch(`${url}/rest/v1/audit_logs`, {
+      method: "POST",
+      headers: {
+        apikey: serviceKey,
+        Authorization: `Bearer ${serviceKey}`,
+        "Content-Type": "application/json",
+        Prefer: "return=minimal",
+      },
+      body: JSON.stringify({
+        actor_user_id: userId,
+        actor_role: actorRole,
+        actor_nome: actorNome,
+        categoria: "ia",
+        acao: "pergunta_fora_escopo_bloqueada",
+        entidade: "ai-assistant",
+        descricao: `Pergunta fora do escopo bloqueada. Motivo: ${reason || "Não informado"}`,
+        dados_novos: { modo: mode, motivo: reason || null, pergunta: message.slice(0, 1000) },
+        severidade: "warning",
+      }),
+    });
+  } catch (error) {
+    console.error("audit log out-of-scope error:", error);
+  }
+}
+
 async function isInScope({ messages, mode, projectData, masterContext, apiKey }: {
   messages: Array<{ role: string; content: string }>;
   mode: string;
@@ -199,6 +268,14 @@ serve(async (req) => {
     const masterContext = await loadMasterContext();
     const scope = await isInScope({ messages, mode, projectData, masterContext, apiKey: LOVABLE_API_KEY });
     if (!scope.allowed) {
+      const lastUserMessage = [...messages].reverse().find((message) => message.role === "user")?.content?.trim() || "";
+      await logOutOfScopeBlock({
+        userId: getUserIdFromRequest(req),
+        mode,
+        message: lastUserMessage,
+        reason: scope.reason,
+      });
+
       return new Response(createSseMessage(OUT_OF_SCOPE_MESSAGE), {
         headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
       });
