@@ -169,6 +169,10 @@ const EmpresaProjetos = () => {
 
   const viewPropostas = async (projeto: any) => {
     setSelectedProjeto(projeto);
+    setPropostaStatusFilter("all");
+    setPropostaDataInicio(undefined);
+    setPropostaDataFim(undefined);
+    setPropostaPage(1);
     const { data: propostasData } = await supabase
       .from("propostas")
       .select("*")
