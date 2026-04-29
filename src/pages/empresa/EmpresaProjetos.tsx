@@ -65,13 +65,30 @@ const EmpresaProjetos = () => {
       .select("*, softwares(nome), projeto_fases(id, nome, status, valor)")
       .eq("empresa_user_id", user.id)
       .order("created_at", { ascending: false });
-    if (data) setProjetos(data);
+    if (data) {
+      const ids = data.map((p) => p.id);
+      const { data: unread } = ids.length
+        ? await supabase.from("propostas").select("projeto_id").in("projeto_id", ids).is("visualizada_empresa_em", null)
+        : { data: [] as any[] };
+      const unreadMap = new Map<string, number>();
+      (unread || []).forEach((p: any) => unreadMap.set(p.projeto_id, (unreadMap.get(p.projeto_id) || 0) + 1));
+      setProjetos(data.map((p) => ({ ...p, propostas_nao_visualizadas: unreadMap.get(p.id) || 0 })));
+    }
   };
 
   useEffect(() => {
     if (!user) return;
     refetch().then(() => setLoading(false));
   }, [user]);
+
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel(`empresa-propostas-${user.id}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "propostas" }, () => refetch())
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user?.id]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -132,6 +149,8 @@ const EmpresaProjetos = () => {
     } else {
       setPropostas([]);
     }
+    await (supabase as any).rpc("marcar_propostas_visualizadas_empresa", { p_projeto_id: projeto.id });
+    setProjetos((prev) => prev.map((p) => p.id === projeto.id ? { ...p, propostas_nao_visualizadas: 0 } : p));
     setDialogOpen(true);
   };
 
