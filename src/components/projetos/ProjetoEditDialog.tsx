@@ -276,7 +276,9 @@ export const ProjetoEditDialog = ({ open, onOpenChange, projeto, onSaved }: Prop
             Editar projeto · {projeto.nome}
           </DialogTitle>
           <DialogDescription>
-            Atualize informações do projeto a qualquer momento. As alterações ficam visíveis para os consultores.
+            {isCompleted
+              ? "Projeto concluído: apenas descrição e observações podem ser ajustadas. Campos críticos permanecem bloqueados."
+              : "Atualize informações do projeto a qualquer momento. As alterações ficam visíveis para os consultores."}
           </DialogDescription>
         </DialogHeader>
 
@@ -289,6 +291,15 @@ export const ProjetoEditDialog = ({ open, onOpenChange, projeto, onSaved }: Prop
 
           <ScrollArea className="flex-1 px-6 py-4">
             <TabsContent value="info" className="mt-0 space-y-4">
+              {isCompleted && (
+                <div className="rounded-xl border border-warning/30 bg-warning/5 p-3 flex items-start gap-2 text-xs">
+                  <AlertTriangle size={14} className="text-warning shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-semibold text-foreground">Alterações críticas bloqueadas após a conclusão.</p>
+                    <p className="text-muted-foreground mt-0.5">Você pode atualizar somente descrição e observações adicionais. Objetivo, problema, prazos, modelo de contratação e escopo técnico ficam preservados para auditoria.</p>
+                  </div>
+                </div>
+              )}
               <div>
                 <Label className="text-xs">Descrição</Label>
                 <Textarea
@@ -307,6 +318,7 @@ export const ProjetoEditDialog = ({ open, onOpenChange, projeto, onSaved }: Prop
                 <Textarea
                   value={form.objetivo}
                   onChange={e => setForm(f => ({ ...f, objetivo: e.target.value }))}
+                  disabled={isCompleted}
                   rows={2}
                   maxLength={1000}
                   placeholder="O que o projeto precisa entregar?"
@@ -319,6 +331,7 @@ export const ProjetoEditDialog = ({ open, onOpenChange, projeto, onSaved }: Prop
                 <Textarea
                   value={form.problema_atual}
                   onChange={e => setForm(f => ({ ...f, problema_atual: e.target.value }))}
+                  disabled={isCompleted}
                   rows={3}
                   maxLength={2000}
                   placeholder="Qual dor de negócio está sendo endereçada?"
@@ -333,6 +346,7 @@ export const ProjetoEditDialog = ({ open, onOpenChange, projeto, onSaved }: Prop
                     type="date"
                     value={form.prazo_estimado || ""}
                     onChange={e => setForm(f => ({ ...f, prazo_estimado: e.target.value }))}
+                    disabled={isCompleted}
                   />
                 </div>
                 <div>
@@ -341,6 +355,7 @@ export const ProjetoEditDialog = ({ open, onOpenChange, projeto, onSaved }: Prop
                     type="date"
                     value={form.prazo_propostas || ""}
                     onChange={e => setForm(f => ({ ...f, prazo_propostas: e.target.value }))}
+                    disabled={isCompleted}
                   />
                 </div>
                 <div>
@@ -348,6 +363,7 @@ export const ProjetoEditDialog = ({ open, onOpenChange, projeto, onSaved }: Prop
                   <Select
                     value={form.modelo_contratacao || ""}
                     onValueChange={(v) => setForm(f => ({ ...f, modelo_contratacao: v as any }))}
+                    disabled={isCompleted}
                   >
                     <SelectTrigger><SelectValue placeholder="Selecionar..." /></SelectTrigger>
                     <SelectContent>
