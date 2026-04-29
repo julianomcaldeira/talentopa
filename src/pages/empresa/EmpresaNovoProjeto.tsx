@@ -22,6 +22,12 @@ const SectionLabel = ({ children }: { children: React.ReactNode }) => (
   <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{children}</Label>
 );
 
+const PhaseFieldLabel = ({ children }: { children: React.ReactNode }) => (
+  <Label className="inline-flex w-fit items-center rounded-md border border-primary/20 bg-primary/10 px-2 py-1 text-[11px] font-semibold uppercase tracking-wider text-primary">
+    {children}
+  </Label>
+);
+
 const steps = [
   { label: "Informações", icon: FileText },
   { label: "Fases", icon: Settings },
@@ -87,12 +93,12 @@ const EmpresaNovoProjeto = ({ onSuccess }: EmpresaNovoProjetoProps = {}) => {
   });
   const [anexos, setAnexos] = useState<AnexoLocal[]>([]);
   const [classificacao, setClassificacao] = useState<ClassificacaoIA | null>(null);
-  const [fases, setFases] = useState<{ nome: string; descricao: string; prazo: string; percentual: string }[]>([
-    { nome: "Planejamento", descricao: "", prazo: "", percentual: "15" },
-    { nome: "Implantação", descricao: "", prazo: "", percentual: "40" },
-    { nome: "Testes", descricao: "", prazo: "", percentual: "15" },
-    { nome: "Treinamento", descricao: "", prazo: "", percentual: "15" },
-    { nome: "Go-live", descricao: "", prazo: "", percentual: "15" },
+  const [fases, setFases] = useState<{ nome: string; descricao: string; percentual: string }[]>([
+    { nome: "Planejamento", descricao: "", percentual: "15" },
+    { nome: "Implantação", descricao: "", percentual: "40" },
+    { nome: "Testes", descricao: "", percentual: "15" },
+    { nome: "Treinamento", descricao: "", percentual: "15" },
+    { nome: "Go-live", descricao: "", percentual: "15" },
   ]);
   const [perguntas, setPerguntas] = useState<{ pergunta: string; obrigatoria: boolean }[]>([]);
   const [novaPergunta, setNovaPergunta] = useState("");
@@ -156,7 +162,7 @@ const EmpresaNovoProjeto = ({ onSuccess }: EmpresaNovoProjetoProps = {}) => {
         supabase.from("softwares").select("*").order("nome"),
         user ? supabase
           .from("projetos")
-          .select("id, nome, descricao, problema_atual, objetivo, prazo_estimado, software_id, observacoes, modelo_contratacao, status, created_at, projeto_fases(nome, descricao, ordem, prazo)")
+          .select("id, nome, descricao, problema_atual, objetivo, prazo_estimado, software_id, observacoes, modelo_contratacao, status, created_at, projeto_fases(nome, descricao, ordem)")
           .eq("empresa_user_id", user.id)
           .neq("status", "rascunho")
           .order("created_at", { ascending: false })
@@ -261,7 +267,6 @@ const EmpresaNovoProjeto = ({ onSuccess }: EmpresaNovoProjetoProps = {}) => {
         setFases(result.fases_sugeridas.map(f => ({
           nome: f.nome,
           descricao: f.descricao || "",
-          prazo: "",
           percentual: String(f.percentual_tempo ?? ""),
         })));
       }
@@ -301,7 +306,6 @@ const EmpresaNovoProjeto = ({ onSuccess }: EmpresaNovoProjetoProps = {}) => {
           nome: f.nome,
           descricao: f.descricao || null,
           ordem: i,
-          prazo: f.prazo || null,
           // % tempo dedicado armazenado em horas_estimadas como base proporcional
           horas_estimadas: f.percentual ? Number(f.percentual) : null,
         })));
@@ -654,17 +658,13 @@ const EmpresaNovoProjeto = ({ onSuccess }: EmpresaNovoProjetoProps = {}) => {
                       <Trash2 size={12} />
                     </Button>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div className="space-y-1">
-                      <SectionLabel>Nome</SectionLabel>
+                      <PhaseFieldLabel>Nome da fase</PhaseFieldLabel>
                       <Input value={fase.nome} onChange={(e) => { const f = [...fases]; f[i].nome = e.target.value; setFases(f); }} />
                     </div>
                     <div className="space-y-1">
-                      <SectionLabel>Prazo</SectionLabel>
-                      <Input type="date" value={fase.prazo} onChange={(e) => { const f = [...fases]; f[i].prazo = e.target.value; setFases(f); }} />
-                    </div>
-                    <div className="space-y-1">
-                      <SectionLabel>% Tempo Dedicado</SectionLabel>
+                      <PhaseFieldLabel>% tempo dedicado</PhaseFieldLabel>
                       <div className="relative">
                         <Input
                           type="number"
@@ -685,7 +685,7 @@ const EmpresaNovoProjeto = ({ onSuccess }: EmpresaNovoProjetoProps = {}) => {
               ))}
             </div>
 
-            <Button variant="outline" size="sm" onClick={() => setFases([...fases, { nome: "", descricao: "", prazo: "", percentual: "" }])}>
+            <Button variant="outline" size="sm" onClick={() => setFases([...fases, { nome: "", descricao: "", percentual: "" }])}>
               <Plus size={14} /> Adicionar fase
             </Button>
 
@@ -913,7 +913,7 @@ const EmpresaNovoProjeto = ({ onSuccess }: EmpresaNovoProjetoProps = {}) => {
                 {fases.filter(f => f.nome).map((f, i) => (
                   <div key={i} className="flex items-center justify-between text-xs">
                     <span className="text-foreground">{i + 1}. {f.nome}</span>
-                    <span className="text-muted-foreground">{f.percentual || 0}%{f.prazo && ` · ${new Date(f.prazo).toLocaleDateString("pt-BR")}`}</span>
+                    <span className="text-muted-foreground">{f.percentual || 0}%</span>
                   </div>
                 ))}
               </div>
