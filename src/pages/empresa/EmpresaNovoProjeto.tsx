@@ -306,7 +306,6 @@ const EmpresaNovoProjeto = ({ onSuccess }: EmpresaNovoProjetoProps = {}) => {
           nome: f.nome,
           descricao: f.descricao || null,
           ordem: i,
-          prazo: f.prazo || null,
           // % tempo dedicado armazenado em horas_estimadas como base proporcional
           horas_estimadas: f.percentual ? Number(f.percentual) : null,
         })));
@@ -659,17 +658,13 @@ const EmpresaNovoProjeto = ({ onSuccess }: EmpresaNovoProjetoProps = {}) => {
                       <Trash2 size={12} />
                     </Button>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div className="space-y-1">
-                      <SectionLabel>Nome</SectionLabel>
+                      <PhaseFieldLabel>Nome da fase</PhaseFieldLabel>
                       <Input value={fase.nome} onChange={(e) => { const f = [...fases]; f[i].nome = e.target.value; setFases(f); }} />
                     </div>
                     <div className="space-y-1">
-                      <SectionLabel>Prazo</SectionLabel>
-                      <Input type="date" value={fase.prazo} onChange={(e) => { const f = [...fases]; f[i].prazo = e.target.value; setFases(f); }} />
-                    </div>
-                    <div className="space-y-1">
-                      <SectionLabel>% Tempo Dedicado</SectionLabel>
+                      <PhaseFieldLabel>% tempo dedicado</PhaseFieldLabel>
                       <div className="relative">
                         <Input
                           type="number"
@@ -690,7 +685,7 @@ const EmpresaNovoProjeto = ({ onSuccess }: EmpresaNovoProjetoProps = {}) => {
               ))}
             </div>
 
-            <Button variant="outline" size="sm" onClick={() => setFases([...fases, { nome: "", descricao: "", prazo: "", percentual: "" }])}>
+            <Button variant="outline" size="sm" onClick={() => setFases([...fases, { nome: "", descricao: "", percentual: "" }])}>
               <Plus size={14} /> Adicionar fase
             </Button>
 
