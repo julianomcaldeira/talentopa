@@ -44,7 +44,16 @@ export const ProjectInternalChat = ({ projetoId, projetoNome, empresaUserId }: P
   const [sending, setSending] = useState(false);
   const [loading, setLoading] = useState(true);
   const [mentionOpen, setMentionOpen] = useState(false);
+  const [sharedConversationOpen, setSharedConversationOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  const fetchSharedAccess = async () => {
+    const { data } = await (supabase as any).rpc("can_user_message_project", {
+      p_projeto_id: projetoId,
+      p_escopo: "compartilhado",
+    });
+    setSharedConversationOpen(Boolean(data));
+  };
 
   const fetchTeam = async () => {
     // dono da empresa + vinculados via empresa_usuarios
@@ -105,6 +114,7 @@ export const ProjectInternalChat = ({ projetoId, projetoNome, empresaUserId }: P
   };
 
   useEffect(() => {
+    fetchSharedAccess();
     fetchTeam();
     fetchMessages();
     const ch = supabase
@@ -136,6 +146,10 @@ export const ProjectInternalChat = ({ projetoId, projetoNome, empresaUserId }: P
 
   const send = async () => {
     if (!user || !text.trim() || sending) return;
+    if (shareWithConsultor && !sharedConversationOpen) {
+      toast({ title: "Compartilhamento bloqueado", description: "Mensagens para consultores só são liberadas após a pré-aprovação.", variant: "destructive" });
+      return;
+    }
     setSending(true);
     try {
       const { error } = await supabase.from("mensagens").insert({
@@ -157,6 +171,10 @@ export const ProjectInternalChat = ({ projetoId, projetoNome, empresaUserId }: P
   };
 
   const releaseToConsultor = async (id: string) => {
+    if (!sharedConversationOpen) {
+      toast({ title: "Compartilhamento bloqueado", description: "Pré-aprove um consultor antes de liberar mensagens para ele.", variant: "destructive" });
+      return;
+    }
     const { error } = await supabase
       .from("mensagens")
       .update({ escopo: "compartilhado" })
