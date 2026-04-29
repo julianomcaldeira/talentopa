@@ -146,7 +146,7 @@ export const ConsultorPrivateChat = ({ projetoId, projetoNome, consultorUserId, 
   };
 
   const sendAttachment = async (file?: File) => {
-    if (!user || !file || sending) return;
+    if (!user || sending) return;
     if (!conversationOpen) {
       await (supabase as any).rpc("registrar_mensagem_bloqueada_pre_aprovacao", {
         p_projeto_id: projetoId,
@@ -156,6 +156,7 @@ export const ConsultorPrivateChat = ({ projetoId, projetoNome, consultorUserId, 
       toast({ title: "Anexo bloqueado", description: "Este consultor precisa estar pré-aprovado para liberar anexos no chat.", variant: "destructive" });
       return;
     }
+    if (!file) return;
 
     setSending(true);
     try {
