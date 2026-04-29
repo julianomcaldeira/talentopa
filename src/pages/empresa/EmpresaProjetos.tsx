@@ -442,11 +442,18 @@ const EmpresaProjetos = () => {
                     )}
                   </div>
                   {prop.comentarios && <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{prop.comentarios}</p>}
-                  {prop.status === "enviada" && (
-                    <Button size="sm" className="mt-3" onClick={() => acceptProposal(prop.id)}>
-                      Aceitar proposta
-                    </Button>
-                  )}
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    {prop.status === "enviada" && (
+                      <Button size="sm" variant="outline" onClick={() => preApproveProposal(prop.id)}>
+                        <BadgeCheck size={14} /> Pré-aprovar
+                      </Button>
+                    )}
+                    {(prop.status === "enviada" || prop.status === "pre_aprovada") && (
+                      <Button size="sm" onClick={() => acceptProposal(prop.id)}>
+                        <CheckCircle2 size={14} /> Aprovação final
+                      </Button>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
