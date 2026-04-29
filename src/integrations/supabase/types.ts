@@ -1552,6 +1552,10 @@ export type Database = {
         Args: { p_proposta_id: string }
         Returns: Json
       }
+      empresa_pre_aprovar_proposta: {
+        Args: { p_proposta_id: string }
+        Returns: Json
+      }
       get_admin_advanced_metrics: { Args: never; Returns: Json }
       get_monthly_project_stats: {
         Args: never
@@ -1621,6 +1625,10 @@ export type Database = {
           p_titulo: string
         }
         Returns: undefined
+      }
+      notify_project_linked_consultants: {
+        Args: { p_mensagem: string; p_projeto_id: string }
+        Returns: Json
       }
     }
     Enums: {
