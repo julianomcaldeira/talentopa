@@ -476,7 +476,18 @@ const EmpresaNovoProjeto = ({ onSuccess }: EmpresaNovoProjetoProps = {}) => {
               </div>
 
               <div className="space-y-2">
-                <SectionLabel>Problema Atual *</SectionLabel>
+                <div className="flex items-center justify-between gap-3">
+                  <SectionLabel>Problema Atual *</SectionLabel>
+                  <Button
+                    type="button"
+                    variant={gravandoCampo === "problema_atual" ? "destructive" : "outline"}
+                    size="sm"
+                    onClick={() => gravandoCampo === "problema_atual" ? pararTranscricao() : iniciarTranscricao("problema_atual")}
+                    className="h-8 gap-2"
+                  >
+                    {gravandoCampo === "problema_atual" ? <><Square size={13} /> Parar</> : <><Mic size={13} /> Transcrever áudio</>}
+                  </Button>
+                </div>
                 <Textarea
                   value={form.problema_atual}
                   onChange={(e) => setForm({ ...form, problema_atual: e.target.value })}
@@ -484,10 +495,22 @@ const EmpresaNovoProjeto = ({ onSuccess }: EmpresaNovoProjetoProps = {}) => {
                   className="bg-background border-primary/20 focus-visible:border-primary"
                   placeholder="Descreva em detalhes o problema, dores e gaps atuais que precisam ser resolvidos..."
                 />
+                {gravandoCampo === "problema_atual" && <p className="text-xs text-primary flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-primary animate-pulse" />Ouvindo... fale com naturalidade, a transcrição será adicionada automaticamente.</p>}
               </div>
 
               <div className="space-y-2">
-                <SectionLabel>Objetivo *</SectionLabel>
+                <div className="flex items-center justify-between gap-3">
+                  <SectionLabel>Objetivo *</SectionLabel>
+                  <Button
+                    type="button"
+                    variant={gravandoCampo === "objetivo" ? "destructive" : "outline"}
+                    size="sm"
+                    onClick={() => gravandoCampo === "objetivo" ? pararTranscricao() : iniciarTranscricao("objetivo")}
+                    className="h-8 gap-2"
+                  >
+                    {gravandoCampo === "objetivo" ? <><Square size={13} /> Parar</> : <><Mic size={13} /> Transcrever áudio</>}
+                  </Button>
+                </div>
                 <Textarea
                   value={form.objetivo}
                   onChange={(e) => setForm({ ...form, objetivo: e.target.value })}
@@ -495,6 +518,7 @@ const EmpresaNovoProjeto = ({ onSuccess }: EmpresaNovoProjetoProps = {}) => {
                   className="bg-background border-primary/20 focus-visible:border-primary"
                   placeholder="O que se espera alcançar com este projeto? Quais resultados, KPIs ou capacidades?"
                 />
+                {gravandoCampo === "objetivo" && <p className="text-xs text-primary flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-primary animate-pulse" />Ouvindo... fale com naturalidade, a transcrição será adicionada automaticamente.</p>}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
