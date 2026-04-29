@@ -420,7 +420,15 @@ export const ProjetoEditDialog = ({ open, onOpenChange, projeto, onSaved }: Prop
             </TabsContent>
 
             <TabsContent value="escopo" className="mt-0 space-y-4">
-              {!projeto.software_id ? (
+              {isCompleted ? (
+                <div className="rounded-xl border border-warning/30 bg-warning/5 p-4 flex items-start gap-3 text-sm">
+                  <Lock size={16} className="text-warning shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-semibold text-foreground">Escopo técnico bloqueado</p>
+                    <p className="text-xs text-muted-foreground mt-1">Módulos, funcionalidades e fases não podem ser alterados após a conclusão do projeto para preservar o histórico operacional.</p>
+                  </div>
+                </div>
+              ) : !projeto.software_id ? (
                 <p className="text-sm text-muted-foreground italic">
                   Este projeto não possui um software definido. Defina um software para gerenciar o escopo técnico.
                 </p>
