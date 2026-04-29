@@ -171,15 +171,45 @@ export const ConsultorPrivateChat = ({ projetoId, projetoNome, consultorUserId, 
     }
   };
 
-  const previewAttachment = async (path: string, senderId: string) => {
-    if (!conversationOpen && senderId !== user?.id) {
+  const eventsByAttachment = useMemo(() => {
+    const map = new Map<string, AttachmentEvent[]>();
+    attachmentEvents.forEach((event) => {
+      const key = event.anexo_id || event.mensagem_id;
+      if (!key) return;
+      map.set(key, [...(map.get(key) || []), event]);
+    });
+    return map;
+  }, [attachmentEvents]);
+
+  const formatEventLabel = (evento: string) => ({
+    enviado: "Enviado",
+    aprovado_pre_aprovacao: "Liberado pela pré-aprovação",
+    visualizado: "Visualizado",
+  }[evento] || evento);
+
+  const getAttachmentEvents = (msg: PrivateMessage) => {
+    const attachment = parseAttachment(msg.conteudo);
+    if (!attachment) return [];
+    return eventsByAttachment.get(attachment.anexo_id) || eventsByAttachment.get(msg.id) || [];
+  };
+
+  const previewAttachment = async (attachment: any, msg: PrivateMessage) => {
+    if (!conversationOpen && msg.sender_user_id !== user?.id) {
       toast({ title: "Pré-visualização bloqueada", description: "O arquivo só será disponibilizado ao destinatário após a pré-aprovação.", variant: "destructive" });
       return;
     }
-    const { data, error } = await supabase.storage.from("projeto-anexos").createSignedUrl(path, 60);
+    const { data, error } = await supabase.storage.from("projeto-anexos").createSignedUrl(attachment.path, 60);
     if (error || !data?.signedUrl) {
       toast({ title: "Erro ao pré-visualizar anexo", description: error?.message || "Arquivo indisponível.", variant: "destructive" });
       return;
+    }
+    let anexoId = attachment.anexo_id;
+    if (!anexoId) {
+      const { data: anexo } = await (supabase as any).from("projeto_anexos").select("id").eq("arquivo_url", attachment.path).maybeSingle();
+      anexoId = anexo?.id;
+    }
+    if (user && anexoId) {
+      await (supabase as any).from("projeto_anexo_eventos").insert({ projeto_id: projetoId, anexo_id: anexoId, mensagem_id: msg.id, actor_user_id: user.id, evento: "visualizado", mime_type: attachment.mime_type || "application/octet-stream", nome_arquivo: attachment.nome });
     }
     window.open(data.signedUrl, "_blank");
   };
@@ -204,7 +234,7 @@ export const ConsultorPrivateChat = ({ projetoId, projetoNome, consultorUserId, 
       const { error: uploadError } = await supabase.storage.from("projeto-anexos").upload(path, file);
       if (uploadError) throw uploadError;
 
-      const { error: attachmentError } = await (supabase as any).from("projeto_anexos").insert({
+      const { data: attachmentData, error: attachmentError } = await (supabase as any).from("projeto_anexos").insert({
         projeto_id: projetoId,
         uploader_user_id: user.id,
         nome: file.name,
@@ -214,14 +244,14 @@ export const ConsultorPrivateChat = ({ projetoId, projetoNome, consultorUserId, 
         origem: "chat",
         escopo: "compartilhado",
         recipient_user_id: consultorUserId,
-      });
+      }).select("id").single();
       if (attachmentError) throw attachmentError;
 
       const { error: messageError } = await supabase.from("mensagens").insert({
         projeto_id: projetoId,
         sender_user_id: user.id,
         recipient_user_id: consultorUserId,
-        conteudo: JSON.stringify({ nome: file.name, path, mime_type: file.type || "application/octet-stream", tamanho_bytes: file.size }),
+        conteudo: JSON.stringify({ anexo_id: attachmentData?.id, nome: file.name, path, mime_type: file.type || "application/octet-stream", tamanho_bytes: file.size }),
         tipo: "anexo",
         escopo: "compartilhado",
         moderado: true,
