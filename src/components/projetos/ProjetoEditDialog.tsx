@@ -12,7 +12,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { FileText, CalendarDays, Layers, Loader2, Plus, X, Bell } from "lucide-react";
+import { FileText, CalendarDays, Layers, Loader2, Plus, X, Bell, History, Users } from "lucide-react";
 
 interface Props {
   open: boolean;
@@ -49,6 +49,9 @@ export const ProjetoEditDialog = ({ open, onOpenChange, projeto, onSaved }: Prop
   const [allFuncs, setAllFuncs] = useState<ScopeItem[]>([]);
   const [selectedModulos, setSelectedModulos] = useState<Set<string>>(new Set());
   const [selectedFuncs, setSelectedFuncs] = useState<Set<string>>(new Set());
+  const [initialModulos, setInitialModulos] = useState<Set<string>>(new Set());
+  const [initialFuncs, setInitialFuncs] = useState<Set<string>>(new Set());
+  const [history, setHistory] = useState<any[]>([]);
   const [loadingScope, setLoadingScope] = useState(true);
   const [savingScope, setSavingScope] = useState(false);
 
@@ -67,15 +70,39 @@ export const ProjetoEditDialog = ({ open, onOpenChange, projeto, onSaved }: Prop
     setNotificationMessage(`Houve uma atualização importante no projeto "${projeto.nome}". Acesse a plataforma para revisar os detalhes.`);
     setErrors({});
     loadScope();
+    loadHistory();
   }, [open, projeto?.id]);
 
-  const notifyLinkedConsultants = async () => {
-    if (!notifyConsultants) return;
-    const { error } = await (supabase as any).rpc("notify_project_linked_consultants", {
+  const loadHistory = async () => {
+    if (!projeto?.id) return;
+    const { data } = await (supabase as any)
+      .from("projeto_alteracoes_historico")
+      .select("*")
+      .eq("projeto_id", projeto.id)
+      .order("created_at", { ascending: false })
+      .limit(20);
+    setHistory(data || []);
+  };
+
+  const registerChangeHistory = async (payload: {
+    tipo: string;
+    descricao: string;
+    campos: string[];
+    antigos: Record<string, any>;
+    novos: Record<string, any>;
+  }) => {
+    const { error } = await (supabase as any).rpc("registrar_projeto_alteracao", {
       p_projeto_id: projeto.id,
+      p_tipo_alteracao: payload.tipo,
+      p_descricao: payload.descricao,
+      p_campos_alterados: payload.campos,
+      p_dados_anteriores: payload.antigos,
+      p_dados_novos: payload.novos,
+      p_notificar_consultores: notifyConsultants,
       p_mensagem: notificationMessage,
     });
     if (error) throw error;
+    await loadHistory();
   };
 
   const loadScope = async () => {
