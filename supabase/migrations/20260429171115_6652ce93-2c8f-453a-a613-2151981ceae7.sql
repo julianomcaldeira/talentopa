@@ -1,0 +1,1 @@
+REVOKE ALL ON FUNCTION public.audit_and_validate_project_attachment() FROM PUBLIC, anon, authenticated;
