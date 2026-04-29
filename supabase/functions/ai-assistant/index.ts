@@ -268,6 +268,14 @@ serve(async (req) => {
     const masterContext = await loadMasterContext();
     const scope = await isInScope({ messages, mode, projectData, masterContext, apiKey: LOVABLE_API_KEY });
     if (!scope.allowed) {
+      const lastUserMessage = [...messages].reverse().find((message) => message.role === "user")?.content?.trim() || "";
+      await logOutOfScopeBlock({
+        userId: getUserIdFromRequest(req),
+        mode,
+        message: lastUserMessage,
+        reason: scope.reason,
+      });
+
       return new Response(createSseMessage(OUT_OF_SCOPE_MESSAGE), {
         headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
       });
