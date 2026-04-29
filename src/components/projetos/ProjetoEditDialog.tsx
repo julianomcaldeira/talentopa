@@ -118,6 +118,7 @@ export const ProjetoEditDialog = ({ open, onOpenChange, projeto, onSaved }: Prop
     setAllModulos(modulos);
     const selMods = new Set((projModsRes.data || []).map((m: any) => m.modulo_id));
     setSelectedModulos(selMods);
+    setInitialModulos(new Set(selMods));
 
     const moduloIds = modulos.map(m => m.id);
     if (moduloIds.length > 0) {
@@ -126,9 +127,11 @@ export const ProjetoEditDialog = ({ open, onOpenChange, projeto, onSaved }: Prop
         supabase.from("projeto_funcionalidades").select("funcionalidade_id").eq("projeto_id", projeto.id),
       ]);
       setAllFuncs((funcsRes.data || []) as ScopeItem[]);
-      setSelectedFuncs(new Set((projFuncsRes.data || []).map((f: any) => f.funcionalidade_id)));
+      const selFuncs = new Set((projFuncsRes.data || []).map((f: any) => f.funcionalidade_id));
+      setSelectedFuncs(selFuncs);
+      setInitialFuncs(new Set(selFuncs));
     } else {
-      setAllFuncs([]); setSelectedFuncs(new Set());
+      setAllFuncs([]); setSelectedFuncs(new Set()); setInitialFuncs(new Set());
     }
     setLoadingScope(false);
   };
@@ -166,7 +169,28 @@ export const ProjetoEditDialog = ({ open, onOpenChange, projeto, onSaved }: Prop
     setSaving(false);
     try {
       if (error) throw error;
-      await notifyLinkedConsultants();
+      const antigos = {
+        descricao: projeto.descricao || null,
+        objetivo: projeto.objetivo || null,
+        problema_atual: projeto.problema_atual || null,
+        observacoes: projeto.observacoes || null,
+        prazo_estimado: projeto.prazo_estimado || null,
+        prazo_propostas: (projeto as any).prazo_propostas || null,
+        modelo_contratacao: projeto.modelo_contratacao || null,
+      };
+      const novos = {
+        descricao: parsed.data.descricao,
+        objetivo: parsed.data.objetivo,
+        problema_atual: parsed.data.problema_atual,
+        observacoes: parsed.data.observacoes,
+        prazo_estimado: parsed.data.prazo_estimado || null,
+        prazo_propostas: parsed.data.prazo_propostas || null,
+        modelo_contratacao: parsed.data.modelo_contratacao || null,
+      };
+      const campos = Object.keys(novos).filter((key) => JSON.stringify((antigos as any)[key]) !== JSON.stringify((novos as any)[key]));
+      if (campos.length > 0 || notifyConsultants) {
+        await registerChangeHistory({ tipo: "informacoes", descricao: "Informações do projeto atualizadas", campos, antigos, novos });
+      }
       toast({ title: "Projeto atualizado", description: notifyConsultants ? "As informações foram salvas e os consultores vinculados foram notificados." : "As informações foram salvas com sucesso." });
       onSaved?.();
     } catch (err: any) {
@@ -194,7 +218,15 @@ export const ProjetoEditDialog = ({ open, onOpenChange, projeto, onSaved }: Prop
         const { error } = await supabase.from("projeto_funcionalidades").insert(rows);
         if (error) throw error;
       }
-      await notifyLinkedConsultants();
+      const antigos = { modulos: Array.from(initialModulos), funcionalidades: Array.from(initialFuncs) };
+      const novos = { modulos: Array.from(selectedModulos), funcionalidades: validFuncIds };
+      const campos = [
+        JSON.stringify(antigos.modulos.sort()) !== JSON.stringify([...novos.modulos].sort()) ? "modulos" : null,
+        JSON.stringify(antigos.funcionalidades.sort()) !== JSON.stringify([...novos.funcionalidades].sort()) ? "funcionalidades" : null,
+      ].filter(Boolean) as string[];
+      if (campos.length > 0 || notifyConsultants) {
+        await registerChangeHistory({ tipo: "escopo_tecnico", descricao: "Escopo técnico do projeto atualizado", campos, antigos, novos });
+      }
       toast({ title: "Escopo atualizado", description: notifyConsultants ? "Módulos, funcionalidades e notificação foram atualizados." : "Módulos e funcionalidades foram atualizados." });
       onSaved?.();
     } catch (err: any) {
