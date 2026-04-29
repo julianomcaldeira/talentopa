@@ -197,8 +197,11 @@ const EmpresaProjetos = () => {
       {(p.status === "publicado" || p.status === "em_selecao" || p.status === "em_andamento" || p.status === "concluido") && (
         <>
           {p.status !== "concluido" && (
-            <Button size="sm" variant="outline" onClick={() => viewPropostas(p)}>
+            <Button size="sm" variant={p.propostas_nao_visualizadas > 0 ? "default" : "outline"} className={p.propostas_nao_visualizadas > 0 ? "animate-pulse shadow-lg shadow-primary/25" : ""} onClick={() => viewPropostas(p)}>
               <Eye size={14} /> Ver propostas
+              {p.propostas_nao_visualizadas > 0 && (
+                <span className="ml-1 rounded-full bg-primary-foreground/20 px-1.5 text-[10px] font-semibold">{p.propostas_nao_visualizadas}</span>
+              )}
             </Button>
           )}
           {p.status !== "concluido" && (
@@ -386,8 +389,11 @@ const EmpresaProjetos = () => {
                     {(p.status === "publicado" || p.status === "em_selecao" || p.status === "em_andamento" || p.status === "concluido") && (
                       <div className="flex flex-wrap gap-1">
                         {p.status !== "concluido" && (
-                          <Button size="sm" variant="outline" className="h-7 px-2 text-[11px]" onClick={() => viewPropostas(p)}>
+                          <Button size="sm" variant={p.propostas_nao_visualizadas > 0 ? "default" : "outline"} className={`h-7 px-2 text-[11px] ${p.propostas_nao_visualizadas > 0 ? "animate-pulse shadow-md shadow-primary/20" : ""}`} onClick={() => viewPropostas(p)}>
                             <Eye size={11} /> Propostas
+                            {p.propostas_nao_visualizadas > 0 && (
+                              <span className="ml-1 rounded-full bg-primary-foreground/20 px-1 text-[9px] font-semibold">{p.propostas_nao_visualizadas}</span>
+                            )}
                           </Button>
                         )}
                         <Button size="sm" variant="outline" className="h-7 px-2 text-[11px]" onClick={() => setEditProjeto(p)}>
