@@ -878,30 +878,39 @@ export type Database = {
         Row: {
           arquivo_url: string
           created_at: string
+          escopo: string
           id: string
           mime_type: string | null
           nome: string
+          origem: string
           projeto_id: string
+          recipient_user_id: string | null
           tamanho_bytes: number | null
           uploader_user_id: string
         }
         Insert: {
           arquivo_url: string
           created_at?: string
+          escopo?: string
           id?: string
           mime_type?: string | null
           nome: string
+          origem?: string
           projeto_id: string
+          recipient_user_id?: string | null
           tamanho_bytes?: number | null
           uploader_user_id: string
         }
         Update: {
           arquivo_url?: string
           created_at?: string
+          escopo?: string
           id?: string
           mime_type?: string | null
           nome?: string
+          origem?: string
           projeto_id?: string
+          recipient_user_id?: string | null
           tamanho_bytes?: number | null
           uploader_user_id?: string
         }
