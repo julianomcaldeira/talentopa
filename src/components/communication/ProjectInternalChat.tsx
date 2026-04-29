@@ -147,6 +147,10 @@ export const ProjectInternalChat = ({ projetoId, projetoNome, empresaUserId }: P
   const send = async () => {
     if (!user || !text.trim() || sending) return;
     if (shareWithConsultor && !sharedConversationOpen) {
+      await (supabase as any).rpc("registrar_mensagem_bloqueada_pre_aprovacao", {
+        p_projeto_id: projetoId,
+        p_escopo: "compartilhado",
+      });
       toast({ title: "Compartilhamento bloqueado", description: "Mensagens para consultores só são liberadas após a pré-aprovação.", variant: "destructive" });
       return;
     }
@@ -172,6 +176,10 @@ export const ProjectInternalChat = ({ projetoId, projetoNome, empresaUserId }: P
 
   const releaseToConsultor = async (id: string) => {
     if (!sharedConversationOpen) {
+      await (supabase as any).rpc("registrar_mensagem_bloqueada_pre_aprovacao", {
+        p_projeto_id: projetoId,
+        p_escopo: "compartilhado",
+      });
       toast({ title: "Compartilhamento bloqueado", description: "Pré-aprove um consultor antes de liberar mensagens para ele.", variant: "destructive" });
       return;
     }
@@ -251,7 +259,7 @@ export const ProjectInternalChat = ({ projetoId, projetoNome, empresaUserId }: P
                         <Lock size={9} /> Interno
                       </Badge>
                     )}
-                    {m.escopo === "interno_empresa" && sharedConversationOpen && (
+                    {m.escopo === "interno_empresa" && (
                       <button
                         onClick={() => releaseToConsultor(m.id)}
                         className={`text-[9px] underline hover:no-underline ${isMe(m.sender_user_id) ? "text-primary-foreground" : "text-primary"}`}
@@ -330,7 +338,7 @@ export const ProjectInternalChat = ({ projetoId, projetoNome, empresaUserId }: P
         </div>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Switch id="share-toggle" checked={shareWithConsultor} onCheckedChange={setShareWithConsultor} disabled={!sharedConversationOpen} />
+            <Switch id="share-toggle" checked={shareWithConsultor} onCheckedChange={setShareWithConsultor} />
             <Label htmlFor="share-toggle" className="text-[11px] cursor-pointer flex items-center gap-1">
               {shareWithConsultor ? <Eye size={11} className="text-primary" /> : <Lock size={11} />}
               {shareWithConsultor ? "Visível ao consultor" : sharedConversationOpen ? "Apenas equipe interna" : "Consultor bloqueado até pré-aprovação"}
