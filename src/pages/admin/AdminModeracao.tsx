@@ -87,9 +87,10 @@ const AdminModeracao = () => {
   const [page, setPage] = useState(1);
 
   const fetchConversas = async () => {
-    const { data: attempts } = await (supabase as any)
+    const { data: attempts, count: attemptsCount } = await (supabase as any)
       .from("mensagem_tentativas_bloqueadas")
       .select("id, projeto_id, sender_user_id, motivo, created_at")
+      .select("id, projeto_id, sender_user_id, motivo, created_at", { count: "exact" })
       .order("created_at", { ascending: false })
       .limit(10);
 
@@ -100,7 +101,7 @@ const AdminModeracao = () => {
 
     if (!msgs || msgs.length === 0) {
       setConversas([]);
-      setStats({ total: 0, bloqueadas: 0, projetos: 0, tentativas: attempts?.length || 0 });
+      setStats({ total: 0, bloqueadas: 0, projetos: 0, tentativas: attemptsCount || 0 });
       await hydrateTentativas(attempts || []);
       setLoading(false);
       return;
@@ -181,7 +182,7 @@ const AdminModeracao = () => {
       total: msgs.length,
       bloqueadas: msgs.filter(m => m.bloqueado).length,
       projetos: projIds.length,
-      tentativas: attempts?.length || 0,
+      tentativas: attemptsCount || 0,
     });
     await hydrateTentativas(attempts || []);
     setLoading(false);
