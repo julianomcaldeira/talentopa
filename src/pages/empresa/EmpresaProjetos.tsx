@@ -224,7 +224,10 @@ const EmpresaProjetos = () => {
       <Button
         size="sm"
         variant={hasNovas ? "default" : "outline"}
-        className={`${compact ? "h-7 px-2 text-[11px]" : ""} ${hasNovas ? "animate-pulse shadow-lg shadow-primary/25" : ""}`}
+        className={cn(
+          compact && "h-7 px-2 text-[11px]",
+          hasNovas && "proposal-soft-pulse shadow-primary/20"
+        )}
         onClick={() => viewPropostas(p)}
         aria-label={hasNovas ? `Ver propostas, ${novas} novas propostas` : "Ver propostas"}
       >
