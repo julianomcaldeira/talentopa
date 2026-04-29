@@ -17,6 +17,19 @@ import EmpresaNovoProjeto from "./EmpresaNovoProjeto";
 
 const PAGE_SIZE = 6;
 
+const preApproveMatchedConsultor = async (projeto: any, consultorUserId: string, toast: ReturnType<typeof useToast>["toast"], refetch: () => Promise<void>) => {
+  const { error } = await (supabase as any).rpc("empresa_pre_aprovar_consultor", {
+    p_projeto_id: projeto.id,
+    p_consultor_user_id: consultorUserId,
+  });
+  if (error) {
+    toast({ title: "Erro ao pré-aprovar", description: error.message, variant: "destructive" });
+    return;
+  }
+  toast({ title: "Consultor pré-aprovado", description: "A conversa foi liberada para alinhamento antes da aprovação final." });
+  refetch();
+};
+
 const KANBAN_COLUMNS: { key: string; label: string; tone: string }[] = [
   { key: "rascunho", label: "Rascunho", tone: "bg-muted-foreground/40" },
   { key: "publicado", label: "Publicado", tone: "bg-primary" },
