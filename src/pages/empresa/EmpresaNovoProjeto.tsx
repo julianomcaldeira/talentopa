@@ -674,8 +674,8 @@ const EmpresaNovoProjeto = ({ onSuccess }: EmpresaNovoProjetoProps = {}) => {
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div className="space-y-1">
-                      <PhaseFieldLabel>Nome da fase <strong className="font-bold text-primary">sugerida</strong></PhaseFieldLabel>
-                      <Input value={fase.nome} onChange={(e) => { const f = [...fases]; f[i].nome = e.target.value; setFases(f); }} />
+                      <PhaseFieldLabel>Nome da fase sugerida</PhaseFieldLabel>
+                      <Input className="font-bold" value={fase.nome} onChange={(e) => { const f = [...fases]; f[i].nome = e.target.value; setFases(f); }} />
                     </div>
                     <div className="space-y-1">
                       <PhaseFieldLabel>% tempo dedicado</PhaseFieldLabel>
