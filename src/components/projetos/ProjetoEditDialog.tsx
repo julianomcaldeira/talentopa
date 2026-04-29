@@ -12,7 +12,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { FileText, CalendarDays, Layers, Loader2, Plus, X, Bell, History, Users } from "lucide-react";
+import { FileText, CalendarDays, Layers, Loader2, Plus, X, Bell, History, Users, Lock, AlertTriangle } from "lucide-react";
 
 interface Props {
   open: boolean;
@@ -199,6 +199,10 @@ export const ProjetoEditDialog = ({ open, onOpenChange, projeto, onSaved }: Prop
   };
 
   const handleSaveScope = async () => {
+    if (projeto?.status === "concluido") {
+      toast({ title: "Escopo bloqueado", description: "Projeto concluído: módulos, funcionalidades e fases não podem mais ser alterados.", variant: "destructive" });
+      return;
+    }
     setSavingScope(true);
     try {
       // Replace módulos
@@ -254,6 +258,8 @@ export const ProjetoEditDialog = ({ open, onOpenChange, projeto, onSaved }: Prop
 
   if (!projeto) return null;
 
+  const isCompleted = projeto.status === "concluido";
+
   const funcsByModulo = new Map<string, any[]>();
   allFuncs.forEach((f: any) => {
     const arr = funcsByModulo.get(f.modulo_id) || [];
@@ -270,7 +276,9 @@ export const ProjetoEditDialog = ({ open, onOpenChange, projeto, onSaved }: Prop
             Editar projeto · {projeto.nome}
           </DialogTitle>
           <DialogDescription>
-            Atualize informações do projeto a qualquer momento. As alterações ficam visíveis para os consultores.
+            {isCompleted
+              ? "Projeto concluído: apenas descrição e observações podem ser ajustadas. Campos críticos permanecem bloqueados."
+              : "Atualize informações do projeto a qualquer momento. As alterações ficam visíveis para os consultores."}
           </DialogDescription>
         </DialogHeader>
 
@@ -283,6 +291,15 @@ export const ProjetoEditDialog = ({ open, onOpenChange, projeto, onSaved }: Prop
 
           <ScrollArea className="flex-1 px-6 py-4">
             <TabsContent value="info" className="mt-0 space-y-4">
+              {isCompleted && (
+                <div className="rounded-xl border border-warning/30 bg-warning/5 p-3 flex items-start gap-2 text-xs">
+                  <AlertTriangle size={14} className="text-warning shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-semibold text-foreground">Alterações críticas bloqueadas após a conclusão.</p>
+                    <p className="text-muted-foreground mt-0.5">Você pode atualizar somente descrição e observações adicionais. Objetivo, problema, prazos, modelo de contratação e escopo técnico ficam preservados para auditoria.</p>
+                  </div>
+                </div>
+              )}
               <div>
                 <Label className="text-xs">Descrição</Label>
                 <Textarea
@@ -301,6 +318,7 @@ export const ProjetoEditDialog = ({ open, onOpenChange, projeto, onSaved }: Prop
                 <Textarea
                   value={form.objetivo}
                   onChange={e => setForm(f => ({ ...f, objetivo: e.target.value }))}
+                  disabled={isCompleted}
                   rows={2}
                   maxLength={1000}
                   placeholder="O que o projeto precisa entregar?"
@@ -313,6 +331,7 @@ export const ProjetoEditDialog = ({ open, onOpenChange, projeto, onSaved }: Prop
                 <Textarea
                   value={form.problema_atual}
                   onChange={e => setForm(f => ({ ...f, problema_atual: e.target.value }))}
+                  disabled={isCompleted}
                   rows={3}
                   maxLength={2000}
                   placeholder="Qual dor de negócio está sendo endereçada?"
@@ -327,6 +346,7 @@ export const ProjetoEditDialog = ({ open, onOpenChange, projeto, onSaved }: Prop
                     type="date"
                     value={form.prazo_estimado || ""}
                     onChange={e => setForm(f => ({ ...f, prazo_estimado: e.target.value }))}
+                    disabled={isCompleted}
                   />
                 </div>
                 <div>
@@ -335,6 +355,7 @@ export const ProjetoEditDialog = ({ open, onOpenChange, projeto, onSaved }: Prop
                     type="date"
                     value={form.prazo_propostas || ""}
                     onChange={e => setForm(f => ({ ...f, prazo_propostas: e.target.value }))}
+                    disabled={isCompleted}
                   />
                 </div>
                 <div>
@@ -342,6 +363,7 @@ export const ProjetoEditDialog = ({ open, onOpenChange, projeto, onSaved }: Prop
                   <Select
                     value={form.modelo_contratacao || ""}
                     onValueChange={(v) => setForm(f => ({ ...f, modelo_contratacao: v as any }))}
+                    disabled={isCompleted}
                   >
                     <SelectTrigger><SelectValue placeholder="Selecionar..." /></SelectTrigger>
                     <SelectContent>
@@ -398,7 +420,15 @@ export const ProjetoEditDialog = ({ open, onOpenChange, projeto, onSaved }: Prop
             </TabsContent>
 
             <TabsContent value="escopo" className="mt-0 space-y-4">
-              {!projeto.software_id ? (
+              {isCompleted ? (
+                <div className="rounded-xl border border-warning/30 bg-warning/5 p-4 flex items-start gap-3 text-sm">
+                  <Lock size={16} className="text-warning shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-semibold text-foreground">Escopo técnico bloqueado</p>
+                    <p className="text-xs text-muted-foreground mt-1">Módulos, funcionalidades e fases não podem ser alterados após a conclusão do projeto para preservar o histórico operacional.</p>
+                  </div>
+                </div>
+              ) : !projeto.software_id ? (
                 <p className="text-sm text-muted-foreground italic">
                   Este projeto não possui um software definido. Defina um software para gerenciar o escopo técnico.
                 </p>
