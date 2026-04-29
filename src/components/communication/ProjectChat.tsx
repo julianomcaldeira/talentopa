@@ -5,7 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Send, Shield, AlertTriangle, MessageSquare, Lock, Paperclip, FileText, Download } from "lucide-react";
+import { Send, Shield, AlertTriangle, MessageSquare, Lock, Paperclip, FileText, Eye } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface ProjectChatProps {
@@ -154,10 +154,14 @@ export const ProjectChat = ({ projetoId, projetoNome }: ProjectChatProps) => {
     }
   };
 
-  const downloadAttachment = async (path: string) => {
+  const previewAttachment = async (path: string, senderId: string) => {
+    if (!conversationOpen && senderId !== user?.id) {
+      toast({ title: "Pré-visualização bloqueada", description: "O arquivo só será disponibilizado ao destinatário após a pré-aprovação.", variant: "destructive" });
+      return;
+    }
     const { data, error } = await supabase.storage.from("projeto-anexos").createSignedUrl(path, 60);
     if (error || !data?.signedUrl) {
-      toast({ title: "Erro ao abrir anexo", description: error?.message || "Arquivo indisponível.", variant: "destructive" });
+      toast({ title: "Erro ao pré-visualizar anexo", description: error?.message || "Arquivo indisponível.", variant: "destructive" });
       return;
     }
     window.open(data.signedUrl, "_blank");
@@ -296,12 +300,12 @@ export const ProjectChat = ({ projetoId, projetoNome }: ProjectChatProps) => {
                   ) : msg.tipo === "anexo" && parseAttachment(msg.conteudo) ? (
                     <button
                       type="button"
-                      onClick={() => downloadAttachment(parseAttachment(msg.conteudo)!.path)}
+                      onClick={() => previewAttachment(parseAttachment(msg.conteudo)!.path, msg.sender_user_id)}
                       className="flex max-w-full items-center gap-2 text-left text-sm hover:underline"
                     >
                       <FileText size={16} className="shrink-0" />
                       <span className="truncate">{parseAttachment(msg.conteudo)!.nome}</span>
-                      <Download size={14} className="shrink-0 opacity-70" />
+                      <Eye size={14} className="shrink-0 opacity-70" />
                     </button>
                   ) : (
                     <p className="text-sm whitespace-pre-wrap break-words">{msg.conteudo}</p>
