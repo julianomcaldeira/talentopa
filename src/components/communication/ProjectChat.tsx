@@ -371,15 +371,16 @@ export const ProjectChat = ({ projetoId, projetoNome }: ProjectChatProps) => {
                       ⚠️ Mensagem removida por violação das regras
                     </p>
                   ) : msg.tipo === "anexo" && parseAttachment(msg.conteudo) ? (
-                    <button
-                      type="button"
-                      onClick={() => previewAttachment(parseAttachment(msg.conteudo)!, msg)}
-                      className="flex max-w-full items-center gap-2 text-left text-sm hover:underline"
-                    >
-                      <FileText size={16} className="shrink-0" />
-                      <span className="truncate">{parseAttachment(msg.conteudo)!.nome}</span>
-                      <Eye size={14} className="shrink-0 opacity-70" />
-                    </button>
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => previewAttachment(parseAttachment(msg.conteudo)!, msg)}
+                        className="flex max-w-full items-center gap-2 text-left text-sm hover:underline"
+                      >
+                        <FileText size={16} className="shrink-0" />
+                        <span className="truncate">{parseAttachment(msg.conteudo)!.nome}</span>
+                        <Eye size={14} className="shrink-0 opacity-70" />
+                      </button>
                     {getAttachmentEvents(msg).length > 0 && (
                       <div className={`mt-2 space-y-0.5 border-t pt-1.5 ${isMe(msg.sender_user_id) ? "border-primary-foreground/20" : "border-border"}`}>
                         {getAttachmentEvents(msg).map((event) => (
@@ -388,7 +389,7 @@ export const ProjectChat = ({ projetoId, projetoNome }: ProjectChatProps) => {
                           </p>
                         ))}
                       </div>
-                    )}
+                    </>
                   ) : (
                     <p className="text-sm whitespace-pre-wrap break-words">{msg.conteudo}</p>
                   )}
