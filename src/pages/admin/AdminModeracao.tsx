@@ -293,11 +293,34 @@ const AdminModeracao = () => {
     <div>
       <PageHeader title="Moderação de Comunicação" description="Monitore conversas e modere mensagens entre empresas e consultores" />
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6">
         <StatCard icon={MessageSquare} label="Total de mensagens" value={String(stats.total)} iconColor="text-primary" iconBg="bg-primary/10" />
         <StatCard icon={ShieldAlert} label="Mensagens bloqueadas" value={String(stats.bloqueadas)} iconColor="text-destructive" iconBg="bg-destructive/10" />
         <StatCard icon={Shield} label="Conversas ativas" value={String(stats.projetos)} iconColor="text-success" iconBg="bg-success/10" />
+        <StatCard icon={Clock} label="Tentativas pré-aprovação" value={String(stats.tentativas)} iconColor="text-warning" iconBg="bg-warning/10" />
       </div>
+
+      {tentativas.length > 0 && (
+        <DataCard className="mb-4">
+          <div className="flex items-center gap-2 mb-3">
+            <Clock size={15} className="text-warning" />
+            <h3 className="text-sm font-semibold text-foreground">Fila de auditoria — mensagens antes da pré-aprovação</h3>
+          </div>
+          <div className="space-y-2">
+            {tentativas.map((t) => (
+              <div key={t.id} className="flex items-start justify-between gap-3 rounded-lg border border-border bg-muted/30 p-3">
+                <div className="min-w-0">
+                  <p className="text-xs font-medium text-foreground truncate">{t.projeto_nome || "Projeto"}</p>
+                  <p className="text-[11px] text-muted-foreground truncate">{t.sender_nome || "Usuário"} · {t.motivo}</p>
+                </div>
+                <span className="text-[10px] text-muted-foreground shrink-0">
+                  {new Date(t.created_at).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
+                </span>
+              </div>
+            ))}
+          </div>
+        </DataCard>
+      )}
 
       {/* Filters */}
       <DataCard className="mb-4">
