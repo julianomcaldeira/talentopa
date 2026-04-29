@@ -65,13 +65,30 @@ const EmpresaProjetos = () => {
       .select("*, softwares(nome), projeto_fases(id, nome, status, valor)")
       .eq("empresa_user_id", user.id)
       .order("created_at", { ascending: false });
-    if (data) setProjetos(data);
+    if (data) {
+      const ids = data.map((p) => p.id);
+      const { data: unread } = ids.length
+        ? await supabase.from("propostas").select("projeto_id").in("projeto_id", ids).is("visualizada_empresa_em", null)
+        : { data: [] as any[] };
+      const unreadMap = new Map<string, number>();
+      (unread || []).forEach((p: any) => unreadMap.set(p.projeto_id, (unreadMap.get(p.projeto_id) || 0) + 1));
+      setProjetos(data.map((p) => ({ ...p, propostas_nao_visualizadas: unreadMap.get(p.id) || 0 })));
+    }
   };
 
   useEffect(() => {
     if (!user) return;
     refetch().then(() => setLoading(false));
   }, [user]);
+
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel(`empresa-propostas-${user.id}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "propostas" }, () => refetch())
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user?.id]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -132,6 +149,8 @@ const EmpresaProjetos = () => {
     } else {
       setPropostas([]);
     }
+    await (supabase as any).rpc("marcar_propostas_visualizadas_empresa", { p_projeto_id: projeto.id });
+    setProjetos((prev) => prev.map((p) => p.id === projeto.id ? { ...p, propostas_nao_visualizadas: 0 } : p));
     setDialogOpen(true);
   };
 
@@ -178,8 +197,11 @@ const EmpresaProjetos = () => {
       {(p.status === "publicado" || p.status === "em_selecao" || p.status === "em_andamento" || p.status === "concluido") && (
         <>
           {p.status !== "concluido" && (
-            <Button size="sm" variant="outline" onClick={() => viewPropostas(p)}>
+            <Button size="sm" variant={p.propostas_nao_visualizadas > 0 ? "default" : "outline"} className={p.propostas_nao_visualizadas > 0 ? "animate-pulse shadow-lg shadow-primary/25" : ""} onClick={() => viewPropostas(p)}>
               <Eye size={14} /> Ver propostas
+              {p.propostas_nao_visualizadas > 0 && (
+                <span className="ml-1 rounded-full bg-primary-foreground/20 px-1.5 text-[10px] font-semibold">{p.propostas_nao_visualizadas}</span>
+              )}
             </Button>
           )}
           {p.status !== "concluido" && (
@@ -367,8 +389,11 @@ const EmpresaProjetos = () => {
                     {(p.status === "publicado" || p.status === "em_selecao" || p.status === "em_andamento" || p.status === "concluido") && (
                       <div className="flex flex-wrap gap-1">
                         {p.status !== "concluido" && (
-                          <Button size="sm" variant="outline" className="h-7 px-2 text-[11px]" onClick={() => viewPropostas(p)}>
+                          <Button size="sm" variant={p.propostas_nao_visualizadas > 0 ? "default" : "outline"} className={`h-7 px-2 text-[11px] ${p.propostas_nao_visualizadas > 0 ? "animate-pulse shadow-md shadow-primary/20" : ""}`} onClick={() => viewPropostas(p)}>
                             <Eye size={11} /> Propostas
+                            {p.propostas_nao_visualizadas > 0 && (
+                              <span className="ml-1 rounded-full bg-primary-foreground/20 px-1 text-[9px] font-semibold">{p.propostas_nao_visualizadas}</span>
+                            )}
                           </Button>
                         )}
                         <Button size="sm" variant="outline" className="h-7 px-2 text-[11px]" onClick={() => setEditProjeto(p)}>

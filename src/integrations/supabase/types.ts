@@ -1399,6 +1399,7 @@ export type Database = {
           status: Database["public"]["Enums"]["status_proposta"]
           updated_at: string
           valor_proposta: number | null
+          visualizada_empresa_em: string | null
         }
         Insert: {
           comentarios?: string | null
@@ -1410,6 +1411,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["status_proposta"]
           updated_at?: string
           valor_proposta?: number | null
+          visualizada_empresa_em?: string | null
         }
         Update: {
           comentarios?: string | null
@@ -1421,6 +1423,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["status_proposta"]
           updated_at?: string
           valor_proposta?: number | null
+          visualizada_empresa_em?: string | null
         }
         Relationships: [
           {
@@ -1711,6 +1714,10 @@ export type Database = {
           p_severidade?: string
         }
         Returns: undefined
+      }
+      marcar_propostas_visualizadas_empresa: {
+        Args: { p_projeto_id: string }
+        Returns: number
       }
       notify_empresa_por_papel: {
         Args: {
