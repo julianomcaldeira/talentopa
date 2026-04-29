@@ -72,6 +72,10 @@ const EmpresaProjetos = () => {
   const [prazoFilter, setPrazoFilter] = useState<string>("all");
   const [page, setPage] = useState(1);
   const [novoProjetoOpen, setNovoProjetoOpen] = useState(false);
+  const [propostaStatusFilter, setPropostaStatusFilter] = useState("all");
+  const [propostaDataInicio, setPropostaDataInicio] = useState<Date | undefined>();
+  const [propostaDataFim, setPropostaDataFim] = useState<Date | undefined>();
+  const [propostaPage, setPropostaPage] = useState(1);
 
   const refetch = async () => {
     if (!user) return;
@@ -139,6 +143,29 @@ const EmpresaProjetos = () => {
   );
 
   useEffect(() => { setPage(1); }, [search, statusFilter, prazoFilter, view]);
+
+  const propostasFiltradas = useMemo(() => {
+    const start = propostaDataInicio ? new Date(propostaDataInicio) : null;
+    const end = propostaDataFim ? new Date(propostaDataFim) : null;
+    start?.setHours(0, 0, 0, 0);
+    end?.setHours(23, 59, 59, 999);
+    return propostas.filter((prop) => {
+      if (propostaStatusFilter !== "all" && prop.status !== propostaStatusFilter) return false;
+      const created = new Date(prop.created_at);
+      if (start && created < start) return false;
+      if (end && created > end) return false;
+      return true;
+    });
+  }, [propostas, propostaStatusFilter, propostaDataInicio, propostaDataFim]);
+
+  const propostaTotalPages = Math.max(1, Math.ceil(propostasFiltradas.length / PROPOSTAS_PAGE_SIZE));
+  const propostaCurrentPage = Math.min(propostaPage, propostaTotalPages);
+  const propostasPaginadas = useMemo(
+    () => propostasFiltradas.slice((propostaCurrentPage - 1) * PROPOSTAS_PAGE_SIZE, propostaCurrentPage * PROPOSTAS_PAGE_SIZE),
+    [propostasFiltradas, propostaCurrentPage]
+  );
+
+  useEffect(() => { setPropostaPage(1); }, [propostaStatusFilter, propostaDataInicio, propostaDataFim, selectedProjeto?.id]);
 
   const viewPropostas = async (projeto: any) => {
     setSelectedProjeto(projeto);
