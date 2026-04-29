@@ -874,6 +874,45 @@ export type Database = {
         }
         Relationships: []
       }
+      projeto_anexo_eventos: {
+        Row: {
+          actor_user_id: string
+          anexo_id: string | null
+          created_at: string
+          evento: string
+          id: string
+          mensagem_id: string | null
+          metadata: Json
+          mime_type: string | null
+          nome_arquivo: string | null
+          projeto_id: string
+        }
+        Insert: {
+          actor_user_id: string
+          anexo_id?: string | null
+          created_at?: string
+          evento: string
+          id?: string
+          mensagem_id?: string | null
+          metadata?: Json
+          mime_type?: string | null
+          nome_arquivo?: string | null
+          projeto_id: string
+        }
+        Update: {
+          actor_user_id?: string
+          anexo_id?: string | null
+          created_at?: string
+          evento?: string
+          id?: string
+          mensagem_id?: string | null
+          metadata?: Json
+          mime_type?: string | null
+          nome_arquivo?: string | null
+          projeto_id?: string
+        }
+        Relationships: []
+      }
       projeto_anexos: {
         Row: {
           arquivo_url: string
