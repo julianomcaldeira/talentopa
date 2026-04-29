@@ -297,7 +297,7 @@ const EmpresaProjetos = () => {
                       projetoId={p.id}
                       projetoNome={p.nome}
                       softwareId={p.software_id}
-                      onInvite={(consultorUserId) => preApproveMatchedConsultor(p, consultorUserId, toast, refetch)}
+                      onInvite={async (consultorUserId) => { await preApproveMatchedConsultor(p, consultorUserId, toast, refetch); }}
                     />
                   </div>
                 )}
