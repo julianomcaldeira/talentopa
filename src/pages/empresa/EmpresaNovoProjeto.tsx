@@ -104,6 +104,10 @@ const EmpresaNovoProjeto = ({ onSuccess }: EmpresaNovoProjetoProps = {}) => {
   const [novaPergunta, setNovaPergunta] = useState("");
   const [novaObrigatoria, setNovaObrigatoria] = useState(true);
 
+  const atualizarEscopoSugerido = (escopo_sugerido: string) => {
+    setClassificacao(prev => prev ? { ...prev, escopo_sugerido } : prev);
+  };
+
   const iniciarTranscricao = (campo: "problema_atual" | "objetivo") => {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognition) {
@@ -556,7 +560,7 @@ const EmpresaNovoProjeto = ({ onSuccess }: EmpresaNovoProjetoProps = {}) => {
               </Button>
 
               {classificacao && (
-                <div className="rounded-xl border border-success/30 bg-success/5 p-4 space-y-3">
+                <div className="rounded-xl border border-success/30 bg-success/5 p-4 space-y-4">
                   <div className="flex items-center gap-2 text-success">
                     <Check size={14} />
                     <span className="text-xs font-semibold uppercase tracking-wider">Análise concluída</span>
@@ -570,6 +574,16 @@ const EmpresaNovoProjeto = ({ onSuccess }: EmpresaNovoProjetoProps = {}) => {
                     )}
                   </div>
                   <p className="text-xs text-foreground/80 italic">{classificacao.resumo_executivo}</p>
+                  <div className="space-y-2">
+                    <SectionLabel>Escopo sugerido pela IA — revise e ajuste antes de publicar</SectionLabel>
+                    <Textarea
+                      value={classificacao.escopo_sugerido}
+                      onChange={(e) => atualizarEscopoSugerido(e.target.value)}
+                      rows={7}
+                      className="bg-background border-success/20 focus-visible:border-success text-sm"
+                      placeholder="Ajuste aqui o escopo sugerido pela IA..."
+                    />
+                  </div>
                 </div>
               )}
             </div>
@@ -660,7 +674,7 @@ const EmpresaNovoProjeto = ({ onSuccess }: EmpresaNovoProjetoProps = {}) => {
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div className="space-y-1">
-                      <PhaseFieldLabel>Nome da fase</PhaseFieldLabel>
+                      <PhaseFieldLabel>Nome da fase <strong className="font-bold text-primary">sugerida</strong></PhaseFieldLabel>
                       <Input value={fase.nome} onChange={(e) => { const f = [...fases]; f[i].nome = e.target.value; setFases(f); }} />
                     </div>
                     <div className="space-y-1">
