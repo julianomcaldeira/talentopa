@@ -533,7 +533,34 @@ const EmpresaProjetos = () => {
             <EmptyState message="Nenhuma proposta recebida ainda" icon={User} />
           ) : (
             <div className="space-y-3">
-              {propostas.map((prop) => (
+              <div className="rounded-xl border border-border/60 bg-muted/10 p-3 space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  <Select value={propostaStatusFilter} onValueChange={setPropostaStatusFilter}>
+                    <SelectTrigger className="h-9"><SelectValue placeholder="Status" /></SelectTrigger>
+                    <SelectContent>
+                      {PROPOSTA_STATUS_OPTIONS.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {renderDateFilter("Data inicial", propostaDataInicio, setPropostaDataInicio)}
+                  {renderDateFilter("Data final", propostaDataFim, setPropostaDataFim)}
+                </div>
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-xs text-muted-foreground">
+                    {propostasFiltradas.length} de {propostas.length} propostas
+                  </p>
+                  {(propostaStatusFilter !== "all" || propostaDataInicio || propostaDataFim) && (
+                    <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => { setPropostaStatusFilter("all"); setPropostaDataInicio(undefined); setPropostaDataFim(undefined); }}>
+                      <X size={12} /> Limpar filtros
+                    </Button>
+                  )}
+                </div>
+              </div>
+
+              {propostasFiltradas.length === 0 ? (
+                <EmptyState message="Nenhuma proposta encontrada com os filtros atuais" icon={Search} />
+              ) : propostasPaginadas.map((prop) => (
                 <div key={prop.id} className="border border-border/60 rounded-xl p-4 bg-muted/10">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2.5">
@@ -578,6 +605,21 @@ const EmpresaProjetos = () => {
                   </div>
                 </div>
               ))}
+              {propostaTotalPages > 1 && (
+                <div className="flex items-center justify-between gap-2 pt-1">
+                  <p className="text-xs text-muted-foreground">
+                    Página {propostaCurrentPage} de {propostaTotalPages}
+                  </p>
+                  <div className="flex items-center gap-1">
+                    <Button size="sm" variant="outline" disabled={propostaCurrentPage === 1} onClick={() => setPropostaPage((p) => Math.max(1, p - 1))}>
+                      <ChevronLeft size={14} /> Anterior
+                    </Button>
+                    <Button size="sm" variant="outline" disabled={propostaCurrentPage === propostaTotalPages} onClick={() => setPropostaPage((p) => Math.min(propostaTotalPages, p + 1))}>
+                      Próxima <ChevronRight size={14} />
+                    </Button>
+                  </div>
+                </div>
+              )}
               <div className="border-t border-border pt-3 mt-4">
                 <h4 className="text-sm font-semibold text-foreground mb-2">Histórico de visualização</h4>
                 {visualizacoesHistorico.length === 0 ? (
