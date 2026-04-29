@@ -867,9 +867,13 @@ const EmpresaNovoProjeto = ({ onSuccess }: EmpresaNovoProjetoProps = {}) => {
                 </div>
                 <div>
                   <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">Escopo sugerido</p>
-                  <div className="text-xs text-foreground/80 whitespace-pre-wrap bg-background/60 rounded-lg p-3 border border-border/40 max-h-60 overflow-y-auto">
-                    {classificacao.escopo_sugerido}
-                  </div>
+                  <Textarea
+                    value={classificacao.escopo_sugerido}
+                    onChange={(e) => atualizarEscopoSugerido(e.target.value)}
+                    rows={8}
+                    className="bg-background/60 border-border/40 text-xs text-foreground/80"
+                    placeholder="Revise e ajuste o escopo antes da publicação..."
+                  />
                 </div>
                 {classificacao.modulos_sugeridos && classificacao.modulos_sugeridos.length > 0 && (
                   <div>
