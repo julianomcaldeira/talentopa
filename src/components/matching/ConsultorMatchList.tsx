@@ -170,6 +170,16 @@ export const ConsultorMatchList = ({ projetoId, projetoNome, softwareId, onInvit
     return "bg-muted/50 border-border";
   };
 
+  const handlePreApprove = async (match: ConsultorMatch) => {
+    if (!onInvite) {
+      setSelected(match);
+      setDetailOpen(true);
+      return;
+    }
+    await onInvite(match.user_id);
+    setMatches(prev => prev.filter(item => item.user_id !== match.user_id));
+  };
+
   const nivelLabel: Record<string, string> = {
     junior: "Júnior", pleno: "Pleno", senior: "Sênior", especialista: "Especialista"
   };
@@ -291,7 +301,7 @@ export const ConsultorMatchList = ({ projetoId, projetoNome, softwareId, onInvit
                             </Button>
                             <Button
                               size="sm"
-                              onClick={() => onInvite ? onInvite(m.user_id) : (setSelected(m), setDetailOpen(true))}
+                              onClick={() => handlePreApprove(m)}
                               className="h-8 text-xs"
                             >
                               <BadgeCheck size={12} /> Pré-aprovar
