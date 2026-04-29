@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PageHeader, DataCard, EmptyState, LoadingState, StatCard } from "@/components/dashboard/DashboardComponents";
-import { MessageSquare, Shield, ShieldAlert, Search, Ban, CheckCircle2, Eye, AlertTriangle, Trash2, Building2, UserCircle2, ChevronLeft, ChevronRight, Filter, X } from "lucide-react";
+import { MessageSquare, Shield, ShieldAlert, Search, Ban, CheckCircle2, Eye, AlertTriangle, Trash2, Building2, UserCircle2, ChevronLeft, ChevronRight, Filter, X, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 type Papel = "empresa" | "consultor" | "admin" | "desconhecido";
@@ -42,6 +42,16 @@ interface MensagemRow {
   sender_papel?: Papel;
 }
 
+interface TentativaBloqueada {
+  id: string;
+  projeto_id: string;
+  projeto_nome?: string;
+  sender_user_id: string;
+  sender_nome?: string;
+  motivo: string;
+  created_at: string;
+}
+
 const PAGE_SIZE = 8;
 
 const papelLabel: Record<Papel, string> = {
@@ -64,8 +74,9 @@ const AdminModeracao = () => {
   const [conversas, setConversas] = useState<Conversa[]>([]);
   const [selectedConversa, setSelectedConversa] = useState<string | null>(null);
   const [mensagens, setMensagens] = useState<MensagemRow[]>([]);
+  const [tentativas, setTentativas] = useState<TentativaBloqueada[]>([]);
   const [msgLoading, setMsgLoading] = useState(false);
-  const [stats, setStats] = useState({ total: 0, bloqueadas: 0, projetos: 0 });
+  const [stats, setStats] = useState({ total: 0, bloqueadas: 0, projetos: 0, tentativas: 0 });
 
   // Filters
   const [search, setSearch] = useState("");
@@ -76,6 +87,12 @@ const AdminModeracao = () => {
   const [page, setPage] = useState(1);
 
   const fetchConversas = async () => {
+    const { data: attempts } = await (supabase as any)
+      .from("mensagem_tentativas_bloqueadas")
+      .select("id, projeto_id, sender_user_id, motivo, created_at")
+      .order("created_at", { ascending: false })
+      .limit(10);
+
     const { data: msgs } = await supabase
       .from("mensagens")
       .select("projeto_id, bloqueado, created_at, sender_user_id")
@@ -83,7 +100,8 @@ const AdminModeracao = () => {
 
     if (!msgs || msgs.length === 0) {
       setConversas([]);
-      setStats({ total: 0, bloqueadas: 0, projetos: 0 });
+      setStats({ total: 0, bloqueadas: 0, projetos: 0, tentativas: attempts?.length || 0 });
+      await hydrateTentativas(attempts || []);
       setLoading(false);
       return;
     }
@@ -163,8 +181,23 @@ const AdminModeracao = () => {
       total: msgs.length,
       bloqueadas: msgs.filter(m => m.bloqueado).length,
       projetos: projIds.length,
+      tentativas: attempts?.length || 0,
     });
+    await hydrateTentativas(attempts || []);
     setLoading(false);
+  };
+
+  const hydrateTentativas = async (attempts: any[]) => {
+    if (!attempts.length) { setTentativas([]); return; }
+    const projIds = [...new Set(attempts.map((a) => a.projeto_id))];
+    const userIds = [...new Set(attempts.map((a) => a.sender_user_id))];
+    const [projetosRes, profilesRes] = await Promise.all([
+      supabase.from("projetos").select("id, nome").in("id", projIds),
+      supabase.from("profiles").select("user_id, nome").in("user_id", userIds),
+    ]);
+    const projMap = new Map((projetosRes.data || []).map((p) => [p.id, p.nome]));
+    const profileMap = new Map((profilesRes.data || []).map((p) => [p.user_id, p.nome]));
+    setTentativas(attempts.map((a) => ({ ...a, projeto_nome: projMap.get(a.projeto_id), sender_nome: profileMap.get(a.sender_user_id) })));
   };
 
   const openConversa = async (projetoId: string) => {
