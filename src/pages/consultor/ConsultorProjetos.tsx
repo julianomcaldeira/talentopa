@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { PageHeader, DataCard, StatusBadge, EmptyState, LoadingState } from "@/components/dashboard/DashboardComponents";
-import { FolderKanban, Send, Calendar, Target, Star, MessageSquare, Eye, MapPin, Filter, X, Bookmark, BookmarkPlus, Trash2 } from "lucide-react";
+import { FolderKanban, Send, Calendar, Target, Star, MessageSquare, Eye, MapPin, Filter, X, Bookmark, BookmarkPlus, Trash2, Clock } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ProjectCommunication } from "@/components/communication/ProjectCommunication";
 import { ProjetoDetalhesDialog, ModeloContratacaoBadge } from "@/components/projetos/ProjetoDetalhesDialog";
@@ -182,6 +182,8 @@ const ConsultorProjetos = () => {
 
   const scoreColor = (s: number) => s >= 75 ? "text-success" : s >= 50 ? "text-warning" : "text-muted-foreground";
   const scoreBg = (s: number) => s >= 75 ? "bg-success/10 border-success/20" : s >= 50 ? "bg-warning/10 border-warning/20" : "bg-muted/50 border-border";
+  const formatDateTime = (value: string) => new Date(value).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
+  const formatDeadline = (value: string) => new Date(`${value}T23:59:59`).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
 
   // Apply filters
   const filteredProjetos = useMemo(() => {
@@ -494,6 +496,16 @@ const ConsultorProjetos = () => {
                 {p.prazo_estimado && (
                   <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-md">
                     <Calendar size={10} /> {new Date(p.prazo_estimado).toLocaleDateString("pt-BR")}
+                  </span>
+                )}
+                {p.created_at && (
+                  <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-md">
+                    <Clock size={10} /> Publicado em {formatDateTime(p.created_at)}
+                  </span>
+                )}
+                {p.prazo_propostas && (
+                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-primary bg-primary/10 border border-primary/30 px-2 py-0.5 rounded-md">
+                    <Calendar size={10} /> Retorno até {formatDeadline(p.prazo_propostas)}
                   </span>
                 )}
               </div>
