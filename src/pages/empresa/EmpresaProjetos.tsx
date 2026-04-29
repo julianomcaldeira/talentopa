@@ -149,9 +149,36 @@ const EmpresaProjetos = () => {
     } else {
       setPropostas([]);
     }
-    await (supabase as any).rpc("marcar_propostas_visualizadas_empresa", { p_projeto_id: projeto.id });
-    setProjetos((prev) => prev.map((p) => p.id === projeto.id ? { ...p, propostas_nao_visualizadas: 0 } : p));
+    const { error: viewedError } = await (supabase as any).rpc("marcar_propostas_visualizadas_empresa", { p_projeto_id: projeto.id });
+    if (viewedError) {
+      toast({ title: "Erro ao atualizar contador", description: viewedError.message, variant: "destructive" });
+    } else {
+      setProjetos((prev) => prev.map((p) => p.id === projeto.id ? { ...p, propostas_nao_visualizadas: 0 } : p));
+      setSelectedProjeto((prev: any) => prev?.id === projeto.id ? { ...prev, propostas_nao_visualizadas: 0 } : prev);
+      void refetch();
+    }
     setDialogOpen(true);
+  };
+
+  const renderPropostasButton = (p: any, compact = false) => {
+    const novas = Number(p.propostas_nao_visualizadas) || 0;
+    const hasNovas = novas > 0;
+    return (
+      <Button
+        size="sm"
+        variant={hasNovas ? "default" : "outline"}
+        className={`${compact ? "h-7 px-2 text-[11px]" : ""} ${hasNovas ? "animate-pulse shadow-lg shadow-primary/25" : ""}`}
+        onClick={() => viewPropostas(p)}
+        aria-label={hasNovas ? `Ver propostas, ${novas} novas propostas` : "Ver propostas"}
+      >
+        <Eye size={compact ? 11 : 14} />
+        {compact ? "Propostas" : "Ver propostas"}
+        <span className={`ml-1.5 inline-flex min-w-5 items-center justify-center rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${hasNovas ? "bg-primary-foreground/20 text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
+          {novas}
+        </span>
+        {hasNovas && <span className="text-[10px] font-medium">novas</span>}
+      </Button>
+    );
   };
 
   const acceptProposal = async (propostaId: string) => {
@@ -197,12 +224,7 @@ const EmpresaProjetos = () => {
       {(p.status === "publicado" || p.status === "em_selecao" || p.status === "em_andamento" || p.status === "concluido") && (
         <>
           {p.status !== "concluido" && (
-            <Button size="sm" variant={p.propostas_nao_visualizadas > 0 ? "default" : "outline"} className={p.propostas_nao_visualizadas > 0 ? "animate-pulse shadow-lg shadow-primary/25" : ""} onClick={() => viewPropostas(p)}>
-              <Eye size={14} /> Ver propostas
-              {p.propostas_nao_visualizadas > 0 && (
-                <span className="ml-1 rounded-full bg-primary-foreground/20 px-1.5 text-[10px] font-semibold">{p.propostas_nao_visualizadas}</span>
-              )}
-            </Button>
+            renderPropostasButton(p)
           )}
           {p.status !== "concluido" && (
             <Button size="sm" variant="outline" onClick={() => setChatProjeto(chatProjeto?.id === p.id ? null : p)}>
@@ -389,12 +411,7 @@ const EmpresaProjetos = () => {
                     {(p.status === "publicado" || p.status === "em_selecao" || p.status === "em_andamento" || p.status === "concluido") && (
                       <div className="flex flex-wrap gap-1">
                         {p.status !== "concluido" && (
-                          <Button size="sm" variant={p.propostas_nao_visualizadas > 0 ? "default" : "outline"} className={`h-7 px-2 text-[11px] ${p.propostas_nao_visualizadas > 0 ? "animate-pulse shadow-md shadow-primary/20" : ""}`} onClick={() => viewPropostas(p)}>
-                            <Eye size={11} /> Propostas
-                            {p.propostas_nao_visualizadas > 0 && (
-                              <span className="ml-1 rounded-full bg-primary-foreground/20 px-1 text-[9px] font-semibold">{p.propostas_nao_visualizadas}</span>
-                            )}
-                          </Button>
+                          {renderPropostasButton(p, true)}
                         )}
                         <Button size="sm" variant="outline" className="h-7 px-2 text-[11px]" onClick={() => setEditProjeto(p)}>
                           <Pencil size={11} /> Editar
