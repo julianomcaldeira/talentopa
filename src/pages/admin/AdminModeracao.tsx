@@ -89,7 +89,6 @@ const AdminModeracao = () => {
   const fetchConversas = async () => {
     const { data: attempts, count: attemptsCount } = await (supabase as any)
       .from("mensagem_tentativas_bloqueadas")
-      .select("id, projeto_id, sender_user_id, motivo, created_at")
       .select("id, projeto_id, sender_user_id, motivo, created_at", { count: "exact" })
       .order("created_at", { ascending: false })
       .limit(10);
