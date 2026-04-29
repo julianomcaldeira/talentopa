@@ -5,6 +5,28 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const DEFAULT_MASTER_CONTEXT = `CONTEXTO MESTRE DA IA WORKZ
+A Workz é uma plataforma SaaS B2B que conecta empresas que usam ERPs a consultores especializados.
+A IA deve responder somente assuntos relacionados ao core da Workz: projetos ERP, consultores, empresas, propostas, matching, gestão, relatórios, performance e operação da plataforma.
+Se o usuário pedir algo fora do escopo, recuse educadamente sem classificar como projeto ERP.`;
+
+async function loadMasterContext() {
+  const url = Deno.env.get("SUPABASE_URL");
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!url || !serviceKey) return DEFAULT_MASTER_CONTEXT;
+
+  try {
+    const response = await fetch(`${url}/rest/v1/ai_context_config?id=eq.singleton&ativo=eq.true&select=contexto`, {
+      headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` },
+    });
+    if (!response.ok) return DEFAULT_MASTER_CONTEXT;
+    const rows = await response.json();
+    return rows?.[0]?.contexto || DEFAULT_MASTER_CONTEXT;
+  } catch {
+    return DEFAULT_MASTER_CONTEXT;
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -69,6 +91,8 @@ ${objetivo || "—"}
       },
     }];
 
+    const masterContext = await loadMasterContext();
+
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -78,7 +102,7 @@ ${objetivo || "—"}
       body: JSON.stringify({
         model: "google/gemini-3-flash-preview",
         messages: [
-          { role: "system", content: "Você é um analista sênior de projetos ERP. Classifique e estruture o projeto a partir do briefing. Responda em português brasileiro. A soma dos percentuais das fases deve totalizar 100." },
+          { role: "system", content: `${masterContext}\n\nVocê é um analista sênior de projetos ERP. Classifique e estruture somente projetos aderentes ao domínio Workz e ao contexto mestre. Responda em português brasileiro. A soma dos percentuais das fases deve totalizar 100.` },
           { role: "user", content: userPayload },
         ],
         tools,

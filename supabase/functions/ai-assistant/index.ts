@@ -5,6 +5,28 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const DEFAULT_MASTER_CONTEXT = `CONTEXTO MESTRE DA IA WORKZ
+A Workz é uma plataforma SaaS B2B que conecta empresas que usam ERPs a consultores especializados.
+A IA deve responder somente assuntos relacionados ao core da Workz: projetos ERP, consultores, empresas, propostas, matching, gestão, relatórios, performance e operação da plataforma.
+Se o usuário pedir algo fora do escopo, recuse educadamente com: "Não consigo responder sobre esse tema. Meu foco é apoiar usuários dentro da plataforma Workz, em assuntos relacionados a projetos ERP, consultores, empresas, propostas, matching, gestão, relatórios e operação da plataforma."`;
+
+async function loadMasterContext() {
+  const url = Deno.env.get("SUPABASE_URL");
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!url || !serviceKey) return DEFAULT_MASTER_CONTEXT;
+
+  try {
+    const response = await fetch(`${url}/rest/v1/ai_context_config?id=eq.singleton&ativo=eq.true&select=contexto`, {
+      headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` },
+    });
+    if (!response.ok) return DEFAULT_MASTER_CONTEXT;
+    const rows = await response.json();
+    return rows?.[0]?.contexto || DEFAULT_MASTER_CONTEXT;
+  } catch {
+    return DEFAULT_MASTER_CONTEXT;
+  }
+}
+
 const SYSTEM_PROMPTS: Record<string, string> = {
   "project-scope": `Você é o Project Scope AI, um assistente especializado em definir escopos de projetos de consultoria ERP.
 
@@ -110,7 +132,8 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    const systemPrompt = SYSTEM_PROMPTS[mode] || SYSTEM_PROMPTS["erp-knowledge"];
+    const masterContext = await loadMasterContext();
+    const systemPrompt = `${masterContext}\n\nINSTRUÇÕES ESPECÍFICAS DO ASSISTENTE:\n${SYSTEM_PROMPTS[mode] || SYSTEM_PROMPTS["erp-knowledge"]}`;
 
     // For project-manager, inject project data into the system prompt
     let fullSystemPrompt = systemPrompt;

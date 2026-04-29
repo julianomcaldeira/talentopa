@@ -183,6 +183,7 @@ const adminLinks = [
   { to: "/admin/relatorios", icon: FileSpreadsheet, label: "Relatórios" },
   { to: "/admin/audit-logs", icon: ScrollText, label: "Logs de Auditoria" },
   { to: "/admin/score-config", icon: SlidersHorizontal, label: "Config. de Score" },
+  { to: "/admin/ai-context", icon: Bot, label: "Contexto IA" },
 ];
 
 export const AdminLayout = () => <DashboardLayout links={adminLinks} title="Administração" />;
