@@ -163,7 +163,7 @@ const EmpresaProjetos = () => {
       .select("*")
       .eq("projeto_id", projeto.id)
       .order("visualizado_em", { ascending: false });
-    const viewerIds = Array.from(new Set((historicoData || []).map((h: any) => h.visualizado_por)));
+    const viewerIds: string[] = Array.from(new Set((historicoData || []).map((h: any) => String(h.visualizado_por))));
     const { data: viewerProfiles } = viewerIds.length
       ? await supabase.from("profiles").select("user_id, nome").in("user_id", viewerIds)
       : { data: [] as any[] };
