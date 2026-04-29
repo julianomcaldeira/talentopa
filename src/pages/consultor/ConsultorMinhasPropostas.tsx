@@ -369,6 +369,7 @@ const ConsultorMinhasPropostas = () => {
           const arquivadas = filtered.filter(p => archivedIds.has(p.id));
           const cols = [
             { key: "enviada", label: "Pendentes", color: "bg-info", items: visiveis.filter(p => p.status === "enviada") },
+            { key: "pre_aprovada", label: "Pré-aprovadas", color: "bg-primary", items: visiveis.filter(p => p.status === "pre_aprovada" || p.status === "aguardando_consultor") },
             { key: "aceita", label: "Aceitas", color: "bg-success", items: visiveis.filter(p => p.status === "aceita") },
             { key: "recusada", label: "Recusadas", color: "bg-destructive", items: visiveis.filter(p => p.status === "recusada") },
             { key: "arquivada", label: "Arquivadas", color: "bg-muted-foreground", items: arquivadas },
@@ -393,7 +394,7 @@ const ConsultorMinhasPropostas = () => {
               onDragCancel={() => setActiveDragId(null)}
               onDragEnd={handleDragEnd}
             >
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
                 {cols.map(col => (
                   <KanbanColumn key={col.key} colKey={col.key} label={col.label} color={col.color} items={col.items} />
                 ))}
