@@ -42,6 +42,7 @@ import ConsultorRelatorios from "./pages/consultor/ConsultorRelatorios";
 import EmpresaRelatorios from "./pages/empresa/EmpresaRelatorios";
 import ProjetoGestao from "./pages/projetos/ProjetoGestao";
 import GestaoProjetos from "./pages/projetos/GestaoProjetos";
+import ProjectStateReference from "./pages/projetos/ProjectStateReference";
 const queryClient = new QueryClient();
 
 const AuthRedirect = () => {
@@ -88,6 +89,7 @@ const App = () => (
               <Route path="relatorios" element={<AdminRelatorios />} />
               <Route path="audit-logs" element={<AdminAuditLogs />} />
               <Route path="projetos/:id/gestao" element={<ProjetoGestao />} />
+              <Route path="estados-projeto" element={<ProjectStateReference />} />
               <Route path="score-config" element={<AdminScoreConfig />} />
               <Route path="ai-context" element={<AdminAIContext />} />
             </Route>
@@ -104,6 +106,7 @@ const App = () => (
               <Route path="portfolio/:userId" element={<ConsultorPortfolioPublico />} />
               <Route path="relatorios" element={<ConsultorRelatorios />} />
               <Route path="gestao" element={<GestaoProjetos />} />
+              <Route path="estados-projeto" element={<ProjectStateReference />} />
               <Route path="projetos/:id/gestao" element={<ProjetoGestao />} />
             </Route>
 
@@ -116,6 +119,7 @@ const App = () => (
               <Route path="perfil" element={<EmpresaPerfil />} />
               <Route path="relatorios" element={<EmpresaRelatorios />} />
               <Route path="gestao" element={<GestaoProjetos />} />
+              <Route path="estados-projeto" element={<ProjectStateReference />} />
               <Route path="projetos/:id/gestao" element={<ProjetoGestao />} />
             </Route>
 
