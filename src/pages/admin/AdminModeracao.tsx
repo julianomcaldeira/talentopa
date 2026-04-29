@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PageHeader, DataCard, EmptyState, LoadingState, StatCard } from "@/components/dashboard/DashboardComponents";
-import { MessageSquare, Shield, ShieldAlert, Search, Ban, CheckCircle2, Eye, AlertTriangle, Trash2, Building2, UserCircle2, ChevronLeft, ChevronRight, Filter, X } from "lucide-react";
+import { MessageSquare, Shield, ShieldAlert, Search, Ban, CheckCircle2, Eye, AlertTriangle, Trash2, Building2, UserCircle2, ChevronLeft, ChevronRight, Filter, X, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 type Papel = "empresa" | "consultor" | "admin" | "desconhecido";
@@ -42,6 +42,16 @@ interface MensagemRow {
   sender_papel?: Papel;
 }
 
+interface TentativaBloqueada {
+  id: string;
+  projeto_id: string;
+  projeto_nome?: string;
+  sender_user_id: string;
+  sender_nome?: string;
+  motivo: string;
+  created_at: string;
+}
+
 const PAGE_SIZE = 8;
 
 const papelLabel: Record<Papel, string> = {
@@ -64,8 +74,9 @@ const AdminModeracao = () => {
   const [conversas, setConversas] = useState<Conversa[]>([]);
   const [selectedConversa, setSelectedConversa] = useState<string | null>(null);
   const [mensagens, setMensagens] = useState<MensagemRow[]>([]);
+  const [tentativas, setTentativas] = useState<TentativaBloqueada[]>([]);
   const [msgLoading, setMsgLoading] = useState(false);
-  const [stats, setStats] = useState({ total: 0, bloqueadas: 0, projetos: 0 });
+  const [stats, setStats] = useState({ total: 0, bloqueadas: 0, projetos: 0, tentativas: 0 });
 
   // Filters
   const [search, setSearch] = useState("");
@@ -76,6 +87,12 @@ const AdminModeracao = () => {
   const [page, setPage] = useState(1);
 
   const fetchConversas = async () => {
+    const { data: attempts, count: attemptsCount } = await (supabase as any)
+      .from("mensagem_tentativas_bloqueadas")
+      .select("id, projeto_id, sender_user_id, motivo, created_at", { count: "exact" })
+      .order("created_at", { ascending: false })
+      .limit(10);
+
     const { data: msgs } = await supabase
       .from("mensagens")
       .select("projeto_id, bloqueado, created_at, sender_user_id")
@@ -83,7 +100,8 @@ const AdminModeracao = () => {
 
     if (!msgs || msgs.length === 0) {
       setConversas([]);
-      setStats({ total: 0, bloqueadas: 0, projetos: 0 });
+      setStats({ total: 0, bloqueadas: 0, projetos: 0, tentativas: attemptsCount || 0 });
+      await hydrateTentativas(attempts || []);
       setLoading(false);
       return;
     }
@@ -163,8 +181,23 @@ const AdminModeracao = () => {
       total: msgs.length,
       bloqueadas: msgs.filter(m => m.bloqueado).length,
       projetos: projIds.length,
+      tentativas: attemptsCount || 0,
     });
+    await hydrateTentativas(attempts || []);
     setLoading(false);
+  };
+
+  const hydrateTentativas = async (attempts: any[]) => {
+    if (!attempts.length) { setTentativas([]); return; }
+    const projIds = [...new Set(attempts.map((a) => a.projeto_id))];
+    const userIds = [...new Set(attempts.map((a) => a.sender_user_id))];
+    const [projetosRes, profilesRes] = await Promise.all([
+      supabase.from("projetos").select("id, nome").in("id", projIds),
+      supabase.from("profiles").select("user_id, nome").in("user_id", userIds),
+    ]);
+    const projMap = new Map((projetosRes.data || []).map((p) => [p.id, p.nome]));
+    const profileMap = new Map((profilesRes.data || []).map((p) => [p.user_id, p.nome]));
+    setTentativas(attempts.map((a) => ({ ...a, projeto_nome: projMap.get(a.projeto_id), sender_nome: profileMap.get(a.sender_user_id) })));
   };
 
   const openConversa = async (projetoId: string) => {
@@ -260,11 +293,34 @@ const AdminModeracao = () => {
     <div>
       <PageHeader title="Moderação de Comunicação" description="Monitore conversas e modere mensagens entre empresas e consultores" />
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6">
         <StatCard icon={MessageSquare} label="Total de mensagens" value={String(stats.total)} iconColor="text-primary" iconBg="bg-primary/10" />
         <StatCard icon={ShieldAlert} label="Mensagens bloqueadas" value={String(stats.bloqueadas)} iconColor="text-destructive" iconBg="bg-destructive/10" />
         <StatCard icon={Shield} label="Conversas ativas" value={String(stats.projetos)} iconColor="text-success" iconBg="bg-success/10" />
+        <StatCard icon={Clock} label="Tentativas pré-aprovação" value={String(stats.tentativas)} iconColor="text-warning" iconBg="bg-warning/10" />
       </div>
+
+      {tentativas.length > 0 && (
+        <DataCard className="mb-4">
+          <div className="flex items-center gap-2 mb-3">
+            <Clock size={15} className="text-warning" />
+            <h3 className="text-sm font-semibold text-foreground">Fila de auditoria — mensagens antes da pré-aprovação</h3>
+          </div>
+          <div className="space-y-2">
+            {tentativas.map((t) => (
+              <div key={t.id} className="flex items-start justify-between gap-3 rounded-lg border border-border bg-muted/30 p-3">
+                <div className="min-w-0">
+                  <p className="text-xs font-medium text-foreground truncate">{t.projeto_nome || "Projeto"}</p>
+                  <p className="text-[11px] text-muted-foreground truncate">{t.sender_nome || "Usuário"} · {t.motivo}</p>
+                </div>
+                <span className="text-[10px] text-muted-foreground shrink-0">
+                  {new Date(t.created_at).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
+                </span>
+              </div>
+            ))}
+          </div>
+        </DataCard>
+      )}
 
       {/* Filters */}
       <DataCard className="mb-4">

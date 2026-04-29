@@ -449,6 +449,39 @@ export type Database = {
           },
         ]
       }
+      mensagem_tentativas_bloqueadas: {
+        Row: {
+          created_at: string
+          escopo: string
+          id: string
+          motivo: string
+          projeto_id: string
+          recipient_user_id: string | null
+          sender_user_id: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          escopo?: string
+          id?: string
+          motivo: string
+          projeto_id: string
+          recipient_user_id?: string | null
+          sender_user_id: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          escopo?: string
+          id?: string
+          motivo?: string
+          projeto_id?: string
+          recipient_user_id?: string | null
+          sender_user_id?: string
+          status?: string
+        }
+        Relationships: []
+      }
       mensagens: {
         Row: {
           bloqueado: boolean
@@ -1587,6 +1620,19 @@ export type Database = {
         }
         Returns: Json
       }
+      can_user_message_project: {
+        Args: { p_escopo?: string; p_projeto_id: string; p_user_id?: string }
+        Returns: boolean
+      }
+      can_user_send_project_message: {
+        Args: {
+          p_escopo?: string
+          p_projeto_id: string
+          p_recipient_user_id?: string
+          p_sender_user_id?: string
+        }
+        Returns: boolean
+      }
       concluir_projeto: { Args: { p_projeto_id: string }; Returns: Json }
       consultor_confirmar_inicio: {
         Args: { p_proposta_id: string }
@@ -1681,6 +1727,15 @@ export type Database = {
       notify_project_linked_consultants: {
         Args: { p_mensagem: string; p_projeto_id: string }
         Returns: Json
+      }
+      registrar_mensagem_bloqueada_pre_aprovacao: {
+        Args: {
+          p_escopo?: string
+          p_motivo?: string
+          p_projeto_id: string
+          p_recipient_user_id?: string
+        }
+        Returns: string
       }
       registrar_projeto_alteracao: {
         Args: {

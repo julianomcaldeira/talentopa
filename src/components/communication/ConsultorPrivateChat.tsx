@@ -33,7 +33,19 @@ export const ConsultorPrivateChat = ({ projetoId, projetoNome, consultorUserId, 
   const [newMessage, setNewMessage] = useState("");
   const [sending, setSending] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [conversationOpen, setConversationOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  const fetchConversationAccess = async () => {
+    if (!user) return;
+    const { data } = await (supabase as any).rpc("can_user_send_project_message", {
+      p_projeto_id: projetoId,
+      p_sender_user_id: user.id,
+      p_recipient_user_id: consultorUserId,
+      p_escopo: "compartilhado",
+    });
+    setConversationOpen(Boolean(data));
+  };
 
   const fetchMessages = async () => {
     if (!user) return;
@@ -53,6 +65,7 @@ export const ConsultorPrivateChat = ({ projetoId, projetoNome, consultorUserId, 
   };
 
   useEffect(() => {
+    fetchConversationAccess();
     fetchMessages();
     const channel = supabase
       .channel(`private-${projetoId}-${consultorUserId}`)
@@ -72,6 +85,15 @@ export const ConsultorPrivateChat = ({ projetoId, projetoNome, consultorUserId, 
 
   const sendMessage = async () => {
     if (!user || !newMessage.trim() || sending) return;
+    if (!conversationOpen) {
+      await (supabase as any).rpc("registrar_mensagem_bloqueada_pre_aprovacao", {
+        p_projeto_id: projetoId,
+        p_recipient_user_id: consultorUserId,
+        p_escopo: "compartilhado",
+      });
+      toast({ title: "Conversa ainda bloqueada", description: "Este consultor precisa estar pré-aprovado para liberar a troca de mensagens.", variant: "destructive" });
+      return;
+    }
     const trimmed = newMessage.trim();
     if (trimmed.length > MAX_LEN) {
       toast({ title: "Mensagem muito longa", description: `Máximo ${MAX_LEN} caracteres.`, variant: "destructive" });
@@ -131,8 +153,8 @@ export const ConsultorPrivateChat = ({ projetoId, projetoNome, consultorUserId, 
 
       <div className="mx-3 mt-3 mb-1 p-2.5 rounded-lg bg-warning/10 border border-warning/20">
         <p className="text-[11px] text-warning-foreground flex items-start gap-1.5">
-          <AlertTriangle size={12} className="mt-0.5 shrink-0 text-warning" />
-          <span>Não compartilhe dados pessoais (telefone, e-mail, CPF) ou links externos.</span>
+          {conversationOpen ? <AlertTriangle size={12} className="mt-0.5 shrink-0 text-warning" /> : <Lock size={12} className="mt-0.5 shrink-0 text-warning" />}
+          <span>{conversationOpen ? "Não compartilhe dados pessoais (telefone, e-mail, CPF) ou links externos." : "Conversa bloqueada até a pré-aprovação deste consultor."}</span>
         </p>
       </div>
 
@@ -143,8 +165,8 @@ export const ConsultorPrivateChat = ({ projetoId, projetoNome, consultorUserId, 
           </div>
         ) : messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-32 text-muted-foreground">
-            <MessageSquare size={24} className="mb-2 opacity-40" />
-            <p className="text-xs">Nenhuma mensagem ainda. Inicie a conversa com o consultor!</p>
+            {conversationOpen ? <MessageSquare size={24} className="mb-2 opacity-40" /> : <Lock size={24} className="mb-2 opacity-40" />}
+            <p className="text-xs">{conversationOpen ? "Nenhuma mensagem ainda. Inicie a conversa com o consultor!" : "A conversa será liberada após a pré-aprovação."}</p>
           </div>
         ) : (
           <AnimatePresence initial={false}>
