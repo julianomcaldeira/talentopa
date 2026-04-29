@@ -83,6 +83,7 @@ const ConsultorMinhasPropostas = () => {
   }, [user]);
 
   const enviadas = propostas.filter((p) => p.status === "enviada").length;
+  const preAprovadas = propostas.filter((p) => p.status === "pre_aprovada" || p.status === "aguardando_consultor").length;
   const aceitas = propostas.filter((p) => p.status === "aceita").length;
   const recusadas = propostas.filter((p) => p.status === "recusada").length;
 
@@ -123,8 +124,9 @@ const ConsultorMinhasPropostas = () => {
     <div className="space-y-6">
       <PageHeader title="Minhas Propostas" description="Acompanhe o status de todas as suas propostas enviadas" />
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
         <StatCard icon={Clock} label="Pendentes" value={enviadas.toString()} iconColor="text-info" iconBg="bg-info/10" />
+          <StatCard icon={MessageSquare} label="Pré-aprovadas" value={preAprovadas.toString()} iconColor="text-primary" iconBg="bg-primary/10" />
         <StatCard icon={CheckCircle2} label="Aceitas" value={aceitas.toString()} iconColor="text-success" iconBg="bg-success/10" />
         <StatCard icon={XCircle} label="Recusadas" value={recusadas.toString()} iconColor="text-destructive" iconBg="bg-destructive/10" />
       </div>
@@ -155,6 +157,8 @@ const ConsultorMinhasPropostas = () => {
               <SelectContent>
                 <SelectItem value="all">Todos</SelectItem>
                 <SelectItem value="enviada">Pendente</SelectItem>
+                <SelectItem value="pre_aprovada">Pré-aprovada</SelectItem>
+                <SelectItem value="aguardando_consultor">Aguardando confirmação</SelectItem>
                 <SelectItem value="aceita">Aceita</SelectItem>
                 <SelectItem value="recusada">Recusada</SelectItem>
               </SelectContent>
@@ -200,10 +204,11 @@ const ConsultorMinhasPropostas = () => {
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3.5 min-w-0">
                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                  p.status === "aceita" ? "bg-success/10" : p.status === "recusada" ? "bg-destructive/10" : "bg-info/10"
+                  p.status === "aceita" ? "bg-success/10" : p.status === "recusada" ? "bg-destructive/10" : p.status === "pre_aprovada" || p.status === "aguardando_consultor" ? "bg-primary/10" : "bg-info/10"
                 }`}>
                   {p.status === "aceita" ? <CheckCircle2 size={18} className="text-success" />
                     : p.status === "recusada" ? <XCircle size={18} className="text-destructive" />
+                    : p.status === "pre_aprovada" || p.status === "aguardando_consultor" ? <MessageSquare size={18} className="text-primary" />
                     : <Clock size={18} className="text-info" />}
                 </div>
                 <div className="min-w-0">
@@ -228,6 +233,11 @@ const ConsultorMinhasPropostas = () => {
               <Button variant="outline" size="sm" onClick={() => setChatProposta(chatProposta?.id === p.id ? null : p)}>
                 <MessageSquare size={14} /> Comunicação
               </Button>
+              {p.status === "pre_aprovada" && (
+                <span className="inline-flex items-center rounded-lg border border-primary/20 bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">
+                  Comunicação liberada para alinhamento
+                </span>
+              )}
               {p.status === "aguardando_consultor" && (
                 <>
                   <Button size="sm" onClick={async () => {
@@ -359,6 +369,7 @@ const ConsultorMinhasPropostas = () => {
           const arquivadas = filtered.filter(p => archivedIds.has(p.id));
           const cols = [
             { key: "enviada", label: "Pendentes", color: "bg-info", items: visiveis.filter(p => p.status === "enviada") },
+            { key: "pre_aprovada", label: "Pré-aprovadas", color: "bg-primary", items: visiveis.filter(p => p.status === "pre_aprovada" || p.status === "aguardando_consultor") },
             { key: "aceita", label: "Aceitas", color: "bg-success", items: visiveis.filter(p => p.status === "aceita") },
             { key: "recusada", label: "Recusadas", color: "bg-destructive", items: visiveis.filter(p => p.status === "recusada") },
             { key: "arquivada", label: "Arquivadas", color: "bg-muted-foreground", items: arquivadas },
@@ -383,7 +394,7 @@ const ConsultorMinhasPropostas = () => {
               onDragCancel={() => setActiveDragId(null)}
               onDragEnd={handleDragEnd}
             >
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
                 {cols.map(col => (
                   <KanbanColumn key={col.key} colKey={col.key} label={col.label} color={col.color} items={col.items} />
                 ))}

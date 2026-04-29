@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { PageHeader, DataCard, StatusBadge, EmptyState, LoadingState } from "@/components/dashboard/DashboardComponents";
 import { ViewToggle, ViewMode } from "@/components/ui/view-toggle";
-import { FolderKanban, Eye, MapPin, Clock, DollarSign, User, MessageSquare, Pencil, Search, ChevronLeft, ChevronRight, Settings2, Plus } from "lucide-react";
+import { FolderKanban, Eye, MapPin, Clock, DollarSign, User, MessageSquare, Pencil, Search, ChevronLeft, ChevronRight, Settings2, Plus, BadgeCheck, CheckCircle2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { ConsultorMatchList } from "@/components/matching/ConsultorMatchList";
@@ -16,6 +16,20 @@ import { ProjetoEditDialog } from "@/components/projetos/ProjetoEditDialog";
 import EmpresaNovoProjeto from "./EmpresaNovoProjeto";
 
 const PAGE_SIZE = 6;
+
+const preApproveMatchedConsultor = async (projeto: any, consultorUserId: string, toast: ReturnType<typeof useToast>["toast"], refetch: () => Promise<void>) => {
+  const { error } = await (supabase as any).rpc("empresa_pre_aprovar_consultor", {
+    p_projeto_id: projeto.id,
+    p_consultor_user_id: consultorUserId,
+  });
+  if (error) {
+    toast({ title: "Erro ao pré-aprovar", description: error.message, variant: "destructive" });
+    return false;
+  }
+  toast({ title: "Consultor pré-aprovado", description: "A conversa foi liberada para alinhamento antes da aprovação final." });
+  refetch();
+  return true;
+};
 
 const KANBAN_COLUMNS: { key: string; label: string; tone: string }[] = [
   { key: "rascunho", label: "Rascunho", tone: "bg-muted-foreground/40" },
@@ -132,6 +146,17 @@ const EmpresaProjetos = () => {
     refetch();
   };
 
+  const preApproveProposal = async (propostaId: string) => {
+    const { error } = await (supabase as any).rpc("empresa_pre_aprovar_proposta", { p_proposta_id: propostaId });
+    if (error) {
+      toast({ title: "Erro ao pré-aprovar", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Projeto pré-aprovado", description: "A comunicação foi liberada para alinhamento com o consultor." });
+    if (selectedProjeto) await viewPropostas(selectedProjeto);
+    refetch();
+  };
+
   const renderProgress = (p: any) => {
     if (!p.projeto_fases || p.projeto_fases.length === 0) return null;
     return (
@@ -150,14 +175,18 @@ const EmpresaProjetos = () => {
 
   const renderActions = (p: any) => (
     <div className="flex flex-wrap items-center gap-2">
-      {(p.status === "publicado" || p.status === "em_selecao" || p.status === "em_andamento") && (
+      {(p.status === "publicado" || p.status === "em_selecao" || p.status === "em_andamento" || p.status === "concluido") && (
         <>
-          <Button size="sm" variant="outline" onClick={() => viewPropostas(p)}>
-            <Eye size={14} /> Ver propostas
-          </Button>
-          <Button size="sm" variant="outline" onClick={() => setChatProjeto(chatProjeto?.id === p.id ? null : p)}>
-            <MessageSquare size={14} /> Comunicação
-          </Button>
+          {p.status !== "concluido" && (
+            <Button size="sm" variant="outline" onClick={() => viewPropostas(p)}>
+              <Eye size={14} /> Ver propostas
+            </Button>
+          )}
+          {p.status !== "concluido" && (
+            <Button size="sm" variant="outline" onClick={() => setChatProjeto(chatProjeto?.id === p.id ? null : p)}>
+              <MessageSquare size={14} /> Comunicação
+            </Button>
+          )}
           <Button size="sm" variant="outline" onClick={() => setEditProjeto(p)}>
             <Pencil size={14} /> Editar
           </Button>
@@ -264,7 +293,12 @@ const EmpresaProjetos = () => {
 
                 {(p.status === "publicado" || p.status === "em_selecao") && (
                   <div className="ml-[54px]">
-                    <ConsultorMatchList projetoId={p.id} projetoNome={p.nome} softwareId={p.software_id} />
+                    <ConsultorMatchList
+                      projetoId={p.id}
+                      projetoNome={p.nome}
+                      softwareId={p.software_id}
+                      onInvite={async (consultorUserId) => { await preApproveMatchedConsultor(p, consultorUserId, toast, refetch); }}
+                    />
                   </div>
                 )}
               </DataCard>
@@ -330,11 +364,13 @@ const EmpresaProjetos = () => {
                     {p.projeto_fases && p.projeto_fases.length > 0 && (
                       <div className="mb-2.5">{renderProgress(p)}</div>
                     )}
-                    {(p.status === "publicado" || p.status === "em_selecao" || p.status === "em_andamento") && (
+                    {(p.status === "publicado" || p.status === "em_selecao" || p.status === "em_andamento" || p.status === "concluido") && (
                       <div className="flex flex-wrap gap-1">
-                        <Button size="sm" variant="outline" className="h-7 px-2 text-[11px]" onClick={() => viewPropostas(p)}>
-                          <Eye size={11} /> Propostas
-                        </Button>
+                        {p.status !== "concluido" && (
+                          <Button size="sm" variant="outline" className="h-7 px-2 text-[11px]" onClick={() => viewPropostas(p)}>
+                            <Eye size={11} /> Propostas
+                          </Button>
+                        )}
                         <Button size="sm" variant="outline" className="h-7 px-2 text-[11px]" onClick={() => setEditProjeto(p)}>
                           <Pencil size={11} /> Editar
                         </Button>
@@ -407,11 +443,18 @@ const EmpresaProjetos = () => {
                     )}
                   </div>
                   {prop.comentarios && <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{prop.comentarios}</p>}
-                  {prop.status === "enviada" && (
-                    <Button size="sm" className="mt-3" onClick={() => acceptProposal(prop.id)}>
-                      Aceitar proposta
-                    </Button>
-                  )}
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    {prop.status === "enviada" && (
+                      <Button size="sm" variant="outline" onClick={() => preApproveProposal(prop.id)}>
+                        <BadgeCheck size={14} /> Pré-aprovar
+                      </Button>
+                    )}
+                    {(prop.status === "enviada" || prop.status === "pre_aprovada") && (
+                      <Button size="sm" onClick={() => acceptProposal(prop.id)}>
+                        <CheckCircle2 size={14} /> Aprovação final
+                      </Button>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>

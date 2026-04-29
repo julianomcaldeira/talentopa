@@ -1552,6 +1552,14 @@ export type Database = {
         Args: { p_proposta_id: string }
         Returns: Json
       }
+      empresa_pre_aprovar_consultor: {
+        Args: { p_consultor_user_id: string; p_projeto_id: string }
+        Returns: Json
+      }
+      empresa_pre_aprovar_proposta: {
+        Args: { p_proposta_id: string }
+        Returns: Json
+      }
       get_admin_advanced_metrics: { Args: never; Returns: Json }
       get_monthly_project_stats: {
         Args: never
@@ -1622,6 +1630,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      notify_project_linked_consultants: {
+        Args: { p_mensagem: string; p_projeto_id: string }
+        Returns: Json
+      }
     }
     Enums: {
       app_role: "admin" | "consultor" | "empresa"
@@ -1650,6 +1662,7 @@ export type Database = {
         | "aceita"
         | "recusada"
         | "aguardando_consultor"
+        | "pre_aprovada"
       tipo_fatura: "empresa" | "consultor" | "plataforma"
     }
     CompositeTypes: {
@@ -1806,6 +1819,7 @@ export const Constants = {
         "aceita",
         "recusada",
         "aguardando_consultor",
+        "pre_aprovada",
       ],
       tipo_fatura: ["empresa", "consultor", "plataforma"],
     },

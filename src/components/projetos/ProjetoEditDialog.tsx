@@ -8,10 +8,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { FileText, CalendarDays, Layers, Loader2, Plus, X } from "lucide-react";
+import { FileText, CalendarDays, Layers, Loader2, Plus, X, Bell } from "lucide-react";
 
 interface Props {
   open: boolean;
@@ -35,6 +36,8 @@ interface ScopeItem { id: string; nome: string; }
 export const ProjetoEditDialog = ({ open, onOpenChange, projeto, onSaved }: Props) => {
   const { toast } = useToast();
   const [saving, setSaving] = useState(false);
+  const [notifyConsultants, setNotifyConsultants] = useState(false);
+  const [notificationMessage, setNotificationMessage] = useState("");
   const [form, setForm] = useState({
     descricao: "", objetivo: "", problema_atual: "", observacoes: "",
     prazo_estimado: "", prazo_propostas: "", modelo_contratacao: "" as "" | "presencial" | "hibrido" | "remoto",
@@ -60,9 +63,20 @@ export const ProjetoEditDialog = ({ open, onOpenChange, projeto, onSaved }: Prop
       prazo_propostas: (projeto as any).prazo_propostas || "",
       modelo_contratacao: (projeto.modelo_contratacao as any) || "",
     });
+    setNotifyConsultants(false);
+    setNotificationMessage(`Houve uma atualização importante no projeto "${projeto.nome}". Acesse a plataforma para revisar os detalhes.`);
     setErrors({});
     loadScope();
   }, [open, projeto?.id]);
+
+  const notifyLinkedConsultants = async () => {
+    if (!notifyConsultants) return;
+    const { error } = await (supabase as any).rpc("notify_project_linked_consultants", {
+      p_projeto_id: projeto.id,
+      p_mensagem: notificationMessage,
+    });
+    if (error) throw error;
+  };
 
   const loadScope = async () => {
     setLoadingScope(true);
@@ -123,12 +137,14 @@ export const ProjetoEditDialog = ({ open, onOpenChange, projeto, onSaved }: Prop
       })
       .eq("id", projeto.id);
     setSaving(false);
-    if (error) {
-      toast({ title: "Erro ao salvar", description: error.message, variant: "destructive" });
-      return;
+    try {
+      if (error) throw error;
+      await notifyLinkedConsultants();
+      toast({ title: "Projeto atualizado", description: notifyConsultants ? "As informações foram salvas e os consultores vinculados foram notificados." : "As informações foram salvas com sucesso." });
+      onSaved?.();
+    } catch (err: any) {
+      toast({ title: "Erro ao salvar", description: err.message, variant: "destructive" });
     }
-    toast({ title: "Projeto atualizado", description: "As informações foram salvas com sucesso." });
-    onSaved?.();
   };
 
   const handleSaveScope = async () => {
@@ -151,7 +167,8 @@ export const ProjetoEditDialog = ({ open, onOpenChange, projeto, onSaved }: Prop
         const { error } = await supabase.from("projeto_funcionalidades").insert(rows);
         if (error) throw error;
       }
-      toast({ title: "Escopo atualizado", description: "Módulos e funcionalidades foram atualizados." });
+      await notifyLinkedConsultants();
+      toast({ title: "Escopo atualizado", description: notifyConsultants ? "Módulos, funcionalidades e notificação foram atualizados." : "Módulos e funcionalidades foram atualizados." });
       onSaved?.();
     } catch (err: any) {
       toast({ title: "Erro ao salvar escopo", description: err.message, variant: "destructive" });
@@ -286,6 +303,30 @@ export const ProjetoEditDialog = ({ open, onOpenChange, projeto, onSaved }: Prop
                   placeholder="Informações complementares para os consultores..."
                 />
                 {errors.observacoes && <p className="text-xs text-destructive mt-1">{errors.observacoes}</p>}
+              </div>
+
+              <div className="rounded-xl border border-border/60 bg-muted/30 p-3 space-y-3">
+                <label className="flex items-start gap-2.5 cursor-pointer">
+                  <Checkbox checked={notifyConsultants} onCheckedChange={(v) => setNotifyConsultants(v === true)} className="mt-0.5" />
+                  <span>
+                    <span className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
+                      <Bell size={13} className="text-primary" /> Notificar consultores vinculados
+                    </span>
+                    <span className="block text-[11px] text-muted-foreground mt-0.5">
+                      Use quando a alteração impactar escopo, prazo, modelo de contratação ou critérios de avaliação.
+                    </span>
+                  </span>
+                </label>
+                {notifyConsultants && (
+                  <Textarea
+                    value={notificationMessage}
+                    onChange={(e) => setNotificationMessage(e.target.value.slice(0, 500))}
+                    rows={2}
+                    maxLength={500}
+                    placeholder="Mensagem para os consultores vinculados..."
+                    className="text-sm"
+                  />
+                )}
               </div>
 
               <div className="flex justify-end pt-2 border-t border-border">

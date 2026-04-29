@@ -48,6 +48,8 @@ const defaultStatusColors: Record<string, string> = {
   reprovada: "badge-destructive",
   em_mediacao: "badge-warning",
   enviada: "badge-info",
+  pre_aprovada: "badge-primary",
+  aguardando_consultor: "badge-warning",
   aceita: "badge-success",
   recusada: "badge-destructive",
 };
@@ -65,6 +67,8 @@ const defaultStatusLabels: Record<string, string> = {
   reprovada: "Reprovada",
   em_mediacao: "Em mediação",
   enviada: "Enviada",
+  pre_aprovada: "Pré-aprovada",
+  aguardando_consultor: "Aguardando consultor",
   aceita: "Aceita",
   recusada: "Recusada",
 };

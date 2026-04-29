@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { DataCard, LoadingState, EmptyState } from "@/components/dashboard/DashboardComponents";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Star, MapPin, Award, Zap, ChevronDown, ChevronUp, Trophy, Eye, MessageSquare } from "lucide-react";
+import { Star, MapPin, Award, Zap, ChevronDown, ChevronUp, Trophy, Eye, BadgeCheck } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import { useScoreConfig } from "@/hooks/useScoreConfig";
@@ -31,7 +31,7 @@ interface Props {
   projetoId: string;
   projetoNome?: string;
   softwareId: string | null;
-  onInvite?: (userId: string) => void;
+  onInvite?: (userId: string) => void | Promise<void>;
 }
 
 export const ConsultorMatchList = ({ projetoId, projetoNome, softwareId, onInvite }: Props) => {
@@ -170,6 +170,16 @@ export const ConsultorMatchList = ({ projetoId, projetoNome, softwareId, onInvit
     return "bg-muted/50 border-border";
   };
 
+  const handlePreApprove = async (match: ConsultorMatch) => {
+    if (!onInvite) {
+      setSelected(match);
+      setDetailOpen(true);
+      return;
+    }
+    await onInvite(match.user_id);
+    setMatches(prev => prev.filter(item => item.user_id !== match.user_id));
+  };
+
   const nivelLabel: Record<string, string> = {
     junior: "Júnior", pleno: "Pleno", senior: "Sênior", especialista: "Especialista"
   };
@@ -291,10 +301,10 @@ export const ConsultorMatchList = ({ projetoId, projetoNome, softwareId, onInvit
                             </Button>
                             <Button
                               size="sm"
-                              onClick={() => { setSelected(m); setDetailOpen(true); }}
+                              onClick={() => handlePreApprove(m)}
                               className="h-8 text-xs"
                             >
-                              <MessageSquare size={12} /> Conversar
+                              <BadgeCheck size={12} /> Pré-aprovar
                             </Button>
                           </div>
                         </div>
