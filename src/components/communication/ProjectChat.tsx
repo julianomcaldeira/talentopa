@@ -89,7 +89,7 @@ export const ProjectChat = ({ projetoId, projetoNome }: ProjectChatProps) => {
       .order("created_at", { ascending: true });
 
     if (data && data.length > 0) {
-      const actorIds = [...new Set(data.map((e: AttachmentEvent) => e.actor_user_id))];
+      const actorIds = [...new Set((data as AttachmentEvent[]).map((e) => e.actor_user_id))] as string[];
       const { data: profiles } = await supabase.from("profiles").select("user_id, nome").in("user_id", actorIds);
       const profileMap = new Map(profiles?.map((p) => [p.user_id, p.nome]) || []);
       setAttachmentEvents(data.map((e: AttachmentEvent) => ({ ...e, actor: { nome: profileMap.get(e.actor_user_id) || "Usuário" } })));
@@ -212,7 +212,7 @@ export const ProjectChat = ({ projetoId, projetoNome }: ProjectChatProps) => {
   };
 
   const previewAttachment = async (attachment: any, msg: Message) => {
-    if (!conversationOpen && senderId !== user?.id) {
+    if (!conversationOpen && msg.sender_user_id !== user?.id) {
       toast({ title: "Pré-visualização bloqueada", description: "O arquivo só será disponibilizado ao destinatário após a pré-aprovação.", variant: "destructive" });
       return;
     }
@@ -259,7 +259,7 @@ export const ProjectChat = ({ projetoId, projetoNome }: ProjectChatProps) => {
       const { error: uploadError } = await supabase.storage.from("projeto-anexos").upload(path, file);
       if (uploadError) throw uploadError;
 
-      const { error: attachmentError } = await (supabase as any).from("projeto_anexos").insert({
+      const { data: attachmentData, error: attachmentError } = await (supabase as any).from("projeto_anexos").insert({
         projeto_id: projetoId,
         uploader_user_id: user.id,
         nome: file.name,
@@ -268,13 +268,13 @@ export const ProjectChat = ({ projetoId, projetoNome }: ProjectChatProps) => {
         mime_type: file.type || "application/octet-stream",
         origem: "chat",
         escopo: "compartilhado",
-      });
+      }).select("id").single();
       if (attachmentError) throw attachmentError;
 
       const { error: messageError } = await supabase.from("mensagens").insert({
         projeto_id: projetoId,
         sender_user_id: user.id,
-        conteudo: JSON.stringify({ nome: file.name, path, mime_type: file.type || "application/octet-stream", tamanho_bytes: file.size }),
+        conteudo: JSON.stringify({ anexo_id: attachmentData?.id, nome: file.name, path, mime_type: file.type || "application/octet-stream", tamanho_bytes: file.size }),
         tipo: "anexo",
         escopo: "compartilhado",
         moderado: true,
