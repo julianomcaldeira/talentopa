@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
@@ -24,6 +24,16 @@ interface Message {
   sender?: { nome: string } | null;
 }
 
+interface AttachmentEvent {
+  id: string;
+  anexo_id: string | null;
+  mensagem_id: string | null;
+  actor_user_id: string;
+  evento: string;
+  created_at: string;
+  actor?: { nome: string } | null;
+}
+
 export const ProjectChat = ({ projetoId, projetoNome }: ProjectChatProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -32,6 +42,7 @@ export const ProjectChat = ({ projetoId, projetoNome }: ProjectChatProps) => {
   const [sending, setSending] = useState(false);
   const [loading, setLoading] = useState(true);
   const [conversationOpen, setConversationOpen] = useState(false);
+  const [attachmentEvents, setAttachmentEvents] = useState<AttachmentEvent[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -70,9 +81,27 @@ export const ProjectChat = ({ projetoId, projetoNome }: ProjectChatProps) => {
     setLoading(false);
   };
 
+  const fetchAttachmentEvents = async () => {
+    const { data } = await (supabase as any)
+      .from("projeto_anexo_eventos")
+      .select("id, anexo_id, mensagem_id, actor_user_id, evento, created_at")
+      .eq("projeto_id", projetoId)
+      .order("created_at", { ascending: true });
+
+    if (data && data.length > 0) {
+      const actorIds = [...new Set(data.map((e: AttachmentEvent) => e.actor_user_id))];
+      const { data: profiles } = await supabase.from("profiles").select("user_id, nome").in("user_id", actorIds);
+      const profileMap = new Map(profiles?.map((p) => [p.user_id, p.nome]) || []);
+      setAttachmentEvents(data.map((e: AttachmentEvent) => ({ ...e, actor: { nome: profileMap.get(e.actor_user_id) || "Usuário" } })));
+    } else {
+      setAttachmentEvents([]);
+    }
+  };
+
   useEffect(() => {
     fetchConversationAccess();
     fetchMessages();
+    fetchAttachmentEvents();
 
     const channel = supabase
       .channel(`chat-${projetoId}`)
@@ -84,6 +113,12 @@ export const ProjectChat = ({ projetoId, projetoNome }: ProjectChatProps) => {
       }, () => {
         fetchMessages();
       })
+      .on("postgres_changes", {
+        event: "*",
+        schema: "public",
+        table: "projeto_anexo_eventos",
+        filter: `projeto_id=eq.${projetoId}`,
+      }, () => fetchAttachmentEvents())
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
@@ -154,15 +189,53 @@ export const ProjectChat = ({ projetoId, projetoNome }: ProjectChatProps) => {
     }
   };
 
-  const previewAttachment = async (path: string, senderId: string) => {
+  const eventsByAttachment = useMemo(() => {
+    const map = new Map<string, AttachmentEvent[]>();
+    attachmentEvents.forEach((event) => {
+      const key = event.anexo_id || event.mensagem_id;
+      if (!key) return;
+      map.set(key, [...(map.get(key) || []), event]);
+    });
+    return map;
+  }, [attachmentEvents]);
+
+  const formatEventLabel = (evento: string) => ({
+    enviado: "Enviado",
+    aprovado_pre_aprovacao: "Liberado pela pré-aprovação",
+    visualizado: "Visualizado",
+  }[evento] || evento);
+
+  const getAttachmentEvents = (msg: Message) => {
+    const attachment = parseAttachment(msg.conteudo);
+    if (!attachment) return [];
+    return eventsByAttachment.get(attachment.anexo_id) || eventsByAttachment.get(msg.id) || [];
+  };
+
+  const previewAttachment = async (attachment: any, msg: Message) => {
     if (!conversationOpen && senderId !== user?.id) {
       toast({ title: "Pré-visualização bloqueada", description: "O arquivo só será disponibilizado ao destinatário após a pré-aprovação.", variant: "destructive" });
       return;
     }
-    const { data, error } = await supabase.storage.from("projeto-anexos").createSignedUrl(path, 60);
+    const { data, error } = await supabase.storage.from("projeto-anexos").createSignedUrl(attachment.path, 60);
     if (error || !data?.signedUrl) {
       toast({ title: "Erro ao pré-visualizar anexo", description: error?.message || "Arquivo indisponível.", variant: "destructive" });
       return;
+    }
+    let anexoId = attachment.anexo_id;
+    if (!anexoId) {
+      const { data: anexo } = await (supabase as any).from("projeto_anexos").select("id").eq("arquivo_url", attachment.path).maybeSingle();
+      anexoId = anexo?.id;
+    }
+    if (user && anexoId) {
+      await (supabase as any).from("projeto_anexo_eventos").insert({
+        projeto_id: projetoId,
+        anexo_id: anexoId,
+        mensagem_id: msg.id,
+        actor_user_id: user.id,
+        evento: "visualizado",
+        mime_type: attachment.mime_type || "application/octet-stream",
+        nome_arquivo: attachment.nome,
+      });
     }
     window.open(data.signedUrl, "_blank");
   };
