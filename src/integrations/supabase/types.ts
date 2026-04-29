@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_context_config: {
+        Row: {
+          ativo: boolean
+          atualizado_por: string | null
+          contexto: string
+          created_at: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          atualizado_por?: string | null
+          contexto: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          atualizado_por?: string | null
+          contexto?: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       audit_logs: {
         Row: {
           acao: string
