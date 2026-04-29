@@ -455,8 +455,11 @@ export type Database = {
           escopo: string
           id: string
           motivo: string
+          observacao_revisao: string | null
           projeto_id: string
           recipient_user_id: string | null
+          revisado_em: string | null
+          revisado_por: string | null
           sender_user_id: string
           status: string
         }
@@ -465,8 +468,11 @@ export type Database = {
           escopo?: string
           id?: string
           motivo: string
+          observacao_revisao?: string | null
           projeto_id: string
           recipient_user_id?: string | null
+          revisado_em?: string | null
+          revisado_por?: string | null
           sender_user_id: string
           status?: string
         }
@@ -475,8 +481,11 @@ export type Database = {
           escopo?: string
           id?: string
           motivo?: string
+          observacao_revisao?: string | null
           projeto_id?: string
           recipient_user_id?: string | null
+          revisado_em?: string | null
+          revisado_por?: string | null
           sender_user_id?: string
           status?: string
         }
@@ -1615,6 +1624,10 @@ export type Database = {
     }
     Functions: {
       aceitar_proposta: { Args: { p_proposta_id: string }; Returns: Json }
+      admin_aprovar_tentativa_mensagem_bloqueada: {
+        Args: { p_observacao?: string; p_tentativa_id: string }
+        Returns: Json
+      }
       atualizar_fase: {
         Args: {
           p_fase_id: string
