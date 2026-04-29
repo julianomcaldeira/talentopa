@@ -48,6 +48,7 @@ const EmpresaProjetos = () => {
   const [loading, setLoading] = useState(true);
   const [selectedProjeto, setSelectedProjeto] = useState<any>(null);
   const [propostas, setPropostas] = useState<any[]>([]);
+  const [visualizacoesHistorico, setVisualizacoesHistorico] = useState<any[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [chatProjeto, setChatProjeto] = useState<any>(null);
   const [editProjeto, setEditProjeto] = useState<any>(null);
@@ -157,6 +158,17 @@ const EmpresaProjetos = () => {
       setSelectedProjeto((prev: any) => prev?.id === projeto.id ? { ...prev, propostas_nao_visualizadas: 0 } : prev);
       void refetch();
     }
+    const { data: historicoData } = await (supabase as any)
+      .from("proposta_visualizacoes_historico")
+      .select("*")
+      .eq("projeto_id", projeto.id)
+      .order("visualizado_em", { ascending: false });
+    const viewerIds = Array.from(new Set((historicoData || []).map((h: any) => h.visualizado_por)));
+    const { data: viewerProfiles } = viewerIds.length
+      ? await supabase.from("profiles").select("user_id, nome").in("user_id", viewerIds)
+      : { data: [] as any[] };
+    const viewerMap = new Map((viewerProfiles || []).map((p: any) => [p.user_id, p.nome]));
+    setVisualizacoesHistorico((historicoData || []).map((h: any) => ({ ...h, visualizador_nome: viewerMap.get(h.visualizado_por) || "Usuário" })));
     setDialogOpen(true);
   };
 
