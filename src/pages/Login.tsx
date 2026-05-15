@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
+import workzLogo from "@/assets/workz-logo-transparent.png";
 
 const demoAccounts = [
   {
@@ -88,11 +89,8 @@ const Login = () => {
     <div className="min-h-screen flex">
       <div className="flex-1 flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-md">
-          <Link to="/" className="flex items-center gap-2 mb-10">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-              <span className="font-display font-bold text-primary-foreground text-sm">W</span>
-            </div>
-            <span className="font-display font-bold text-lg text-foreground">Workz</span>
+          <Link to="/" className="flex items-center gap-2 mb-10" aria-label="Workz">
+            <img src={workzLogo} alt="Workz" className="h-8 w-auto select-none" draggable={false} />
           </Link>
 
           <h1 className="text-2xl font-display font-bold text-foreground mb-2">Bem-vindo de volta</h1>
