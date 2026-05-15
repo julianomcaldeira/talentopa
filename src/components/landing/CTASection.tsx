@@ -58,16 +58,9 @@ const CTASection = () => {
                 </Button>
               </div>
 
-              <div className="flex items-center gap-4 mt-9 text-primary-foreground/55 text-xs">
-                <div className="flex -space-x-2">
-                  {[
-                    "src/assets/avatar-carlos.jpg",
-                    "src/assets/avatar-ana.jpg",
-                    "src/assets/avatar-roberto.jpg",
-                  ].map((_, i) => null)}
-                </div>
-                <span>✓ Sem cartão · ✓ Cadastro gratuito · ✓ Suporte humano</span>
-              </div>
+              <p className="mt-9 text-primary-foreground/55 text-xs">
+                ✓ Sem cartão · ✓ Cadastro gratuito · ✓ Suporte humano
+              </p>
             </div>
 
             {/* Image collage */}
