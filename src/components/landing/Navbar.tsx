@@ -3,7 +3,8 @@ import { Link } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
-import workzLogo from "@/assets/workz-logo.png";
+import workzLogo from "@/assets/workz-logo-transparent.png";
+import workzLogoWhite from "@/assets/workz-logo-white.png";
 
 const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
