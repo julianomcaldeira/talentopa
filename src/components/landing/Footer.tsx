@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import workzLogo from "@/assets/workz-logo.png";
+import workzLogo from "@/assets/workz-logo-white.png";
 
 const Footer = () => {
   return (
