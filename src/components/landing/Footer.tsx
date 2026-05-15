@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import workzLogo from "@/assets/workz-logo.png";
 
 const Footer = () => {
   return (
@@ -8,11 +9,8 @@ const Footer = () => {
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
           <div>
-            <div className="flex items-center gap-2.5 mb-4">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg">
-                <span className="font-display font-bold text-primary-foreground text-sm">W</span>
-              </div>
-              <span className="font-display font-bold text-lg text-primary-foreground">Workz</span>
+            <div className="mb-4">
+              <img src={workzLogo} alt="Workz" className="h-8 w-auto brightness-0 invert opacity-90" />
             </div>
             <p className="text-primary-foreground/40 text-sm leading-relaxed">
               Marketplace de consultoria ERP. Conectamos empresas aos melhores consultores do mercado.

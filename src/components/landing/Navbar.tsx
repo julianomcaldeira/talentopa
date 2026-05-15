@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
+import workzLogo from "@/assets/workz-logo.png";
 
 const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -26,11 +27,8 @@ const Navbar = () => {
       }`}
     >
       <div className="container mx-auto flex items-center justify-between h-16 px-4 lg:px-8">
-        <Link to="/" className="flex items-center gap-2.5 group">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg group-hover:shadow-primary/30 transition-shadow duration-300">
-            <span className="font-display font-bold text-primary-foreground text-sm">W</span>
-          </div>
-          <span className="font-display font-bold text-lg text-foreground">Workz</span>
+        <Link to="/" className="flex items-center group" aria-label="Workz">
+          <img src={workzLogo} alt="Workz" className="h-8 md:h-9 w-auto select-none" draggable={false} />
         </Link>
 
         <div className="hidden md:flex items-center gap-8">
