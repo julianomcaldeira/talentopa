@@ -6,46 +6,49 @@
 
 @layer base {
   :root {
-    --background: 225 15% 96%;
-    --foreground: 224 40% 10%;
+    /* Workz brand — clean white canvas */
+    --background: 210 25% 98%;
+    --foreground: 222 55% 12%;
 
     --card: 0 0% 100%;
-    --card-foreground: 224 40% 10%;
+    --card-foreground: 222 55% 12%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 224 40% 10%;
+    --popover-foreground: 222 55% 12%;
 
-    --primary: 228 76% 52%;
+    /* Workz Blue #1E47A8 */
+    --primary: 222 70% 39%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 168 62% 44%;
+    /* Workz Teal #0FA39A */
+    --secondary: 176 83% 35%;
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 225 14% 92%;
-    --muted-foreground: 224 10% 48%;
+    --muted: 215 25% 94%;
+    --muted-foreground: 220 15% 42%;
 
-    --accent: 168 62% 44%;
+    --accent: 176 83% 35%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 225 14% 90%;
-    --input: 225 14% 90%;
-    --ring: 228 76% 52%;
+    --border: 215 22% 88%;
+    --input: 215 22% 88%;
+    --ring: 222 70% 39%;
 
     --radius: 0.75rem;
 
-    /* Sidebar */
-    --sidebar-background: 228 42% 10%;
-    --sidebar-foreground: 225 15% 85%;
-    --sidebar-primary: 228 76% 58%;
+    /* Sidebar — Workz deep navy */
+    --sidebar-background: 222 60% 12%;
+    --sidebar-foreground: 210 25% 88%;
+    --sidebar-primary: 180 73% 45%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 228 30% 16%;
-    --sidebar-accent-foreground: 225 15% 95%;
-    --sidebar-border: 228 20% 16%;
-    --sidebar-ring: 228 76% 58%;
-    --sidebar-muted: 228 20% 22%;
+    --sidebar-accent: 222 50% 18%;
+    --sidebar-accent-foreground: 210 25% 95%;
+    --sidebar-border: 222 40% 20%;
+    --sidebar-ring: 180 73% 45%;
+    --sidebar-muted: 222 35% 24%;
 
     /* Semantic status */
     --success: 152 56% 40%;
@@ -55,14 +58,14 @@
     --info: 210 100% 52%;
     --info-foreground: 0 0% 100%;
 
-    /* Custom design tokens */
-    --hero-gradient: linear-gradient(135deg, hsl(228, 42%, 8%) 0%, hsl(228, 50%, 16%) 40%, hsl(168, 30%, 14%) 100%);
-    --card-shadow: 0 1px 2px hsl(228 42% 10% / 0.04), 0 2px 8px hsl(228 42% 10% / 0.04);
-    --card-shadow-hover: 0 8px 30px hsl(228 42% 10% / 0.08), 0 2px 8px hsl(228 42% 10% / 0.04);
-    --card-shadow-elevated: 0 4px 20px hsl(228 42% 10% / 0.06), 0 1px 4px hsl(228 42% 10% / 0.04);
-    --glow-primary: 0 0 50px hsl(228 76% 52% / 0.15);
-    --glow-accent: 0 0 50px hsl(168 62% 44% / 0.15);
-    --sidebar-gradient: linear-gradient(180deg, hsl(228, 42%, 10%) 0%, hsl(228, 38%, 7%) 100%);
+    /* Workz hero — deep blue → teal */
+    --hero-gradient: linear-gradient(135deg, hsl(222, 70%, 18%) 0%, hsl(222, 70%, 28%) 45%, hsl(176, 75%, 28%) 100%);
+    --card-shadow: 0 1px 2px hsl(222 60% 14% / 0.05), 0 2px 8px hsl(222 60% 14% / 0.05);
+    --card-shadow-hover: 0 8px 30px hsl(222 60% 14% / 0.10), 0 2px 8px hsl(222 60% 14% / 0.05);
+    --card-shadow-elevated: 0 4px 20px hsl(222 60% 14% / 0.08), 0 1px 4px hsl(222 60% 14% / 0.05);
+    --glow-primary: 0 0 50px hsl(222 70% 39% / 0.18);
+    --glow-accent: 0 0 50px hsl(176 83% 35% / 0.18);
+    --sidebar-gradient: linear-gradient(180deg, hsl(222, 60%, 14%) 0%, hsl(222, 65%, 9%) 100%);
 
     --font-display: 'Space Grotesk', system-ui, sans-serif;
     --font-body: 'Inter', system-ui, sans-serif;
@@ -111,7 +114,7 @@
 @layer utilities {
   .text-gradient-primary {
     @apply bg-clip-text text-transparent;
-    background-image: linear-gradient(135deg, hsl(228, 76%, 58%), hsl(168, 62%, 45%));
+    background-image: linear-gradient(135deg, hsl(222, 70%, 45%), hsl(176, 83%, 38%));
   }
 
   .bg-hero {
