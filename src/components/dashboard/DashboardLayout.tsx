@@ -8,6 +8,7 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
 import NotificationBell from "@/components/notifications/NotificationBell";
+import workzLogoWhite from "@/assets/workz-logo-white.png";
 
 const DashboardLayout = ({
   links,
@@ -42,13 +43,10 @@ const DashboardLayout = ({
       >
         {/* Logo */}
         <div className="flex items-center gap-3 h-[72px] px-5 border-b border-sidebar-border/50">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg">
-            <span className="font-display font-bold text-primary-foreground text-xs tracking-wider">W</span>
-          </div>
-          <div className="flex-1 min-w-0">
-            <span className="font-display font-semibold text-sm text-sidebar-accent-foreground block">Workz</span>
-            <span className="text-[11px] text-sidebar-foreground/50 capitalize">{title}</span>
-          </div>
+          <Link to="/" className="flex-1 min-w-0 flex items-center" aria-label="Workz">
+            <img src={workzLogoWhite} alt="Workz" className="h-6 w-auto select-none" draggable={false} />
+            <span className="ml-3 text-[11px] text-sidebar-foreground/50 capitalize truncate border-l border-sidebar-border/60 pl-3">{title}</span>
+          </Link>
           <button className="lg:hidden text-sidebar-foreground/60 hover:text-sidebar-foreground" onClick={() => setSidebarOpen(false)}>
             <X size={18} />
           </button>
