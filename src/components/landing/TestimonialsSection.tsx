@@ -1,23 +1,33 @@
 import { motion } from "framer-motion";
 import { Star, Quote } from "lucide-react";
+import avatarCarlos from "@/assets/avatar-carlos.jpg";
+import avatarAna from "@/assets/avatar-ana.jpg";
+import avatarRoberto from "@/assets/avatar-roberto.jpg";
+import teamImg from "@/assets/landing-team-meeting.jpg";
 
 const testimonials = [
   {
     name: "Carlos Mendes",
     role: "CTO, Indústria Pharma",
-    content: "A Workz transformou como contratamos consultores ERP. O matching inteligente nos economizou semanas de busca.",
+    avatar: avatarCarlos,
+    content:
+      "A Workz transformou como contratamos consultores ERP. O matching inteligente nos economizou semanas de busca.",
     rating: 5,
   },
   {
     name: "Ana Beatriz",
     role: "Consultora SAP Senior",
-    content: "Desde que me cadastrei, recebi projetos alinhados com minha expertise. A plataforma é intuitiva e profissional.",
+    avatar: avatarAna,
+    content:
+      "Desde que me cadastrei, recebi projetos alinhados com minha expertise. A plataforma é intuitiva e profissional.",
     rating: 5,
   },
   {
     name: "Roberto Silva",
     role: "Diretor de TI, Logística Express",
-    content: "Gestão de fases e pagamentos pela plataforma trouxe segurança para ambos os lados. Recomendo fortemente.",
+    avatar: avatarRoberto,
+    content:
+      "Gestão de fases e pagamentos pela plataforma trouxe segurança para ambos os lados. Recomendo fortemente.",
     rating: 5,
   },
 ];
@@ -42,40 +52,75 @@ const TestimonialsSection = () => {
           </h2>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-          {testimonials.map((t, i) => (
-            <motion.div
-              key={i}
-              className="bg-card rounded-2xl p-7 border border-border/50 shadow-card hover:shadow-card-hover transition-all duration-300 relative"
-              initial={{ opacity: 0, y: 24 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: i * 0.1 }}
-              whileHover={{ y: -4 }}
-            >
-              <Quote className="h-8 w-8 text-primary/10 absolute top-6 right-6" />
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 max-w-6xl mx-auto">
+          {/* Featured image card */}
+          <motion.div
+            className="lg:col-span-2 relative rounded-2xl overflow-hidden min-h-[320px] lg:min-h-full shadow-card"
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
+            <img
+              src={teamImg}
+              alt="Equipe colaborando em projeto ERP"
+              loading="lazy"
+              width={1280}
+              height={896}
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-primary/95 via-primary/40 to-transparent" />
+            <div className="relative z-10 h-full flex flex-col justify-end p-8">
+              <span className="inline-flex w-fit items-center gap-1.5 px-3 py-1 rounded-full bg-primary-foreground/15 backdrop-blur-md text-primary-foreground text-xs font-semibold mb-4">
+                4.9 ★ avaliação média
+              </span>
+              <p className="text-2xl font-display font-bold text-primary-foreground leading-tight">
+                Centenas de times confiam na Workz para entregar seus projetos ERP.
+              </p>
+            </div>
+          </motion.div>
 
-              <div className="flex gap-0.5 mb-4">
-                {Array.from({ length: t.rating }).map((_, j) => (
-                  <Star key={j} className="h-4 w-4 fill-accent text-accent" />
-                ))}
-              </div>
+          {/* Testimonial cards */}
+          <div className="lg:col-span-3 grid grid-cols-1 sm:grid-cols-2 gap-5">
+            {testimonials.map((t, i) => (
+              <motion.div
+                key={i}
+                className={`bg-card rounded-2xl p-6 border border-border/50 shadow-card hover:shadow-card-hover transition-all duration-300 relative ${
+                  i === 0 ? "sm:col-span-2" : ""
+                }`}
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: i * 0.1 }}
+                whileHover={{ y: -4 }}
+              >
+                <Quote className="h-7 w-7 text-primary/15 absolute top-5 right-5" />
 
-              <p className="text-foreground/80 text-sm leading-relaxed mb-6">"{t.content}"</p>
-
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
-                  <span className="text-xs font-semibold text-foreground">
-                    {t.name.split(" ").map(n => n[0]).join("")}
-                  </span>
+                <div className="flex gap-0.5 mb-3">
+                  {Array.from({ length: t.rating }).map((_, j) => (
+                    <Star key={j} className="h-3.5 w-3.5 fill-accent text-accent" />
+                  ))}
                 </div>
-                <div>
-                  <p className="text-sm font-medium text-foreground">{t.name}</p>
-                  <p className="text-xs text-muted-foreground">{t.role}</p>
+
+                <p className="text-foreground/85 text-sm leading-relaxed mb-5">"{t.content}"</p>
+
+                <div className="flex items-center gap-3">
+                  <img
+                    src={t.avatar}
+                    alt={t.name}
+                    loading="lazy"
+                    width={512}
+                    height={512}
+                    className="w-11 h-11 rounded-full object-cover ring-2 ring-background shadow-sm"
+                  />
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">{t.name}</p>
+                    <p className="text-xs text-muted-foreground">{t.role}</p>
+                  </div>
                 </div>
-              </div>
-            </motion.div>
-          ))}
+              </motion.div>
+            ))}
+          </div>
         </div>
       </div>
 
