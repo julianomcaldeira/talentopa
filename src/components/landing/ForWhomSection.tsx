@@ -2,8 +2,8 @@ import { motion } from "framer-motion";
 import { ArrowRight, Building2, Briefcase, CheckCircle2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import empresaImg from "@/assets/editorial-woman-2.jpg";
-import consultorImg from "@/assets/editorial-man-1.jpg";
+import empresaImg from "@/assets/scene-empresa.jpg";
+import consultorImg from "@/assets/scene-consultor.jpg";
 
 const cards = [
   {
