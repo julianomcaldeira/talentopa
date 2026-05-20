@@ -30,6 +30,7 @@ const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
       admin: "/admin",
       consultor: "/consultor",
       empresa: "/empresa",
+      canal: "/canal",
     };
     return <Navigate to={redirectMap[role] || "/"} replace />;
   }
