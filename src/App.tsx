@@ -130,6 +130,15 @@ const App = () => (
               <Route path="projetos/:id/gestao" element={<ProjetoGestao />} />
             </Route>
 
+            {/* Canal */}
+            <Route path="/canal" element={<ProtectedRoute allowedRoles={["canal"]}><CanalLayout /></ProtectedRoute>}>
+              <Route index element={<CanalDashboard />} />
+              <Route path="consultores" element={<CanalConsultores />} />
+              <Route path="projetos" element={<CanalProjetos />} />
+              <Route path="aprovacoes" element={<CanalAprovacoes />} />
+              <Route path="configuracoes" element={<CanalConfiguracoes />} />
+            </Route>
+
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
