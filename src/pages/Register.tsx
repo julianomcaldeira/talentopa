@@ -87,10 +87,19 @@ const Register = () => {
       return;
     }
 
+    if (userType === "canal" && !formData.nomeCanal) {
+      toast({ title: "Informe o nome do canal", variant: "destructive" });
+      return;
+    }
+
     setIsLoading(true);
     try {
       const metadata: Record<string, string> = {
-        nome: userType === "empresa" ? cnpjData!.razao_social : formData.name,
+        nome: userType === "empresa"
+          ? cnpjData!.razao_social
+          : userType === "canal"
+            ? formData.nomeCanal
+            : formData.name,
         tipo_usuario: userType,
         telefone: formData.telefone,
       };
@@ -100,6 +109,11 @@ const Register = () => {
         metadata.endereco = cnpjData.endereco;
         metadata.segmento = cnpjData.segmento;
         metadata.contato_nome = formData.name;
+      }
+      if (userType === "canal") {
+        if (formData.cnpj) metadata.cnpj = unmask(formData.cnpj);
+        metadata.responsavel_nome = formData.name;
+        metadata.email_contato = formData.email;
       }
 
       await signUp(formData.email, formData.password, metadata);
