@@ -1,4 +1,5 @@
 import { Check, Sparkles } from "lucide-react";
+import { Section } from "@/components/ui/section";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -39,7 +40,7 @@ const plans = [
 
 const PricingSection = () => {
   return (
-    <section id="pricing" className="py-16 lg:py-20 bg-background relative overflow-hidden">
+    <Section id="pricing" spacing="md" background="default" container="none">
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
 
       <div className="container mx-auto px-4">
@@ -117,7 +118,7 @@ const PricingSection = () => {
           ))}
         </div>
       </div>
-    </section>
+    </Section>
   );
 };
 

@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { Section } from "@/components/ui/section";
 import { ArrowRight, Building2, Briefcase, CheckCircle2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -38,7 +39,7 @@ const cards = [
 
 const ForWhomSection = () => {
   return (
-    <section className="py-16 lg:py-20 bg-background relative overflow-hidden">
+    <Section spacing="md" background="default" container="none">
       <div className="container mx-auto px-4">
         <motion.div
           className="text-center mb-16"
@@ -124,7 +125,7 @@ const ForWhomSection = () => {
           ))}
         </div>
       </div>
-    </section>
+    </Section>
   );
 };
 

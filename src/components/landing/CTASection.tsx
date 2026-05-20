@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { Section } from "@/components/ui/section";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -6,7 +7,7 @@ import sceneImage from "@/assets/scene-empresa.jpg";
 
 const CTASection = () => {
   return (
-    <section className="py-16 lg:py-20 bg-background relative overflow-hidden">
+    <Section spacing="md" background="default" container="none">
       <div className="container mx-auto px-4">
         <motion.div
           className="relative max-w-6xl mx-auto rounded-3xl bg-card border border-border/70 shadow-card-hover overflow-hidden"
@@ -71,7 +72,7 @@ const CTASection = () => {
           </div>
         </motion.div>
       </div>
-    </section>
+    </Section>
   );
 };
 
