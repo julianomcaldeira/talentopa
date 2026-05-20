@@ -52,33 +52,21 @@ const CTASection = () => {
               </p>
             </div>
 
-            <div className="hidden lg:block lg:col-span-2 relative min-h-[440px] bg-muted/50">
+            <div className="hidden lg:block lg:col-span-2 relative min-h-[440px] overflow-hidden">
               <motion.img
-                src={portraitWoman}
+                src={sceneImage}
                 alt=""
                 aria-hidden
                 loading="lazy"
-                width={1024}
-                height={1280}
-                className="absolute right-10 top-10 w-52 h-64 object-cover rounded-2xl shadow-card-hover ring-1 ring-border"
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
+                width={1280}
+                height={1024}
+                className="absolute inset-0 w-full h-full object-cover"
+                initial={{ opacity: 0, scale: 1.05 }}
+                whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.7, delay: 0.2 }}
+                transition={{ duration: 1.1, ease: "easeOut" }}
               />
-              <motion.img
-                src={portraitMan}
-                alt=""
-                aria-hidden
-                loading="lazy"
-                width={1024}
-                height={1280}
-                className="absolute right-40 bottom-10 w-44 h-56 object-cover rounded-2xl shadow-card-hover ring-1 ring-border"
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.7, delay: 0.35 }}
-              />
+              <div className="absolute inset-0 bg-gradient-to-l from-transparent via-card/10 to-card pointer-events-none" />
             </div>
           </div>
         </motion.div>
