@@ -7,10 +7,10 @@ import { useAuth } from "@/contexts/AuthContext";
 
 interface Projeto {
   id: string;
-  titulo: string;
+  nome: string;
   status: string;
-  orcamento: number | null;
-  prazo_dias: number | null;
+  valor_estimado: number | null;
+  prazo_estimado: string | null;
   created_at: string;
 }
 
@@ -26,21 +26,19 @@ const CanalProjetos = () => {
       if (!canalRow) { setLoading(false); return; }
       const { data } = await supabase
         .from("projetos")
-        .select("id, titulo, status, orcamento, prazo_dias, created_at")
+        .select("id, nome, status, valor_estimado, prazo_estimado, created_at")
         .eq("canal_id", canalRow.id)
         .order("created_at", { ascending: false });
-      setProjetos((data as Projeto[]) || []);
+      setProjetos((data as any) || []);
       setLoading(false);
     })();
   }, [user?.id]);
 
   return (
     <div className="space-y-6">
-      <div className="flex items-start justify-between gap-4 flex-wrap">
-        <div>
-          <h1 className="text-2xl font-display font-bold text-foreground">Projetos do canal</h1>
-          <p className="text-muted-foreground text-sm mt-1">Projetos criados pelo seu canal e seu valor.</p>
-        </div>
+      <div>
+        <h1 className="text-2xl font-display font-bold text-foreground">Projetos do canal</h1>
+        <p className="text-muted-foreground text-sm mt-1">Projetos criados pelo seu canal, com valor e status.</p>
       </div>
 
       {loading ? (
@@ -56,10 +54,10 @@ const CanalProjetos = () => {
           {projetos.map((p) => (
             <div key={p.id} className="flex items-center justify-between gap-4 p-4">
               <div className="min-w-0">
-                <p className="font-medium text-foreground truncate">{p.titulo}</p>
+                <p className="font-medium text-foreground truncate">{p.nome}</p>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  {p.prazo_dias ? `${p.prazo_dias} dias` : "Prazo não definido"} ·{" "}
-                  {p.orcamento ? `R$ ${Number(p.orcamento).toLocaleString("pt-BR")}` : "Sem orçamento"}
+                  {p.prazo_estimado ? `Prazo: ${new Date(p.prazo_estimado).toLocaleDateString("pt-BR")}` : "Sem prazo"} ·{" "}
+                  {p.valor_estimado ? `R$ ${Number(p.valor_estimado).toLocaleString("pt-BR")}` : "Sem valor"}
                 </p>
               </div>
               <Badge variant="outline" className="capitalize">{p.status?.replace(/_/g, " ")}</Badge>
