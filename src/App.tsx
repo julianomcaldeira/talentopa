@@ -57,7 +57,7 @@ const AuthRedirect = () => {
       </div>
     );
   }
-  const redirectMap: Record<string, string> = { admin: "/admin", consultor: "/consultor", empresa: "/empresa" };
+  const redirectMap: Record<string, string> = { admin: "/admin", consultor: "/consultor", empresa: "/empresa", canal: "/canal" };
   return <Navigate to={redirectMap[role] || "/login"} replace />;
 };
 
