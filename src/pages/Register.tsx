@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { Eye, EyeOff, Building2, User, Loader2, Search } from "lucide-react";
+import { Eye, EyeOff, Building2, User, Loader2, Search, Network } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,7 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { maskCNPJ, maskPhone, unmask } from "@/lib/cnpjMask";
 
-type UserType = "consultor" | "empresa" | null;
+type UserType = "consultor" | "empresa" | "canal" | null;
 
 interface CnpjData {
   razao_social: string;
@@ -31,6 +31,7 @@ const Register = () => {
     password: "",
     telefone: "",
     cnpj: "",
+    nomeCanal: "",
   });
   const [cnpjData, setCnpjData] = useState<CnpjData | null>(null);
   const [consultandoCnpj, setConsultandoCnpj] = useState(false);
@@ -41,7 +42,7 @@ const Register = () => {
 
   useEffect(() => {
     const t = searchParams.get("type");
-    if (t === "empresa" || t === "consultor") setUserType(t);
+    if (t === "empresa" || t === "consultor" || t === "canal") setUserType(t);
   }, [searchParams]);
 
   const handleConsultarCnpj = async () => {
@@ -86,10 +87,19 @@ const Register = () => {
       return;
     }
 
+    if (userType === "canal" && !formData.nomeCanal) {
+      toast({ title: "Informe o nome do canal", variant: "destructive" });
+      return;
+    }
+
     setIsLoading(true);
     try {
       const metadata: Record<string, string> = {
-        nome: userType === "empresa" ? cnpjData!.razao_social : formData.name,
+        nome: userType === "empresa"
+          ? cnpjData!.razao_social
+          : userType === "canal"
+            ? formData.nomeCanal
+            : formData.name,
         tipo_usuario: userType,
         telefone: formData.telefone,
       };
@@ -99,6 +109,11 @@ const Register = () => {
         metadata.endereco = cnpjData.endereco;
         metadata.segmento = cnpjData.segmento;
         metadata.contato_nome = formData.name;
+      }
+      if (userType === "canal") {
+        if (formData.cnpj) metadata.cnpj = unmask(formData.cnpj);
+        metadata.responsavel_nome = formData.name;
+        metadata.email_contato = formData.email;
       }
 
       await signUp(formData.email, formData.password, metadata);
@@ -143,36 +158,51 @@ const Register = () => {
           <h1 className="text-2xl font-display font-bold text-foreground mb-2">Criar conta</h1>
           <p className="text-muted-foreground mb-8">Escolha seu perfil e comece agora</p>
 
-          <div className="grid grid-cols-2 gap-4 mb-8">
+          <div className="grid grid-cols-3 gap-3 mb-8">
             <button
               type="button"
               onClick={() => { setUserType("consultor"); setCnpjData(null); }}
-              className={`flex flex-col items-center gap-2 p-5 rounded-xl border-2 transition-all ${
+              className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
                 userType === "consultor"
                   ? "border-primary bg-primary/5 shadow-card-hover"
                   : "border-border hover:border-primary/40"
               }`}
             >
-              <User className={`h-8 w-8 ${userType === "consultor" ? "text-primary" : "text-muted-foreground"}`} />
+              <User className={`h-7 w-7 ${userType === "consultor" ? "text-primary" : "text-muted-foreground"}`} />
               <span className={`font-medium text-sm ${userType === "consultor" ? "text-primary" : "text-foreground"}`}>
                 Consultor
               </span>
-              <span className="text-xs text-muted-foreground text-center">Quero encontrar projetos</span>
+              <span className="text-[11px] text-muted-foreground text-center leading-tight">Encontrar projetos</span>
             </button>
             <button
               type="button"
               onClick={() => setUserType("empresa")}
-              className={`flex flex-col items-center gap-2 p-5 rounded-xl border-2 transition-all ${
+              className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
                 userType === "empresa"
                   ? "border-primary bg-primary/5 shadow-card-hover"
                   : "border-border hover:border-primary/40"
               }`}
             >
-              <Building2 className={`h-8 w-8 ${userType === "empresa" ? "text-primary" : "text-muted-foreground"}`} />
+              <Building2 className={`h-7 w-7 ${userType === "empresa" ? "text-primary" : "text-muted-foreground"}`} />
               <span className={`font-medium text-sm ${userType === "empresa" ? "text-primary" : "text-foreground"}`}>
                 Empresa
               </span>
-              <span className="text-xs text-muted-foreground text-center">Quero publicar projetos</span>
+              <span className="text-[11px] text-muted-foreground text-center leading-tight">Publicar projetos</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => { setUserType("canal"); setCnpjData(null); }}
+              className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
+                userType === "canal"
+                  ? "border-primary bg-primary/5 shadow-card-hover"
+                  : "border-border hover:border-primary/40"
+              }`}
+            >
+              <Network className={`h-7 w-7 ${userType === "canal" ? "text-primary" : "text-muted-foreground"}`} />
+              <span className={`font-medium text-sm ${userType === "canal" ? "text-primary" : "text-foreground"}`}>
+                Canal
+              </span>
+              <span className="text-[11px] text-muted-foreground text-center leading-tight">Gerenciar consultores</span>
             </button>
           </div>
 
@@ -211,13 +241,37 @@ const Register = () => {
                 </>
               )}
 
+              {userType === "canal" && (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="nomeCanal">Nome do canal <span className="text-destructive">*</span></Label>
+                    <Input
+                      id="nomeCanal"
+                      placeholder="Ex.: ERP4U"
+                      value={formData.nomeCanal}
+                      onChange={(e) => setFormData({ ...formData, nomeCanal: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="cnpjCanal">CNPJ <span className="text-muted-foreground text-xs">(opcional)</span></Label>
+                    <Input
+                      id="cnpjCanal"
+                      placeholder="00.000.000/0000-00"
+                      value={formData.cnpj}
+                      onChange={(e) => setFormData({ ...formData, cnpj: maskCNPJ(e.target.value) })}
+                    />
+                  </div>
+                </>
+              )}
+
               <div className="space-y-2">
                 <Label htmlFor="name">
-                  {userType === "empresa" ? "Nome do responsável" : "Nome completo"} <span className="text-destructive">*</span>
+                  {userType === "empresa" || userType === "canal" ? "Nome do responsável" : "Nome completo"} <span className="text-destructive">*</span>
                 </Label>
                 <Input
                   id="name"
-                  placeholder={userType === "empresa" ? "Seu nome" : "Seu nome"}
+                  placeholder="Seu nome"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   required

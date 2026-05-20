@@ -11,7 +11,12 @@ import Register from "./pages/Register";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
-import { AdminLayout, ConsultorLayout, EmpresaLayout } from "./components/dashboard/DashboardLayout";
+import { AdminLayout, ConsultorLayout, EmpresaLayout, CanalLayout } from "./components/dashboard/DashboardLayout";
+import CanalDashboard from "./pages/canal/CanalDashboard";
+import CanalConsultores from "./pages/canal/CanalConsultores";
+import CanalProjetos from "./pages/canal/CanalProjetos";
+import CanalAprovacoes from "./pages/canal/CanalAprovacoes";
+import CanalConfiguracoes from "./pages/canal/CanalConfiguracoes";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminCatalogo from "./pages/admin/AdminCatalogo";
 import AdminEmpresas from "./pages/admin/AdminEmpresas";
@@ -57,7 +62,7 @@ const AuthRedirect = () => {
       </div>
     );
   }
-  const redirectMap: Record<string, string> = { admin: "/admin", consultor: "/consultor", empresa: "/empresa" };
+  const redirectMap: Record<string, string> = { admin: "/admin", consultor: "/consultor", empresa: "/empresa", canal: "/canal" };
   return <Navigate to={redirectMap[role] || "/login"} replace />;
 };
 
@@ -123,6 +128,15 @@ const App = () => (
               <Route path="gestao" element={<GestaoProjetos />} />
               <Route path="estados-projeto" element={<ProjectStateReference />} />
               <Route path="projetos/:id/gestao" element={<ProjetoGestao />} />
+            </Route>
+
+            {/* Canal */}
+            <Route path="/canal" element={<ProtectedRoute allowedRoles={["canal"]}><CanalLayout /></ProtectedRoute>}>
+              <Route index element={<CanalDashboard />} />
+              <Route path="consultores" element={<CanalConsultores />} />
+              <Route path="projetos" element={<CanalProjetos />} />
+              <Route path="aprovacoes" element={<CanalAprovacoes />} />
+              <Route path="configuracoes" element={<CanalConfiguracoes />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />

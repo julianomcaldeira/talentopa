@@ -214,3 +214,13 @@ const empresaLinks = [
 ];
 
 export const EmpresaLayout = () => <DashboardLayout links={empresaLinks} title="Empresa" />;
+
+const canalLinks = [
+  { to: "/canal", icon: LayoutDashboard, label: "Dashboard" },
+  { to: "/canal/consultores", icon: Users, label: "Meus Consultores" },
+  { to: "/canal/projetos", icon: FolderKanban, label: "Projetos" },
+  { to: "/canal/aprovacoes", icon: ShieldAlert, label: "Aprovações" },
+  { to: "/canal/configuracoes", icon: Settings, label: "Configurações" },
+];
+
+export const CanalLayout = () => <DashboardLayout links={canalLinks} title="Canal" />;

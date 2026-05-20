@@ -2,7 +2,7 @@ import { ReactNode } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 
-type UserRole = "admin" | "consultor" | "empresa";
+type UserRole = "admin" | "consultor" | "empresa" | "canal";
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -30,6 +30,7 @@ const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
       admin: "/admin",
       consultor: "/consultor",
       empresa: "/empresa",
+      canal: "/canal",
     };
     return <Navigate to={redirectMap[role] || "/"} replace />;
   }
