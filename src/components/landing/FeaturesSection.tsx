@@ -55,11 +55,11 @@ const features = [
 
 const FeaturesSection = () => {
   return (
-    <section id="features" className="py-16 lg:py-20 bg-background relative overflow-hidden">
+    <Section id="features" spacing="md" background="default">
       {/* Subtle background decoration */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] rounded-full bg-primary/[0.02] blur-[100px] pointer-events-none" />
 
-      <div className="container mx-auto px-4 relative z-10">
+
         <motion.div
           className="text-center mb-20"
           initial={{ opacity: 0, y: 20 }}
