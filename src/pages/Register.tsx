@@ -41,7 +41,7 @@ const Register = () => {
 
   useEffect(() => {
     const t = searchParams.get("type");
-    if (t === "empresa" || t === "consultor") setUserType(t);
+    if (t === "empresa" || t === "consultor" || t === "canal") setUserType(t);
   }, [searchParams]);
 
   const handleConsultarCnpj = async () => {
