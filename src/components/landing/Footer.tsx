@@ -1,47 +1,46 @@
 import { Link } from "react-router-dom";
-import workzLogo from "@/assets/workz-logo-white.png";
+import workzLogo from "@/assets/workz-logo-transparent.png";
 
 const Footer = () => {
   return (
-    <footer className="bg-hero py-16 relative overflow-hidden">
-      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary-foreground/10 to-transparent" />
-
+    <footer className="bg-muted/40 py-16 border-t border-border relative overflow-hidden">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
           <div>
             <div className="mb-4">
-              <img src={workzLogo} alt="Workz" className="h-8 w-auto opacity-90" />
+              <img src={workzLogo} alt="Workz" className="h-8 w-auto" />
             </div>
-            <p className="text-primary-foreground/40 text-sm leading-relaxed">
+            <p className="text-muted-foreground text-sm leading-relaxed">
               Marketplace de consultoria ERP. Conectamos empresas aos melhores consultores do mercado.
             </p>
           </div>
           <div>
-            <h4 className="font-display font-semibold text-primary-foreground mb-4 text-sm">Plataforma</h4>
-            <ul className="space-y-2.5 text-sm text-primary-foreground/40">
-              <li><a href="#features" className="hover:text-primary-foreground/70 transition-colors">Funcionalidades</a></li>
-              <li><a href="#how-it-works" className="hover:text-primary-foreground/70 transition-colors">Como funciona</a></li>
-              <li><a href="#pricing" className="hover:text-primary-foreground/70 transition-colors">Preços</a></li>
+            <h4 className="font-display font-semibold text-foreground mb-4 text-sm">Plataforma</h4>
+            <ul className="space-y-2.5 text-sm text-muted-foreground">
+              <li><a href="#features" className="hover:text-foreground transition-colors">Funcionalidades</a></li>
+              <li><a href="#how-it-works" className="hover:text-foreground transition-colors">Como funciona</a></li>
+              <li><a href="#pricing" className="hover:text-foreground transition-colors">Planos</a></li>
+              <li><Link to="/login" className="hover:text-foreground transition-colors">Entrar</Link></li>
             </ul>
           </div>
           <div>
-            <h4 className="font-display font-semibold text-primary-foreground mb-4 text-sm">Para Consultores</h4>
-            <ul className="space-y-2.5 text-sm text-primary-foreground/40">
-              <li><Link to="/register" className="hover:text-primary-foreground/70 transition-colors">Cadastre-se</Link></li>
-              <li><a href="#" className="hover:text-primary-foreground/70 transition-colors">Projetos disponíveis</a></li>
-              <li><a href="#" className="hover:text-primary-foreground/70 transition-colors">Planos</a></li>
+            <h4 className="font-display font-semibold text-foreground mb-4 text-sm">Para Consultores</h4>
+            <ul className="space-y-2.5 text-sm text-muted-foreground">
+              <li><Link to="/register?type=consultor" className="hover:text-foreground transition-colors">Cadastrar como consultor</Link></li>
+              <li><a href="#pricing" className="hover:text-foreground transition-colors">Planos do consultor</a></li>
+              <li><a href="#how-it-works" className="hover:text-foreground transition-colors">Como receber projetos</a></li>
             </ul>
           </div>
           <div>
-            <h4 className="font-display font-semibold text-primary-foreground mb-4 text-sm">Para Empresas</h4>
-            <ul className="space-y-2.5 text-sm text-primary-foreground/40">
-              <li><Link to="/register" className="hover:text-primary-foreground/70 transition-colors">Publicar projeto</Link></li>
-              <li><a href="#" className="hover:text-primary-foreground/70 transition-colors">Sustentação</a></li>
-              <li><a href="#" className="hover:text-primary-foreground/70 transition-colors">Suporte</a></li>
+            <h4 className="font-display font-semibold text-foreground mb-4 text-sm">Para Empresas</h4>
+            <ul className="space-y-2.5 text-sm text-muted-foreground">
+              <li><Link to="/register?type=empresa" className="hover:text-foreground transition-colors">Publicar projeto</Link></li>
+              <li><a href="#features" className="hover:text-foreground transition-colors">Gestão de projetos</a></li>
+              <li><a href="#how-it-works" className="hover:text-foreground transition-colors">Como contratar</a></li>
             </ul>
           </div>
         </div>
-        <div className="border-t border-primary-foreground/[0.06] pt-8 text-center text-sm text-primary-foreground/30">
+        <div className="border-t border-border pt-8 text-center text-sm text-muted-foreground">
           © 2026 Workz. Todos os direitos reservados.
         </div>
       </div>
