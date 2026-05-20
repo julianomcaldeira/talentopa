@@ -1,9 +1,9 @@
 import { motion } from "framer-motion";
 import { Star, Quote } from "lucide-react";
-import avatarCarlos from "@/assets/avatar-carlos.jpg";
-import avatarAna from "@/assets/avatar-ana.jpg";
-import avatarRoberto from "@/assets/avatar-roberto.jpg";
-import teamImg from "@/assets/landing-team-meeting.jpg";
+import avatarCarlos from "@/assets/editorial-man-1.jpg";
+import avatarAna from "@/assets/editorial-woman-1.jpg";
+import avatarRoberto from "@/assets/editorial-man-2.jpg";
+import teamImg from "@/assets/editorial-woman-2.jpg";
 
 const testimonials = [
   {
@@ -69,7 +69,7 @@ const TestimonialsSection = () => {
               height={896}
               className="absolute inset-0 w-full h-full object-cover"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-primary/95 via-primary/40 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-foreground/90 via-foreground/30 to-transparent" />
             <div className="relative z-10 h-full flex flex-col justify-end p-8">
               <span className="inline-flex w-fit items-center gap-1.5 px-3 py-1 rounded-full bg-primary-foreground/15 backdrop-blur-md text-primary-foreground text-xs font-semibold mb-4">
                 4.9 ★ avaliação média

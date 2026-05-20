@@ -30,9 +30,9 @@ const Navbar = () => {
       <div className="container mx-auto flex items-center justify-between h-16 px-4 lg:px-8">
         <Link to="/" className="flex items-center group" aria-label="Workz">
           <img
-            src={scrolled ? workzLogo : workzLogoWhite}
+            src={workzLogo}
             alt="Workz"
-            className="h-7 md:h-8 w-auto select-none transition-opacity duration-300"
+            className="h-7 md:h-8 w-auto select-none"
             draggable={false}
           />
         </Link>
