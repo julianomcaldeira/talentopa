@@ -158,36 +158,51 @@ const Register = () => {
           <h1 className="text-2xl font-display font-bold text-foreground mb-2">Criar conta</h1>
           <p className="text-muted-foreground mb-8">Escolha seu perfil e comece agora</p>
 
-          <div className="grid grid-cols-2 gap-4 mb-8">
+          <div className="grid grid-cols-3 gap-3 mb-8">
             <button
               type="button"
               onClick={() => { setUserType("consultor"); setCnpjData(null); }}
-              className={`flex flex-col items-center gap-2 p-5 rounded-xl border-2 transition-all ${
+              className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
                 userType === "consultor"
                   ? "border-primary bg-primary/5 shadow-card-hover"
                   : "border-border hover:border-primary/40"
               }`}
             >
-              <User className={`h-8 w-8 ${userType === "consultor" ? "text-primary" : "text-muted-foreground"}`} />
+              <User className={`h-7 w-7 ${userType === "consultor" ? "text-primary" : "text-muted-foreground"}`} />
               <span className={`font-medium text-sm ${userType === "consultor" ? "text-primary" : "text-foreground"}`}>
                 Consultor
               </span>
-              <span className="text-xs text-muted-foreground text-center">Quero encontrar projetos</span>
+              <span className="text-[11px] text-muted-foreground text-center leading-tight">Encontrar projetos</span>
             </button>
             <button
               type="button"
               onClick={() => setUserType("empresa")}
-              className={`flex flex-col items-center gap-2 p-5 rounded-xl border-2 transition-all ${
+              className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
                 userType === "empresa"
                   ? "border-primary bg-primary/5 shadow-card-hover"
                   : "border-border hover:border-primary/40"
               }`}
             >
-              <Building2 className={`h-8 w-8 ${userType === "empresa" ? "text-primary" : "text-muted-foreground"}`} />
+              <Building2 className={`h-7 w-7 ${userType === "empresa" ? "text-primary" : "text-muted-foreground"}`} />
               <span className={`font-medium text-sm ${userType === "empresa" ? "text-primary" : "text-foreground"}`}>
                 Empresa
               </span>
-              <span className="text-xs text-muted-foreground text-center">Quero publicar projetos</span>
+              <span className="text-[11px] text-muted-foreground text-center leading-tight">Publicar projetos</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => { setUserType("canal"); setCnpjData(null); }}
+              className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
+                userType === "canal"
+                  ? "border-primary bg-primary/5 shadow-card-hover"
+                  : "border-border hover:border-primary/40"
+              }`}
+            >
+              <Network className={`h-7 w-7 ${userType === "canal" ? "text-primary" : "text-muted-foreground"}`} />
+              <span className={`font-medium text-sm ${userType === "canal" ? "text-primary" : "text-foreground"}`}>
+                Canal
+              </span>
+              <span className="text-[11px] text-muted-foreground text-center leading-tight">Gerenciar consultores</span>
             </button>
           </div>
 
