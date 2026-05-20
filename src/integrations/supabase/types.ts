@@ -41,6 +41,79 @@ export type Database = {
         }
         Relationships: []
       }
+      alocacoes: {
+        Row: {
+          aprovado_por: string | null
+          canal_id: string
+          consultor_user_id: string
+          created_at: string
+          data_aprovacao: string | null
+          id: string
+          motivo_recusa: string | null
+          prazo_estimado: string | null
+          projeto_id: string
+          proposta_id: string | null
+          solicitado_por: string | null
+          status: Database["public"]["Enums"]["status_alocacao_canal"]
+          updated_at: string
+          valor: number | null
+        }
+        Insert: {
+          aprovado_por?: string | null
+          canal_id: string
+          consultor_user_id: string
+          created_at?: string
+          data_aprovacao?: string | null
+          id?: string
+          motivo_recusa?: string | null
+          prazo_estimado?: string | null
+          projeto_id: string
+          proposta_id?: string | null
+          solicitado_por?: string | null
+          status?: Database["public"]["Enums"]["status_alocacao_canal"]
+          updated_at?: string
+          valor?: number | null
+        }
+        Update: {
+          aprovado_por?: string | null
+          canal_id?: string
+          consultor_user_id?: string
+          created_at?: string
+          data_aprovacao?: string | null
+          id?: string
+          motivo_recusa?: string | null
+          prazo_estimado?: string | null
+          projeto_id?: string
+          proposta_id?: string | null
+          solicitado_por?: string | null
+          status?: Database["public"]["Enums"]["status_alocacao_canal"]
+          updated_at?: string
+          valor?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "alocacoes_canal_id_fkey"
+            columns: ["canal_id"]
+            isOneToOne: false
+            referencedRelation: "canais"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "alocacoes_projeto_id_fkey"
+            columns: ["projeto_id"]
+            isOneToOne: false
+            referencedRelation: "projetos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "alocacoes_proposta_id_fkey"
+            columns: ["proposta_id"]
+            isOneToOne: false
+            referencedRelation: "propostas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_logs: {
         Row: {
           acao: string
@@ -132,6 +205,158 @@ export type Database = {
             columns: ["projeto_id"]
             isOneToOne: false
             referencedRelation: "projetos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      canais: {
+        Row: {
+          cnpj: string | null
+          created_at: string
+          email_contato: string | null
+          id: string
+          nome: string
+          observacoes: string | null
+          responsavel_nome: string | null
+          status: Database["public"]["Enums"]["status_canal"]
+          telefone: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cnpj?: string | null
+          created_at?: string
+          email_contato?: string | null
+          id?: string
+          nome: string
+          observacoes?: string | null
+          responsavel_nome?: string | null
+          status?: Database["public"]["Enums"]["status_canal"]
+          telefone?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cnpj?: string | null
+          created_at?: string
+          email_contato?: string | null
+          id?: string
+          nome?: string
+          observacoes?: string | null
+          responsavel_nome?: string | null
+          status?: Database["public"]["Enums"]["status_canal"]
+          telefone?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      canal_consultores: {
+        Row: {
+          canal_id: string
+          consultor_user_id: string
+          convidado_por: string | null
+          convite_email: string | null
+          convite_id: string | null
+          created_at: string
+          data_resposta: string | null
+          data_vinculo: string | null
+          id: string
+          motivo_desvinculo: string | null
+          status: Database["public"]["Enums"]["status_canal_consultor"]
+          updated_at: string
+        }
+        Insert: {
+          canal_id: string
+          consultor_user_id: string
+          convidado_por?: string | null
+          convite_email?: string | null
+          convite_id?: string | null
+          created_at?: string
+          data_resposta?: string | null
+          data_vinculo?: string | null
+          id?: string
+          motivo_desvinculo?: string | null
+          status?: Database["public"]["Enums"]["status_canal_consultor"]
+          updated_at?: string
+        }
+        Update: {
+          canal_id?: string
+          consultor_user_id?: string
+          convidado_por?: string | null
+          convite_email?: string | null
+          convite_id?: string | null
+          created_at?: string
+          data_resposta?: string | null
+          data_vinculo?: string | null
+          id?: string
+          motivo_desvinculo?: string | null
+          status?: Database["public"]["Enums"]["status_canal_consultor"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "canal_consultores_canal_id_fkey"
+            columns: ["canal_id"]
+            isOneToOne: false
+            referencedRelation: "canais"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "canal_consultores_convite_id_fkey"
+            columns: ["convite_id"]
+            isOneToOne: false
+            referencedRelation: "canal_convites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      canal_convites: {
+        Row: {
+          canal_id: string
+          consultor_user_id: string | null
+          convidado_por: string | null
+          created_at: string
+          data_resposta: string | null
+          email: string
+          expires_at: string
+          id: string
+          status: Database["public"]["Enums"]["status_canal_convite"]
+          token: string
+          updated_at: string
+        }
+        Insert: {
+          canal_id: string
+          consultor_user_id?: string | null
+          convidado_por?: string | null
+          created_at?: string
+          data_resposta?: string | null
+          email: string
+          expires_at?: string
+          id?: string
+          status?: Database["public"]["Enums"]["status_canal_convite"]
+          token?: string
+          updated_at?: string
+        }
+        Update: {
+          canal_id?: string
+          consultor_user_id?: string | null
+          convidado_por?: string | null
+          created_at?: string
+          data_resposta?: string | null
+          email?: string
+          expires_at?: string
+          id?: string
+          status?: Database["public"]["Enums"]["status_canal_convite"]
+          token?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "canal_convites_canal_id_fkey"
+            columns: ["canal_id"]
+            isOneToOne: false
+            referencedRelation: "canais"
             referencedColumns: ["id"]
           },
         ]
@@ -1363,8 +1588,10 @@ export type Database = {
       }
       projetos: {
         Row: {
+          canal_id: string | null
           classificacao_ia: Json | null
           created_at: string
+          criado_por_tipo: string
           descricao: string | null
           empresa_user_id: string
           escopo_ia: string | null
@@ -1383,10 +1610,13 @@ export type Database = {
           status: Database["public"]["Enums"]["status_projeto"]
           template_id: string | null
           updated_at: string
+          valor_estimado: number | null
         }
         Insert: {
+          canal_id?: string | null
           classificacao_ia?: Json | null
           created_at?: string
+          criado_por_tipo?: string
           descricao?: string | null
           empresa_user_id: string
           escopo_ia?: string | null
@@ -1405,10 +1635,13 @@ export type Database = {
           status?: Database["public"]["Enums"]["status_projeto"]
           template_id?: string | null
           updated_at?: string
+          valor_estimado?: number | null
         }
         Update: {
+          canal_id?: string | null
           classificacao_ia?: Json | null
           created_at?: string
+          criado_por_tipo?: string
           descricao?: string | null
           empresa_user_id?: string
           escopo_ia?: string | null
@@ -1427,8 +1660,16 @@ export type Database = {
           status?: Database["public"]["Enums"]["status_projeto"]
           template_id?: string | null
           updated_at?: string
+          valor_estimado?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "projetos_canal_id_fkey"
+            columns: ["canal_id"]
+            isOneToOne: false
+            referencedRelation: "canais"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "projetos_software_id_fkey"
             columns: ["software_id"]
@@ -1724,6 +1965,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      canal_convidar_consultor: { Args: { p_email: string }; Returns: string }
       concluir_projeto: { Args: { p_projeto_id: string }; Returns: Json }
       consultor_confirmar_inicio: {
         Args: { p_proposta_id: string }
@@ -1746,6 +1988,10 @@ export type Database = {
         Returns: Json
       }
       get_admin_advanced_metrics: { Args: never; Returns: Json }
+      get_canal_dashboard_metrics: {
+        Args: { p_canal_id?: string }
+        Returns: Json
+      }
       get_monthly_project_stats: {
         Args: never
         Returns: {
@@ -1779,11 +2025,20 @@ export type Database = {
           valor_total: number
         }[]
       }
+      get_user_canal_id: { Args: { _user_id?: string }; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
+        Returns: boolean
+      }
+      is_canal_owner: {
+        Args: { _canal_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_consultor_do_canal: {
+        Args: { _canal_id: string; _user_id: string }
         Returns: boolean
       }
       is_empresa_team_member: {
@@ -1845,13 +2100,38 @@ export type Database = {
         }
         Returns: string
       }
+      responder_alocacao_canal: {
+        Args: {
+          p_alocacao_id: string
+          p_aprovar: boolean
+          p_justificativa?: string
+        }
+        Returns: Json
+      }
+      responder_convite_canal: {
+        Args: { p_aceitar: boolean; p_token: string }
+        Returns: Json
+      }
     }
     Enums: {
-      app_role: "admin" | "consultor" | "empresa"
+      app_role: "admin" | "consultor" | "empresa" | "canal"
       modelo_contratacao: "presencial" | "hibrido" | "remoto"
       nivel_senioridade: "junior" | "pleno" | "senior" | "especialista"
       papel_empresa_usuario: "responsavel" | "financeiro" | "operacional"
       plano_assinatura: "standard" | "premium"
+      status_alocacao_canal:
+        | "pendente_aprovacao"
+        | "aprovada"
+        | "recusada"
+        | "cancelada"
+      status_canal: "pendente" | "ativo" | "suspenso" | "inativo"
+      status_canal_consultor: "pendente" | "ativo" | "recusado" | "desvinculado"
+      status_canal_convite:
+        | "pendente"
+        | "aceito"
+        | "recusado"
+        | "expirado"
+        | "cancelado"
       status_fase:
         | "pendente"
         | "em_andamento"
@@ -1874,6 +2154,7 @@ export type Database = {
         | "recusada"
         | "aguardando_consultor"
         | "pre_aprovada"
+        | "pendente_aprovacao_canal"
       tipo_fatura: "empresa" | "consultor" | "plataforma"
     }
     CompositeTypes: {
@@ -2002,11 +2283,26 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "consultor", "empresa"],
+      app_role: ["admin", "consultor", "empresa", "canal"],
       modelo_contratacao: ["presencial", "hibrido", "remoto"],
       nivel_senioridade: ["junior", "pleno", "senior", "especialista"],
       papel_empresa_usuario: ["responsavel", "financeiro", "operacional"],
       plano_assinatura: ["standard", "premium"],
+      status_alocacao_canal: [
+        "pendente_aprovacao",
+        "aprovada",
+        "recusada",
+        "cancelada",
+      ],
+      status_canal: ["pendente", "ativo", "suspenso", "inativo"],
+      status_canal_consultor: ["pendente", "ativo", "recusado", "desvinculado"],
+      status_canal_convite: [
+        "pendente",
+        "aceito",
+        "recusado",
+        "expirado",
+        "cancelado",
+      ],
       status_fase: [
         "pendente",
         "em_andamento",
@@ -2031,6 +2327,7 @@ export const Constants = {
         "recusada",
         "aguardando_consultor",
         "pre_aprovada",
+        "pendente_aprovacao_canal",
       ],
       tipo_fatura: ["empresa", "consultor", "plataforma"],
     },
