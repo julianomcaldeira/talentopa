@@ -108,9 +108,9 @@ const HeroSection = () => {
           </div>
 
           {/* Right — compact portrait, TOTVS-style restraint */}
-          <div className="lg:col-span-5 relative">
+          <div className="lg:col-span-4 relative">
             <motion.div
-              className="relative aspect-square max-w-[420px] ml-auto rounded-3xl overflow-hidden shadow-card ring-1 ring-border/60"
+              className="relative aspect-square w-full max-w-[380px] mx-auto lg:mr-0 rounded-3xl overflow-hidden shadow-card ring-1 ring-border/60"
               initial={{ opacity: 0, scale: 0.97 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.9, ease: "easeOut" }}
