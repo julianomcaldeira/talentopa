@@ -20,9 +20,9 @@ const HeroSection = () => {
   return (
     <section className="relative min-h-[92vh] flex items-center overflow-hidden bg-background pt-20">
       <div className="container mx-auto px-4 lg:px-8 py-16 lg:py-20 relative z-10">
-        <div className="grid lg:grid-cols-12 gap-10 lg:gap-16 items-center">
+        <div className="grid lg:grid-cols-12 gap-10 lg:gap-14 items-center">
           {/* Left — copy */}
-          <div className="lg:col-span-6">
+          <div className="lg:col-span-7">
             <motion.span
               className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/[0.08] border border-primary/15 text-primary text-xs font-semibold tracking-wide"
               initial={{ opacity: 0, y: 12 }}
@@ -107,48 +107,38 @@ const HeroSection = () => {
             </motion.div>
           </div>
 
-          {/* Right — single cinematic photograph */}
-          <div className="lg:col-span-6 relative">
+          {/* Right — compact portrait, TOTVS-style restraint */}
+          <div className="lg:col-span-5 relative">
             <motion.div
-              className="relative aspect-[4/5] lg:aspect-[5/6] rounded-[28px] overflow-hidden shadow-card-hover ring-1 ring-border/60"
+              className="relative aspect-square max-w-[420px] ml-auto rounded-3xl overflow-hidden shadow-card ring-1 ring-border/60"
               initial={{ opacity: 0, scale: 0.97 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.9, ease: "easeOut" }}
             >
               <img
                 src={heroImage}
-                alt="Consultora especialista em ERP trabalhando em escritório corporativo"
-                width={1920}
-                height={1080}
+                alt="Consultora especialista em ERP em escritório corporativo"
+                width={1280}
+                height={1280}
                 className="absolute inset-0 w-full h-full object-cover"
               />
-              {/* Subtle gradient for legibility of overlay badge */}
-              <div className="absolute inset-0 bg-gradient-to-t from-background/30 via-transparent to-transparent pointer-events-none" />
+              <div className="absolute inset-0 bg-gradient-to-t from-background/25 via-transparent to-transparent pointer-events-none" />
 
-              {/* Single minimal overlay badge */}
               <motion.div
-                className="absolute bottom-6 left-6 right-6 md:right-auto md:max-w-xs rounded-2xl bg-background/85 backdrop-blur-md border border-border/60 p-4 shadow-elevated"
-                initial={{ opacity: 0, y: 20 }}
+                className="absolute bottom-4 left-4 right-4 rounded-xl bg-background/90 backdrop-blur-md border border-border/60 px-3.5 py-3 shadow-elevated"
+                initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.7, delay: 0.6 }}
               >
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-2 h-2 rounded-full bg-emerald-500" />
-                  <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                  <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
                     Match encontrado
                   </span>
                 </div>
-                <p className="text-sm font-semibold text-foreground leading-tight">
-                  Senior SAP S/4HANA · Compatibilidade 96%
+                <p className="text-[13px] font-semibold text-foreground leading-tight">
+                  Senior SAP S/4HANA · 96% compatível
                 </p>
-                <div className="mt-3 h-1.5 rounded-full bg-muted overflow-hidden">
-                  <motion.div
-                    className="h-full bg-primary rounded-full"
-                    initial={{ width: 0 }}
-                    animate={{ width: "96%" }}
-                    transition={{ duration: 1.2, delay: 1.1, ease: "easeOut" }}
-                  />
-                </div>
               </motion.div>
             </motion.div>
           </div>
