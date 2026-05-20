@@ -16,8 +16,8 @@ const cards = [
       "Receba propostas qualificadas",
       "Pague somente por entregas aprovadas",
     ],
-    cta: "Publicar projeto grátis",
-    to: "/register",
+    cta: "Publicar meu projeto",
+    to: "/register?type=empresa",
     accent: "primary" as const,
   },
   {
@@ -30,8 +30,8 @@ const cards = [
       "Recebimento garantido pela plataforma",
       "Construa um portfólio público real",
     ],
-    cta: "Quero ser consultor Workz",
-    to: "/register",
+    cta: "Cadastrar como consultor",
+    to: "/register?type=consultor",
     accent: "accent" as const,
   },
 ];

@@ -54,14 +54,14 @@ const Navbar = () => {
           ))}
         </div>
 
-        <div className="hidden md:flex items-center gap-3">
+        <div className="hidden md:flex items-center gap-2">
           <Button variant="ghost" asChild className="text-sm text-muted-foreground hover:text-foreground">
-            <Link to="/register">Sou Empresa</Link>
+            <Link to="/register?type=empresa">Publicar projeto</Link>
           </Button>
           <Button variant="ghost" asChild className="text-sm text-muted-foreground hover:text-foreground">
-            <Link to="/register">Sou Consultor</Link>
+            <Link to="/register?type=consultor">Sou consultor</Link>
           </Button>
-          <Button asChild className="text-sm px-6 shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-all">
+          <Button asChild className="text-sm px-6 shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all">
             <Link to="/login">Entrar</Link>
           </Button>
         </div>
@@ -84,10 +84,10 @@ const Navbar = () => {
             <a href="#pricing" className="block text-sm text-muted-foreground" onClick={() => setMobileOpen(false)}>Planos</a>
             <div className="flex flex-col gap-2 pt-2">
               <Button variant="ghost" asChild>
-                <Link to="/register">Sou Empresa</Link>
+                <Link to="/register?type=empresa">Publicar projeto (Empresa)</Link>
               </Button>
               <Button variant="ghost" asChild>
-                <Link to="/register">Sou Consultor</Link>
+                <Link to="/register?type=consultor">Sou consultor</Link>
               </Button>
               <Button asChild className="shadow-lg shadow-primary/25">
                 <Link to="/login">Entrar</Link>

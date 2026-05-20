@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Eye, EyeOff, Building2, User, Loader2, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,6 +22,7 @@ interface CnpjData {
 }
 
 const Register = () => {
+  const [searchParams] = useSearchParams();
   const [showPassword, setShowPassword] = useState(false);
   const [userType, setUserType] = useState<UserType>(null);
   const [formData, setFormData] = useState({
@@ -37,6 +38,11 @@ const Register = () => {
   const { signUp } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  useEffect(() => {
+    const t = searchParams.get("type");
+    if (t === "empresa" || t === "consultor") setUserType(t);
+  }, [searchParams]);
 
   const handleConsultarCnpj = async () => {
     const cleanCnpj = unmask(formData.cnpj);
