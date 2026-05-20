@@ -2,8 +2,7 @@ import { motion } from "framer-motion";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import portraitWoman from "@/assets/editorial-woman-2.jpg";
-import portraitMan from "@/assets/editorial-man-2.jpg";
+import sceneImage from "@/assets/scene-empresa.jpg";
 
 const CTASection = () => {
   return (
