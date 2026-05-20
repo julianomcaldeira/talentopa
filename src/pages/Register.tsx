@@ -241,13 +241,37 @@ const Register = () => {
                 </>
               )}
 
+              {userType === "canal" && (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="nomeCanal">Nome do canal <span className="text-destructive">*</span></Label>
+                    <Input
+                      id="nomeCanal"
+                      placeholder="Ex.: ERP4U"
+                      value={formData.nomeCanal}
+                      onChange={(e) => setFormData({ ...formData, nomeCanal: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="cnpjCanal">CNPJ <span className="text-muted-foreground text-xs">(opcional)</span></Label>
+                    <Input
+                      id="cnpjCanal"
+                      placeholder="00.000.000/0000-00"
+                      value={formData.cnpj}
+                      onChange={(e) => setFormData({ ...formData, cnpj: maskCNPJ(e.target.value) })}
+                    />
+                  </div>
+                </>
+              )}
+
               <div className="space-y-2">
                 <Label htmlFor="name">
-                  {userType === "empresa" ? "Nome do responsável" : "Nome completo"} <span className="text-destructive">*</span>
+                  {userType === "empresa" || userType === "canal" ? "Nome do responsável" : "Nome completo"} <span className="text-destructive">*</span>
                 </Label>
                 <Input
                   id="name"
-                  placeholder={userType === "empresa" ? "Seu nome" : "Seu nome"}
+                  placeholder="Seu nome"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   required
