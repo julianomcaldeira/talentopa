@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Section } from "@/components/ui/section";
-import { ArrowRight, Building2, Briefcase, CheckCircle2 } from "lucide-react";
+import { ArrowRight, Building2, Briefcase, Network, CheckCircle2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import empresaImg from "@/assets/scene-empresa.jpg";
@@ -35,6 +35,20 @@ const cards = [
     to: "/register?type=consultor",
     accent: "accent" as const,
   },
+  {
+    image: consultorImg,
+    badge: "Para Canais",
+    icon: Network,
+    title: "Gerencie seu time de consultores em um só lugar",
+    bullets: [
+      "Convide e mantenha seus consultores exclusivos",
+      "Aprove alocações em projetos com 1 clique",
+      "Acompanhe valores e performance do canal",
+    ],
+    cta: "Cadastrar meu canal",
+    to: "/register?type=canal",
+    accent: "primary" as const,
+  },
 ];
 
 const ForWhomSection = () => {
@@ -48,15 +62,16 @@ const ForWhomSection = () => {
           viewport={{ once: true }}
         >
           <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-semibold uppercase tracking-wider mb-4">
-            Dois lados, uma plataforma
+            Três perfis, uma plataforma
           </span>
           <h2 className="text-3xl md:text-5xl font-display font-bold text-foreground tracking-tight">
-            Feita para <span className="text-gradient-primary">empresas</span> e{" "}
-            <span className="text-gradient-primary">consultores</span>
+            Feita para <span className="text-gradient-primary">empresas</span>,{" "}
+            <span className="text-gradient-primary">consultores</span> e{" "}
+            <span className="text-gradient-primary">canais</span>
           </h2>
         </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
           {cards.map((c, i) => (
             <motion.div
               key={i}

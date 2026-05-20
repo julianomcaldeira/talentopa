@@ -96,9 +96,9 @@ const HowItWorksSection = () => {
             ))}
           </div>
 
-          {/* Dual-profile CTA strip */}
+          {/* Tri-profile CTA strip */}
           <motion.div
-            className="mt-20 grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl mx-auto"
+            className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-4 max-w-5xl mx-auto"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -128,6 +128,20 @@ const HowItWorksSection = () => {
               </div>
               <Button size="sm" variant="outline" asChild className="shrink-0">
                 <Link to="/register?type=consultor">
+                  Cadastrar <ArrowRight className="ml-1 h-3.5 w-3.5" />
+                </Link>
+              </Button>
+            </div>
+            <div className="flex items-center gap-4 p-5 rounded-2xl bg-card border border-border/70 shadow-card">
+              <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                <Building2 className="h-5 w-5 text-primary" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-foreground">É um canal?</p>
+                <p className="text-xs text-muted-foreground">Gerencie consultores e aprove alocações.</p>
+              </div>
+              <Button size="sm" variant="outline" asChild className="shrink-0">
+                <Link to="/register?type=canal">
                   Cadastrar <ArrowRight className="ml-1 h-3.5 w-3.5" />
                 </Link>
               </Button>
