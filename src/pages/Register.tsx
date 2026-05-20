@@ -31,6 +31,7 @@ const Register = () => {
     password: "",
     telefone: "",
     cnpj: "",
+    nomeCanal: "",
   });
   const [cnpjData, setCnpjData] = useState<CnpjData | null>(null);
   const [consultandoCnpj, setConsultandoCnpj] = useState(false);
