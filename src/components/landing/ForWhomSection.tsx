@@ -38,7 +38,7 @@ const cards = [
 
 const ForWhomSection = () => {
   return (
-    <section className="py-28 bg-background relative overflow-hidden">
+    <section className="py-16 lg:py-20 bg-background relative overflow-hidden">
       <div className="container mx-auto px-4">
         <motion.div
           className="text-center mb-16"

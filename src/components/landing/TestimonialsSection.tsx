@@ -34,7 +34,7 @@ const testimonials = [
 
 const TestimonialsSection = () => {
   return (
-    <section className="py-28 bg-muted/30 relative overflow-hidden">
+    <section className="py-16 lg:py-20 bg-muted/30 relative overflow-hidden">
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
 
       <div className="container mx-auto px-4">
