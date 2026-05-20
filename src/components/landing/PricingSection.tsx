@@ -106,14 +106,12 @@ const PricingSection = () => {
 
               <Button
                 className={`w-full rounded-xl py-6 ${
-                  plan.highlighted
-                    ? "shadow-lg shadow-primary/20 hover:shadow-primary/30"
-                    : ""
+                  plan.highlighted ? "shadow-lg shadow-primary/20 hover:shadow-primary/30" : ""
                 }`}
                 variant={plan.highlighted ? "default" : "outline"}
                 asChild
               >
-                <Link to="/register">{plan.cta}</Link>
+                <Link to="/register?type=consultor">{plan.cta}</Link>
               </Button>
             </motion.div>
           ))}
