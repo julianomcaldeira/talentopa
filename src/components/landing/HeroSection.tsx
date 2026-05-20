@@ -18,9 +18,9 @@ const HeroSection = () => {
   }, []);
 
   return (
-    <section className="relative min-h-[80vh] flex items-center overflow-hidden bg-background pt-20">
-      <div className="container mx-auto px-4 lg:px-8 py-10 lg:py-14 relative z-10">
-        <div className="grid lg:grid-cols-12 gap-8 lg:gap-10 items-center">
+    <section className="relative lg:min-h-[80vh] flex items-center overflow-hidden bg-background pt-20">
+      <div className="container mx-auto px-4 lg:px-8 py-8 lg:py-14 relative z-10">
+        <div className="grid lg:grid-cols-12 gap-6 lg:gap-10 items-center">
           {/* Left — copy */}
           <div className="lg:col-span-8">
             <motion.span
@@ -108,9 +108,9 @@ const HeroSection = () => {
           </div>
 
           {/* Right — compact portrait, TOTVS-style restraint */}
-          <div className="lg:col-span-4 relative">
+          <div className="lg:col-span-4 relative order-first lg:order-last">
             <motion.div
-              className="relative aspect-square w-full max-w-[380px] mx-auto lg:mr-0 rounded-3xl overflow-hidden shadow-card ring-1 ring-border/60"
+              className="relative aspect-square w-full max-w-[260px] sm:max-w-[300px] lg:max-w-[380px] mx-auto lg:mr-0 rounded-3xl overflow-hidden shadow-card ring-1 ring-border/60"
               initial={{ opacity: 0, scale: 0.97 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.9, ease: "easeOut" }}
