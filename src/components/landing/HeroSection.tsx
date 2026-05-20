@@ -94,7 +94,7 @@ const HeroSection = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.35 }}
             >
-              <Button size="lg" className="text-base h-13 px-7 rounded-xl shadow-lg shadow-primary/20 group" asChild>
+              <Button size="lg" className="text-base h-12 px-7 rounded-xl shadow-lg shadow-primary/20 group" asChild>
                 <Link to="/register">
                   Publicar um projeto
                   <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
@@ -103,7 +103,7 @@ const HeroSection = () => {
               <Button
                 size="lg"
                 variant="outline"
-                className="text-base h-13 px-7 rounded-xl border-border bg-card/60 backdrop-blur-sm hover:bg-card"
+                className="text-base h-12 px-7 rounded-xl border-border bg-card/60 backdrop-blur-sm hover:bg-card"
                 asChild
               >
                 <Link to="/register">Sou consultor</Link>
