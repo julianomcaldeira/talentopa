@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { Section } from "@/components/ui/section";
 import { Star, Quote } from "lucide-react";
 import avatarCarlos from "@/assets/editorial-man-1.jpg";
 import avatarAna from "@/assets/editorial-woman-1.jpg";
@@ -34,7 +35,7 @@ const testimonials = [
 
 const TestimonialsSection = () => {
   return (
-    <section className="py-16 lg:py-20 bg-muted/30 relative overflow-hidden">
+    <Section spacing="md" background="muted" container="none">
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
 
       <div className="container mx-auto px-4">
@@ -125,7 +126,7 @@ const TestimonialsSection = () => {
       </div>
 
       <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
-    </section>
+    </Section>
   );
 };
 
