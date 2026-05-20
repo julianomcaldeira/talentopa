@@ -9,7 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { maskCNPJ, maskPhone, unmask } from "@/lib/cnpjMask";
 
-type UserType = "consultor" | "empresa" | null;
+type UserType = "consultor" | "empresa" | "canal" | null;
 
 interface CnpjData {
   razao_social: string;
