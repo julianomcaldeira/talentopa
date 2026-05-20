@@ -38,13 +38,13 @@ const CTASection = () => {
 
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                 <Button size="lg" className="text-base px-7 h-12 rounded-xl shadow-lg shadow-primary/20 group" asChild>
-                  <Link to="/register">
-                    Publicar um projeto
+                  <Link to="/register?type=empresa">
+                    Sou empresa — publicar projeto
                     <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
                   </Link>
                 </Button>
                 <Button size="lg" variant="outline" className="text-base px-7 h-12 rounded-xl" asChild>
-                  <Link to="/register">Sou consultor</Link>
+                  <Link to="/register?type=consultor">Sou consultor — quero projetos</Link>
                 </Button>
               </div>
 
