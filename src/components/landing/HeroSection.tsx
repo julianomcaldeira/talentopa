@@ -18,8 +18,8 @@ const HeroSection = () => {
   }, []);
 
   return (
-    <section className="relative min-h-[92vh] flex items-center overflow-hidden bg-background pt-20">
-      <div className="container mx-auto px-4 lg:px-8 py-16 lg:py-20 relative z-10">
+    <section className="relative min-h-[80vh] flex items-center overflow-hidden bg-background pt-20">
+      <div className="container mx-auto px-4 lg:px-8 py-10 lg:py-14 relative z-10">
         <div className="grid lg:grid-cols-12 gap-8 lg:gap-10 items-center">
           {/* Left — copy */}
           <div className="lg:col-span-8">
