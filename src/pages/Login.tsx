@@ -149,12 +149,13 @@ const Login = () => {
         </div>
       </div>
 
-      <div className="hidden lg:flex flex-1 bg-hero items-center justify-center p-12">
-        <div className="max-w-md text-center">
+      <div className="hidden lg:flex flex-1 bg-gradient-to-br from-primary via-primary to-primary/80 items-center justify-center p-12 relative overflow-hidden">
+        <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_30%_20%,white,transparent_50%)]" />
+        <div className="max-w-md text-center relative z-10">
           <h2 className="text-3xl font-display font-bold text-primary-foreground mb-4">
             Conecte-se aos melhores projetos ERP
           </h2>
-          <p className="text-primary-foreground/60">
+          <p className="text-primary-foreground/80">
             Acesse projetos de implementação TOTVS, SAP, Oracle e muito mais.
           </p>
         </div>
