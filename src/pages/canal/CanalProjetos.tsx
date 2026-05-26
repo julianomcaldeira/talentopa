@@ -96,7 +96,7 @@ const CanalProjetos = () => {
     if (!canalId) return;
     // Empresas: lista todas as empresas (perfis públicos para autenticados)
     const { data: emps } = await supabase
-      .from("empresa_perfil")
+      .from("empresa_perfil_public" as any)
       .select("user_id, nome_fantasia, razao_social")
       .order("razao_social", { ascending: true });
     setEmpresas(
