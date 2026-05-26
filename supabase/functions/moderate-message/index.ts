@@ -69,6 +69,13 @@ serve(async (req) => {
   }
 
   try {
+    const userId = await requireUser(req);
+    if (!userId) {
+      return new Response(JSON.stringify({ aprovado: false, motivo: "Unauthorized" }), {
+        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const { conteudo } = await req.json();
 
     if (!conteudo || typeof conteudo !== 'string') {
