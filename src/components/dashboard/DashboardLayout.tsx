@@ -184,6 +184,8 @@ const adminLinks = [
   { to: "/admin/audit-logs", icon: ScrollText, label: "Logs de Auditoria" },
   { to: "/admin/score-config", icon: SlidersHorizontal, label: "Config. de Score" },
   { to: "/admin/ai-context", icon: Bot, label: "Contexto IA" },
+  { to: "/admin/usuarios", icon: ShieldCheck, label: "Administradores" },
+  { to: "/admin/perfil", icon: UserCog, label: "Meu perfil" },
 ];
 
 export const AdminLayout = () => <DashboardLayout links={adminLinks} title="Administração" />;
