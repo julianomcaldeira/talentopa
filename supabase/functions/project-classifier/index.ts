@@ -1,9 +1,28 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+async function requireUser(req: Request): Promise<string | null> {
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader?.startsWith("Bearer ")) return null;
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
+  if (!supabaseUrl || !anonKey) return null;
+  try {
+    const client = createClient(supabaseUrl, anonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const { data, error } = await client.auth.getClaims(authHeader.replace("Bearer ", ""));
+    if (error || !data?.claims?.sub) return null;
+    return data.claims.sub as string;
+  } catch {
+    return null;
+  }
+}
 
 const DEFAULT_MASTER_CONTEXT = `CONTEXTO MESTRE DA IA WORKZ
 A Workz é uma plataforma SaaS B2B que conecta empresas que usam ERPs a consultores especializados.
@@ -31,6 +50,13 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
+    const userId = await requireUser(req);
+    if (!userId) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const { problema_atual, objetivo, descricao, software_nome, modelo_contratacao, prazo_estimado } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY não configurada");

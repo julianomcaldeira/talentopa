@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -39,13 +40,20 @@ async function loadMasterContext() {
   }
 }
 
-function getUserIdFromRequest(req: Request) {
-  const token = req.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
-  if (!token) return null;
-
+async function getAuthenticatedUserId(req: Request): Promise<string | null> {
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader?.startsWith("Bearer ")) return null;
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
+  if (!supabaseUrl || !anonKey) return null;
   try {
-    const payload = JSON.parse(atob(token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/")));
-    return typeof payload?.sub === "string" ? payload.sub : null;
+    const client = createClient(supabaseUrl, anonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const token = authHeader.replace("Bearer ", "");
+    const { data, error } = await client.auth.getClaims(token);
+    if (error || !data?.claims?.sub) return null;
+    return data.claims.sub as string;
   } catch {
     return null;
   }
@@ -261,6 +269,13 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
+    const userId = await getAuthenticatedUserId(req);
+    if (!userId) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const { messages, mode, projectData } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
@@ -268,9 +283,9 @@ serve(async (req) => {
     const masterContext = await loadMasterContext();
     const scope = await isInScope({ messages, mode, projectData, masterContext, apiKey: LOVABLE_API_KEY });
     if (!scope.allowed) {
-      const lastUserMessage = [...messages].reverse().find((message) => message.role === "user")?.content?.trim() || "";
+      const lastUserMessage = [...messages].reverse().find((message: any) => message.role === "user")?.content?.trim() || "";
       await logOutOfScopeBlock({
-        userId: getUserIdFromRequest(req),
+        userId,
         mode,
         message: lastUserMessage,
         reason: scope.reason,

@@ -4,6 +4,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Send, Bot, User, Loader2, Sparkles, RotateCcw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import ReactMarkdown from "react-markdown";
+import { supabase } from "@/integrations/supabase/client";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -23,14 +24,21 @@ async function streamChat({
   messages: Msg[]; mode: string; projectData?: any;
   onDelta: (text: string) => void; onDone: () => void; onError: (msg: string) => void;
 }) {
+  const { data: { session } } = await supabase.auth.getSession();
+  const accessToken = session?.access_token;
+  if (!accessToken) { onError("Você precisa estar autenticado para usar a IA."); return; }
+
   const resp = await fetch(CHAT_URL, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+      Authorization: `Bearer ${accessToken}`,
+      apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
     },
     body: JSON.stringify({ messages, mode, projectData }),
   });
+
+  if (resp.status === 401) { onError("Sessão expirada. Faça login novamente."); return; }
 
   if (resp.status === 429) { onError("Limite de requisições excedido. Aguarde um momento."); return; }
   if (resp.status === 402) { onError("Créditos insuficientes. Entre em contato com o suporte."); return; }
