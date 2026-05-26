@@ -122,11 +122,11 @@ export const ConsultorMatchList = ({ projetoId, projetoNome, softwareId, onInvit
     // Fetch profiles
     const userIds = scored.map(s => s.user_id);
     const [profilesRes, perfilRes] = await Promise.all([
-      supabase.from("profiles").select("user_id, nome, cidade, estado, avatar_url").in("user_id", userIds),
+      supabase.from("profiles_public" as any).select("user_id, nome, cidade, estado, avatar_url").in("user_id", userIds),
       supabase.from("consultor_perfil").select("user_id, bio_profissional, linkedin").in("user_id", userIds),
     ]);
 
-    const profileMap = new Map((profilesRes.data || []).map(p => [p.user_id, p]));
+    const profileMap = new Map(((profilesRes.data as any[]) || []).map((p: any) => [p.user_id, p]));
     const perfilMap = new Map((perfilRes.data || []).map(p => [p.user_id, p]));
 
     // Check existing proposals
@@ -139,7 +139,7 @@ export const ConsultorMatchList = ({ projetoId, projetoNome, softwareId, onInvit
     const result: ConsultorMatch[] = scored
       .filter(s => !alreadyProposed.has(s.user_id))
       .map(s => {
-        const profile = profileMap.get(s.user_id);
+        const profile: any = profileMap.get(s.user_id);
         const perfil = perfilMap.get(s.user_id);
         return {
           user_id: s.user_id,
