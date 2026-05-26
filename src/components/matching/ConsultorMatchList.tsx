@@ -126,7 +126,7 @@ export const ConsultorMatchList = ({ projetoId, projetoNome, softwareId, onInvit
       supabase.from("consultor_perfil").select("user_id, bio_profissional, linkedin").in("user_id", userIds),
     ]);
 
-    const profileMap = new Map((profilesRes.data || []).map(p => [p.user_id, p]));
+    const profileMap = new Map(((profilesRes.data as any[]) || []).map((p: any) => [p.user_id, p]));
     const perfilMap = new Map((perfilRes.data || []).map(p => [p.user_id, p]));
 
     // Check existing proposals
