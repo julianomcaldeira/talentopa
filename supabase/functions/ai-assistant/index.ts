@@ -269,6 +269,13 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
+    const userId = await getAuthenticatedUserId(req);
+    if (!userId) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const { messages, mode, projectData } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
@@ -276,9 +283,9 @@ serve(async (req) => {
     const masterContext = await loadMasterContext();
     const scope = await isInScope({ messages, mode, projectData, masterContext, apiKey: LOVABLE_API_KEY });
     if (!scope.allowed) {
-      const lastUserMessage = [...messages].reverse().find((message) => message.role === "user")?.content?.trim() || "";
+      const lastUserMessage = [...messages].reverse().find((message: any) => message.role === "user")?.content?.trim() || "";
       await logOutOfScopeBlock({
-        userId: getUserIdFromRequest(req),
+        userId,
         mode,
         message: lastUserMessage,
         reason: scope.reason,
