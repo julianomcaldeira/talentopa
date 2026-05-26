@@ -24,15 +24,19 @@ const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
     return <Navigate to="/login" replace />;
   }
 
-  if (allowedRoles && role && !allowedRoles.includes(role)) {
-    // Redirect to the appropriate dashboard based on role
-    const redirectMap: Record<UserRole, string> = {
-      admin: "/admin",
-      consultor: "/consultor",
-      empresa: "/empresa",
-      canal: "/canal",
-    };
-    return <Navigate to={redirectMap[role] || "/"} replace />;
+  if (allowedRoles) {
+    if (!role) {
+      return <Navigate to="/login" replace />;
+    }
+    if (!allowedRoles.includes(role)) {
+      const redirectMap: Record<UserRole, string> = {
+        admin: "/admin",
+        consultor: "/consultor",
+        empresa: "/empresa",
+        canal: "/canal",
+      };
+      return <Navigate to={redirectMap[role] || "/"} replace />;
+    }
   }
 
   return <>{children}</>;
