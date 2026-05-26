@@ -39,7 +39,7 @@ const ConsultorPortfolioPublico = () => {
       supabase.from("propostas").select("*, projetos(status)").eq("consultor_user_id", userId),
     ]);
 
-    setProfile(profileRes.data);
+    setProfile(profileRes.data as any);
     setCases(casesRes.data || []);
 
     const avaliacoes = avalRes.data || [];
