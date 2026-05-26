@@ -3,7 +3,7 @@ import { Link, useLocation, Outlet, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, Server, Puzzle, Cog, FileText, Users, Building2,
   FolderKanban, DollarSign, LogOut, Menu, X, ChevronRight, Search, 
-  Star, Settings, BarChart3, BookOpen, Brain, Sparkles, MessageSquare, Trophy, Bot, FileSpreadsheet, SlidersHorizontal, Activity, ScrollText, Briefcase, Workflow, ShieldAlert
+  Star, Settings, BarChart3, BookOpen, Brain, Sparkles, MessageSquare, Trophy, Bot, FileSpreadsheet, SlidersHorizontal, Activity, ScrollText, Briefcase, Workflow, ShieldAlert, ShieldCheck, UserCog
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
@@ -184,6 +184,8 @@ const adminLinks = [
   { to: "/admin/audit-logs", icon: ScrollText, label: "Logs de Auditoria" },
   { to: "/admin/score-config", icon: SlidersHorizontal, label: "Config. de Score" },
   { to: "/admin/ai-context", icon: Bot, label: "Contexto IA" },
+  { to: "/admin/usuarios", icon: ShieldCheck, label: "Administradores" },
+  { to: "/admin/perfil", icon: UserCog, label: "Meu perfil" },
 ];
 
 export const AdminLayout = () => <DashboardLayout links={adminLinks} title="Administração" />;

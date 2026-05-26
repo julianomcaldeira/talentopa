@@ -44,6 +44,8 @@ import EmpresaConsultoresHistorico from "./pages/empresa/EmpresaConsultoresHisto
 import AdminRelatorios from "./pages/admin/AdminRelatorios";
 import AdminScoreConfig from "./pages/admin/AdminScoreConfig";
 import AdminAIContext from "./pages/admin/AdminAIContext";
+import AdminUsuarios from "./pages/admin/AdminUsuarios";
+import AdminPerfil from "./pages/admin/AdminPerfil";
 import ConsultorRelatorios from "./pages/consultor/ConsultorRelatorios";
 import EmpresaRelatorios from "./pages/empresa/EmpresaRelatorios";
 import ProjetoGestao from "./pages/projetos/ProjetoGestao";
@@ -99,6 +101,8 @@ const App = () => (
               <Route path="estados-projeto" element={<ProjectStateReference />} />
               <Route path="score-config" element={<AdminScoreConfig />} />
               <Route path="ai-context" element={<AdminAIContext />} />
+              <Route path="usuarios" element={<AdminUsuarios />} />
+              <Route path="perfil" element={<AdminPerfil />} />
             </Route>
 
             {/* Consultor */}
