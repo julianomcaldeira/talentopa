@@ -113,25 +113,18 @@ const ConsultorProjetos = () => {
         (pfRes.data || []).forEach(f => scopeMap.get(f.projeto_id)?.funcs.push(f.funcionalidade_id));
         setProjetoScopes(scopeMap);
 
-        const empMap = new Map((empRes.data || []).map(e => [e.user_id, e]));
-        const empPerfilMap = new Map((empPerfilRes.data || []).map(e => [e.user_id, e]));
+        const empMap = new Map(((empRes.data as any[]) || []).map((e: any) => [e.user_id, e]));
+        const empPerfilMap = new Map(((empPerfilRes.data as any[]) || []).map((e: any) => [e.user_id, e]));
         const segMap = new Map<string, string>();
-        (empPerfilRes.data || []).forEach(e => { if (e.segmento) segMap.set(e.user_id, e.segmento); });
+        ((empPerfilRes.data as any[]) || []).forEach((e: any) => { if (e.segmento) segMap.set(e.user_id, e.segmento); });
         setEmpresaSegmentos(segMap);
 
         projs.forEach(p => {
-          const prof = empMap.get(p.empresa_user_id);
-          const perfil = empPerfilMap.get(p.empresa_user_id);
+          const prof: any = empMap.get(p.empresa_user_id);
+          const perfil: any = empPerfilMap.get(p.empresa_user_id);
           (p as any).empresa_nome = prof?.nome || "Empresa";
-          let cidade = prof?.cidade || null;
-          let estado = prof?.estado || null;
-          if ((!cidade || !estado) && perfil?.endereco) {
-            const parts = perfil.endereco.split(",").map((s: string) => s.trim()).filter(Boolean);
-            if (!estado && parts.length >= 1) estado = parts[parts.length - 1];
-            if (!cidade && parts.length >= 2) cidade = parts[parts.length - 2];
-          }
-          (p as any).local_cidade = cidade;
-          (p as any).local_estado = estado;
+          (p as any).local_cidade = prof?.cidade || null;
+          (p as any).local_estado = prof?.estado || null;
           (p as any).empresa_segmento = perfil?.segmento || null;
         });
       }
