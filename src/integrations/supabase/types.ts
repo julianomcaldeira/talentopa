@@ -99,6 +99,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "alocacoes_canal_id_fkey"
+            columns: ["canal_id"]
+            isOneToOne: false
+            referencedRelation: "canais_public"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "alocacoes_projeto_id_fkey"
             columns: ["projeto_id"]
             isOneToOne: false
@@ -303,6 +310,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "canal_consultores_canal_id_fkey"
+            columns: ["canal_id"]
+            isOneToOne: false
+            referencedRelation: "canais_public"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "canal_consultores_convite_id_fkey"
             columns: ["convite_id"]
             isOneToOne: false
@@ -357,6 +371,13 @@ export type Database = {
             columns: ["canal_id"]
             isOneToOne: false
             referencedRelation: "canais"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "canal_convites_canal_id_fkey"
+            columns: ["canal_id"]
+            isOneToOne: false
+            referencedRelation: "canais_public"
             referencedColumns: ["id"]
           },
         ]
@@ -1671,6 +1692,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "projetos_canal_id_fkey"
+            columns: ["canal_id"]
+            isOneToOne: false
+            referencedRelation: "canais_public"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "projetos_software_id_fkey"
             columns: ["software_id"]
             isOneToOne: false
@@ -1936,7 +1964,93 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      canais_public: {
+        Row: {
+          created_at: string | null
+          id: string | null
+          nome: string | null
+          status: Database["public"]["Enums"]["status_canal"] | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string | null
+          nome?: string | null
+          status?: Database["public"]["Enums"]["status_canal"] | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string | null
+          nome?: string | null
+          status?: Database["public"]["Enums"]["status_canal"] | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      empresa_perfil_public: {
+        Row: {
+          created_at: string | null
+          id: string | null
+          nome_fantasia: string | null
+          numero_funcionarios: number | null
+          razao_social: string | null
+          segmento: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string | null
+          nome_fantasia?: string | null
+          numero_funcionarios?: number | null
+          razao_social?: string | null
+          segmento?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string | null
+          nome_fantasia?: string | null
+          numero_funcionarios?: number | null
+          razao_social?: string | null
+          segmento?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      profiles_public: {
+        Row: {
+          avatar_url: string | null
+          cidade: string | null
+          created_at: string | null
+          estado: string | null
+          id: string | null
+          nome: string | null
+          status: string | null
+          user_id: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          cidade?: string | null
+          created_at?: string | null
+          estado?: string | null
+          id?: string | null
+          nome?: string | null
+          status?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          cidade?: string | null
+          created_at?: string | null
+          estado?: string | null
+          id?: string | null
+          nome?: string | null
+          status?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       aceitar_proposta: { Args: { p_proposta_id: string }; Returns: Json }
@@ -2043,6 +2157,10 @@ export type Database = {
       }
       is_empresa_team_member: {
         Args: { _empresa_user_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_projeto_party: {
+        Args: { _projeto_id: string; _user_id: string }
         Returns: boolean
       }
       log_audit_event: {
