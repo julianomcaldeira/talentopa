@@ -104,8 +104,8 @@ const ConsultorProjetos = () => {
         const [pmRes, pfRes, empRes, empPerfilRes] = await Promise.all([
           supabase.from("projeto_modulos").select("projeto_id, modulo_id").in("projeto_id", projIds),
           supabase.from("projeto_funcionalidades").select("projeto_id, funcionalidade_id").in("projeto_id", projIds),
-          supabase.from("profiles").select("user_id, nome, cidade, estado").in("user_id", empresaIds),
-          supabase.from("empresa_perfil").select("user_id, endereco, segmento").in("user_id", empresaIds),
+          supabase.from("profiles_public" as any).select("user_id, nome, cidade, estado").in("user_id", empresaIds),
+          supabase.from("empresa_perfil_public" as any).select("user_id, segmento").in("user_id", empresaIds),
         ]);
         const scopeMap = new Map<string, { modulos: string[]; funcs: string[] }>();
         projIds.forEach(id => scopeMap.set(id, { modulos: [], funcs: [] }));
