@@ -32,7 +32,7 @@ const ConsultorPortfolioPublico = () => {
   const loadPortfolio = async () => {
     if (!userId) return;
     const [profileRes, casesRes, avalRes, habRes, propostasRes] = await Promise.all([
-      supabase.from("profiles").select("*").eq("user_id", userId).single(),
+      supabase.from("profiles_public" as any).select("*").eq("user_id", userId).single(),
       supabase.from("portfolio_cases").select("*").eq("consultor_user_id", userId).eq("publicado", true).order("created_at", { ascending: false }),
       supabase.from("avaliacoes").select("*").eq("avaliado_user_id", userId),
       supabase.from("consultor_habilidades").select("*, softwares(nome)").eq("user_id", userId),
