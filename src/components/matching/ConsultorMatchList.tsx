@@ -139,7 +139,7 @@ export const ConsultorMatchList = ({ projetoId, projetoNome, softwareId, onInvit
     const result: ConsultorMatch[] = scored
       .filter(s => !alreadyProposed.has(s.user_id))
       .map(s => {
-        const profile = profileMap.get(s.user_id);
+        const profile: any = profileMap.get(s.user_id);
         const perfil = perfilMap.get(s.user_id);
         return {
           user_id: s.user_id,
