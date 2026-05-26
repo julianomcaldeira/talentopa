@@ -122,7 +122,7 @@ export const ConsultorMatchList = ({ projetoId, projetoNome, softwareId, onInvit
     // Fetch profiles
     const userIds = scored.map(s => s.user_id);
     const [profilesRes, perfilRes] = await Promise.all([
-      supabase.from("profiles").select("user_id, nome, cidade, estado, avatar_url").in("user_id", userIds),
+      supabase.from("profiles_public" as any).select("user_id, nome, cidade, estado, avatar_url").in("user_id", userIds),
       supabase.from("consultor_perfil").select("user_id, bio_profissional, linkedin").in("user_id", userIds),
     ]);
 
