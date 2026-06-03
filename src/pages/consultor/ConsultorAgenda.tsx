@@ -61,6 +61,31 @@ const ConsultorAgenda = () => {
   const [filtroStatus, setFiltroStatus] = useState<"all" | AgendaStatus>("all");
   const [view, setView] = useState<"list" | "calendar">("list");
   const [diaSelecionado, setDiaSelecionado] = useState<Date | undefined>(new Date());
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [dropTargetKey, setDropTargetKey] = useState<string | null>(null);
+
+  // Detecta conflito (sobreposição) com eventos existentes que reservam o horário.
+  // Eventos com status "vago" representam disponibilidade e não conflitam.
+  const encontrarConflito = (
+    inicioISO: string,
+    fimISO: string,
+    statusNovo: AgendaStatus,
+    ignorarId?: string,
+  ): AgendaItem | null => {
+    if (statusNovo === "vago") return null;
+    const ini = new Date(inicioISO).getTime();
+    const fim = new Date(fimISO).getTime();
+    return items.find((it) => {
+      if (ignorarId && it.id === ignorarId) return false;
+      if (it.status === "vago") return false;
+      const a = new Date(it.inicio).getTime();
+      const b = new Date(it.fim).getTime();
+      return a < fim && b > ini;
+    }) || null;
+  };
+
+  const descreverConflito = (c: AgendaItem) =>
+    `Conflita com "${c.titulo}" (${format(parseISO(c.inicio), "dd/MM HH:mm")} – ${format(parseISO(c.fim), "HH:mm")})`;
 
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
