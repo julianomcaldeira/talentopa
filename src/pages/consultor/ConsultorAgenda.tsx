@@ -237,6 +237,8 @@ const ConsultorAgenda = () => {
   }, [items]);
 
   // Reagendar via drag-and-drop: mantém o horário, troca apenas o dia.
+  // Aplica atualização otimista e faz rollback automático em caso de conflito
+  // ou erro do servidor, restaurando exatamente a posição original do evento.
   const reagendarParaDia = async (item: AgendaItem, novoDia: Date) => {
     const ini = parseISO(item.inicio);
     const fim = parseISO(item.fim);
@@ -249,19 +251,34 @@ const ConsultorAgenda = () => {
     const novoInicio = shiftDate(ini).toISOString();
     const novoFim = shiftDate(fim).toISOString();
 
+    // Snapshot da posição original para rollback
+    const snapshotInicio = item.inicio;
+    const snapshotFim = item.fim;
+    const diaOriginal = parseISO(item.inicio);
+
+    const rollback = (titulo: string, descricao: string) => {
+      setItems((prev) =>
+        prev.map((x) => (x.id === item.id ? { ...x, inicio: snapshotInicio, fim: snapshotFim } : x)),
+      );
+      setDiaSelecionado(diaOriginal);
+      toast({ title: titulo, description: descricao, variant: "destructive" });
+    };
+
+    // Atualização otimista imediata (move o evento no calendário/lista)
+    setItems((prev) =>
+      prev.map((x) => (x.id === item.id ? { ...x, inicio: novoInicio, fim: novoFim } : x)),
+    );
+    setDiaSelecionado(novoDia);
+
+    // Validação de conflito após o movimento otimista — rollback se houver
     const conflito = encontrarConflito(novoInicio, novoFim, item.status, item.id);
     if (conflito) {
-      toast({
-        title: "Conflito de horário",
-        description: descreverConflito(conflito) + ". Evento não reagendado.",
-        variant: "destructive",
-      });
+      rollback(
+        "Conflito de horário — evento devolvido",
+        `${descreverConflito(conflito)}. O evento foi mantido em ${format(diaOriginal, "dd/MM/yyyy")} ${format(parseISO(snapshotInicio), "HH:mm")}.`,
+      );
       return;
     }
-
-    // Atualização otimista
-    setItems((prev) => prev.map((x) => (x.id === item.id ? { ...x, inicio: novoInicio, fim: novoFim } : x)));
-    setDiaSelecionado(novoDia);
 
     const { error } = await supabase
       .from("consultor_agenda")
@@ -269,15 +286,19 @@ const ConsultorAgenda = () => {
       .eq("id", item.id);
 
     if (error) {
-      toast({ title: "Erro ao reagendar", description: error.message, variant: "destructive" });
-      carregar();
+      rollback(
+        "Não foi possível reagendar",
+        `${error.message}. Evento devolvido para ${format(diaOriginal, "dd/MM/yyyy")} ${format(parseISO(snapshotInicio), "HH:mm")}.`,
+      );
       return;
     }
+
     toast({
       title: "Evento reagendado",
       description: `${item.titulo} → ${format(novoDia, "dd/MM/yyyy")} ${format(parseISO(novoInicio), "HH:mm")}`,
     });
   };
+
 
 
   return (
