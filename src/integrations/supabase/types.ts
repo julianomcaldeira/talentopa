@@ -382,6 +382,45 @@ export type Database = {
           },
         ]
       }
+      consultor_agenda: {
+        Row: {
+          consultor_user_id: string
+          created_at: string
+          descricao: string | null
+          fim: string
+          id: string
+          inicio: string
+          projeto_id: string | null
+          status: Database["public"]["Enums"]["status_agenda_consultor"]
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          consultor_user_id: string
+          created_at?: string
+          descricao?: string | null
+          fim: string
+          id?: string
+          inicio: string
+          projeto_id?: string | null
+          status?: Database["public"]["Enums"]["status_agenda_consultor"]
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          consultor_user_id?: string
+          created_at?: string
+          descricao?: string | null
+          fim?: string
+          id?: string
+          inicio?: string
+          projeto_id?: string | null
+          status?: Database["public"]["Enums"]["status_agenda_consultor"]
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       consultor_buscas_favoritas: {
         Row: {
           created_at: string
@@ -2237,6 +2276,7 @@ export type Database = {
       nivel_senioridade: "junior" | "pleno" | "senior" | "especialista"
       papel_empresa_usuario: "responsavel" | "financeiro" | "operacional"
       plano_assinatura: "standard" | "premium"
+      status_agenda_consultor: "agendado" | "bloqueado" | "vago"
       status_alocacao_canal:
         | "pendente_aprovacao"
         | "aprovada"
@@ -2406,6 +2446,7 @@ export const Constants = {
       nivel_senioridade: ["junior", "pleno", "senior", "especialista"],
       papel_empresa_usuario: ["responsavel", "financeiro", "operacional"],
       plano_assinatura: ["standard", "premium"],
+      status_agenda_consultor: ["agendado", "bloqueado", "vago"],
       status_alocacao_canal: [
         "pendente_aprovacao",
         "aprovada",

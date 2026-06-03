@@ -3,7 +3,7 @@ import { Link, useLocation, Outlet, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, Server, Puzzle, Cog, FileText, Users, Building2,
   FolderKanban, DollarSign, LogOut, Menu, X, ChevronRight, Search, 
-  Star, Settings, BarChart3, BookOpen, Brain, Sparkles, MessageSquare, Trophy, Bot, FileSpreadsheet, SlidersHorizontal, Activity, ScrollText, Briefcase, Workflow, ShieldAlert, ShieldCheck, UserCog, Mail
+  Star, Settings, BarChart3, BookOpen, Brain, Sparkles, MessageSquare, Trophy, Bot, FileSpreadsheet, SlidersHorizontal, Activity, ScrollText, Briefcase, Workflow, ShieldAlert, ShieldCheck, UserCog, Mail, CalendarDays
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
@@ -195,6 +195,7 @@ const consultorLinks = [
   { to: "/consultor/projetos", icon: FolderKanban, label: "Encontrar Projetos" },
   { to: "/consultor/minhas-propostas", icon: FileText, label: "Minhas Propostas" },
   { to: "/consultor/convites-canal", icon: Mail, label: "Convites de Canais" },
+  { to: "/consultor/agenda", icon: CalendarDays, label: "Minha Agenda" },
   { to: "/consultor/gestao", icon: Briefcase, label: "Gestão de Projetos" },
   { to: "/consultor/estados-projeto", icon: Workflow, label: "Estados do Projeto" },
   { to: "/consultor/perfil", icon: Users, label: "Meu Perfil" },
