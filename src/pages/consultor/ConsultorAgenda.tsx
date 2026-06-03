@@ -59,6 +59,8 @@ const ConsultorAgenda = () => {
   const [items, setItems] = useState<AgendaItem[]>([]);
   const [projetos, setProjetos] = useState<ProjetoOption[]>([]);
   const [filtroStatus, setFiltroStatus] = useState<"all" | AgendaStatus>("all");
+  const [view, setView] = useState<"list" | "calendar">("list");
+  const [diaSelecionado, setDiaSelecionado] = useState<Date | undefined>(new Date());
 
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
