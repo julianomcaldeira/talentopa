@@ -11,10 +11,12 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import { Calendar } from "@/components/ui/calendar";
 import { useToast } from "@/hooks/use-toast";
-import { CalendarDays, Loader2, Pencil, Plus, Trash2 } from "lucide-react";
-import { format, parseISO } from "date-fns";
+import { CalendarDays, LayoutList, Loader2, Pencil, Plus, Trash2 } from "lucide-react";
+import { format, parseISO, isSameDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 
 type AgendaStatus = "agendado" | "bloqueado" | "vago";
 
