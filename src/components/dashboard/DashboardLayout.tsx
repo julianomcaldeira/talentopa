@@ -195,6 +195,7 @@ const consultorLinks = [
   { to: "/consultor/projetos", icon: FolderKanban, label: "Encontrar Projetos" },
   { to: "/consultor/minhas-propostas", icon: FileText, label: "Minhas Propostas" },
   { to: "/consultor/convites-canal", icon: Mail, label: "Convites de Canais" },
+  { to: "/consultor/agenda", icon: CalendarDays, label: "Minha Agenda" },
   { to: "/consultor/gestao", icon: Briefcase, label: "Gestão de Projetos" },
   { to: "/consultor/estados-projeto", icon: Workflow, label: "Estados do Projeto" },
   { to: "/consultor/perfil", icon: Users, label: "Meu Perfil" },
