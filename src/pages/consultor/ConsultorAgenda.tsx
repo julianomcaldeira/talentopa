@@ -425,6 +425,37 @@ const ConsultorAgenda = () => {
                     bloqueado: "relative after:content-[''] after:absolute after:bottom-1 after:left-1/2 after:-translate-x-1/2 after:h-1 after:w-1 after:rounded-full after:bg-destructive",
                     vago: "relative after:content-[''] after:absolute after:bottom-1 after:left-1/2 after:-translate-x-1/2 after:h-1 after:w-1 after:rounded-full after:bg-emerald-500",
                   }}
+                  components={{
+                    DayContent: ({ date }: { date: Date }) => {
+                      const key = format(date, "yyyy-MM-dd");
+                      const isOver = dropTargetKey === key;
+                      return (
+                        <div
+                          onDragOver={(e) => {
+                            if (!draggingId) return;
+                            e.preventDefault();
+                            e.dataTransfer.dropEffect = "move";
+                            if (dropTargetKey !== key) setDropTargetKey(key);
+                          }}
+                          onDragLeave={() => { if (dropTargetKey === key) setDropTargetKey(null); }}
+                          onDrop={(e) => {
+                            e.preventDefault();
+                            const id = e.dataTransfer.getData("text/plain") || draggingId;
+                            setDropTargetKey(null);
+                            setDraggingId(null);
+                            const ev = items.find((x) => x.id === id);
+                            if (ev) reagendarParaDia(ev, date);
+                          }}
+                          className={cn(
+                            "w-full h-full flex items-center justify-center rounded-md",
+                            isOver && "ring-2 ring-primary ring-offset-1 bg-primary/10",
+                          )}
+                        >
+                          {date.getDate()}
+                        </div>
+                      );
+                    },
+                  }}
                 />
                 <div className="mt-2 px-1 pb-1 flex items-center gap-3 text-[11px] text-muted-foreground flex-wrap">
                   {(["agendado", "bloqueado", "vago"] as AgendaStatus[]).map((s) => (
