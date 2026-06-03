@@ -226,76 +226,167 @@ const ConsultorAgenda = () => {
         ))}
       </div>
 
-      {/* Filtros */}
-      <div className="flex items-center gap-2 flex-wrap">
-        {(["all", "agendado", "bloqueado", "vago"] as const).map((s) => (
-          <Button
-            key={s}
-            size="sm"
-            variant={filtroStatus === s ? "default" : "outline"}
-            onClick={() => setFiltroStatus(s)}
-          >
-            {s === "all" ? "Todos" : statusMeta[s as AgendaStatus].label}
-          </Button>
-        ))}
-      </div>
-
-      {loading ? (
-        <div className="flex items-center justify-center py-16">
-          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-        </div>
-      ) : grupos.length === 0 ? (
-        <Card className="p-10 text-center">
-          <CalendarDays className="h-8 w-8 mx-auto text-muted-foreground mb-3" />
-          <p className="font-medium text-foreground">Nenhum evento na agenda</p>
-          <p className="text-sm text-muted-foreground mt-1">Crie seu primeiro evento para começar a organizar seus projetos.</p>
-        </Card>
-      ) : (
-        <div className="space-y-4">
-          {grupos.map(([dia, eventos]) => (
-            <div key={dia}>
-              <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold mb-2">
-                {format(parseISO(`${dia}T00:00:00`), "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
-              </p>
-              <Card className="divide-y divide-border">
-                {eventos.map((ev) => {
-                  const projeto = projetos.find((p) => p.id === ev.projeto_id);
-                  const meta = statusMeta[ev.status];
-                  return (
-                    <div key={ev.id} className="p-4 flex items-start justify-between gap-4 flex-wrap">
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className={`inline-flex items-center gap-1.5 text-[11px] font-medium px-2 py-0.5 rounded-full border ${meta.cls}`}>
-                            <span className={`h-1.5 w-1.5 rounded-full ${meta.dot}`} /> {meta.label}
-                          </span>
-                          <span className="text-xs text-muted-foreground">
-                            {format(parseISO(ev.inicio), "HH:mm")} – {format(parseISO(ev.fim), "HH:mm")}
-                          </span>
-                          {projeto && (
-                            <Badge variant="outline" className="text-[11px]">{projeto.nome}</Badge>
-                          )}
-                        </div>
-                        <p className="font-medium text-foreground mt-1">{ev.titulo}</p>
-                        {ev.descricao && (
-                          <p className="text-sm text-muted-foreground mt-0.5 whitespace-pre-line">{ev.descricao}</p>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-1 shrink-0">
-                        <Button size="sm" variant="ghost" onClick={() => abrirEditar(ev)}>
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button size="sm" variant="ghost" onClick={() => remover(ev)}>
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </Card>
-            </div>
+      {/* Filtros + Toggle de visualização */}
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        <div className="flex items-center gap-2 flex-wrap">
+          {(["all", "agendado", "bloqueado", "vago"] as const).map((s) => (
+            <Button
+              key={s}
+              size="sm"
+              variant={filtroStatus === s ? "default" : "outline"}
+              onClick={() => setFiltroStatus(s)}
+            >
+              {s === "all" ? "Todos" : statusMeta[s as AgendaStatus].label}
+            </Button>
           ))}
         </div>
-      )}
+        <div className="inline-flex items-center bg-muted/60 border border-border/60 rounded-lg p-0.5">
+          <button
+            type="button"
+            onClick={() => setView("list")}
+            className={cn(
+              "flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-colors",
+              view === "list" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground",
+            )}
+          >
+            <LayoutList size={12} /> Lista
+          </button>
+          <button
+            type="button"
+            onClick={() => setView("calendar")}
+            className={cn(
+              "flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-colors",
+              view === "calendar" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground",
+            )}
+          >
+            <CalendarDays size={12} /> Calendário
+          </button>
+        </div>
+      </div>
+
+      {(() => {
+        const renderEvento = (ev: AgendaItem) => {
+          const projeto = projetos.find((p) => p.id === ev.projeto_id);
+          const meta = statusMeta[ev.status];
+          return (
+            <div key={ev.id} className="p-4 flex items-start justify-between gap-4 flex-wrap">
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className={`inline-flex items-center gap-1.5 text-[11px] font-medium px-2 py-0.5 rounded-full border ${meta.cls}`}>
+                    <span className={`h-1.5 w-1.5 rounded-full ${meta.dot}`} /> {meta.label}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    {format(parseISO(ev.inicio), "HH:mm")} – {format(parseISO(ev.fim), "HH:mm")}
+                  </span>
+                  {projeto && (
+                    <Badge variant="outline" className="text-[11px]">{projeto.nome}</Badge>
+                  )}
+                </div>
+                <p className="font-medium text-foreground mt-1">{ev.titulo}</p>
+                {ev.descricao && (
+                  <p className="text-sm text-muted-foreground mt-0.5 whitespace-pre-line">{ev.descricao}</p>
+                )}
+              </div>
+              <div className="flex items-center gap-1 shrink-0">
+                <Button size="sm" variant="ghost" onClick={() => abrirEditar(ev)}>
+                  <Pencil className="h-4 w-4" />
+                </Button>
+                <Button size="sm" variant="ghost" onClick={() => remover(ev)}>
+                  <Trash2 className="h-4 w-4 text-destructive" />
+                </Button>
+              </div>
+            </div>
+          );
+        };
+
+        if (loading) {
+          return (
+            <div className="flex items-center justify-center py-16">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+          );
+        }
+
+        if (view === "calendar") {
+          const diasComEventos: Record<AgendaStatus, Date[]> = { agendado: [], bloqueado: [], vago: [] };
+          filtrados.forEach((it) => diasComEventos[it.status].push(parseISO(it.inicio)));
+          const eventosDoDia = diaSelecionado
+            ? filtrados.filter((it) => isSameDay(parseISO(it.inicio), diaSelecionado))
+            : [];
+          return (
+            <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-6">
+              <Card className="p-3 w-fit">
+                <Calendar
+                  mode="single"
+                  selected={diaSelecionado}
+                  onSelect={setDiaSelecionado}
+                  locale={ptBR}
+                  modifiers={{
+                    agendado: diasComEventos.agendado,
+                    bloqueado: diasComEventos.bloqueado,
+                    vago: diasComEventos.vago,
+                  }}
+                  modifiersClassNames={{
+                    agendado: "relative after:content-[''] after:absolute after:bottom-1 after:left-1/2 after:-translate-x-1/2 after:h-1 after:w-1 after:rounded-full after:bg-primary",
+                    bloqueado: "relative after:content-[''] after:absolute after:bottom-1 after:left-1/2 after:-translate-x-1/2 after:h-1 after:w-1 after:rounded-full after:bg-destructive",
+                    vago: "relative after:content-[''] after:absolute after:bottom-1 after:left-1/2 after:-translate-x-1/2 after:h-1 after:w-1 after:rounded-full after:bg-emerald-500",
+                  }}
+                />
+                <div className="mt-2 px-1 pb-1 flex items-center gap-3 text-[11px] text-muted-foreground flex-wrap">
+                  {(["agendado", "bloqueado", "vago"] as AgendaStatus[]).map((s) => (
+                    <span key={s} className="inline-flex items-center gap-1.5">
+                      <span className={`h-1.5 w-1.5 rounded-full ${statusMeta[s].dot}`} /> {statusMeta[s].label}
+                    </span>
+                  ))}
+                </div>
+              </Card>
+              <div className="min-w-0">
+                <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold mb-2">
+                  {diaSelecionado
+                    ? format(diaSelecionado, "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR })
+                    : "Selecione um dia"}
+                </p>
+                {eventosDoDia.length === 0 ? (
+                  <Card className="p-10 text-center">
+                    <CalendarDays className="h-8 w-8 mx-auto text-muted-foreground mb-3" />
+                    <p className="font-medium text-foreground">Nenhum evento neste dia</p>
+                    <p className="text-sm text-muted-foreground mt-1">Clique em "Novo evento" para criar um compromisso.</p>
+                  </Card>
+                ) : (
+                  <Card className="divide-y divide-border">
+                    {eventosDoDia.map(renderEvento)}
+                  </Card>
+                )}
+              </div>
+            </div>
+          );
+        }
+
+        if (grupos.length === 0) {
+          return (
+            <Card className="p-10 text-center">
+              <CalendarDays className="h-8 w-8 mx-auto text-muted-foreground mb-3" />
+              <p className="font-medium text-foreground">Nenhum evento na agenda</p>
+              <p className="text-sm text-muted-foreground mt-1">Crie seu primeiro evento para começar a organizar seus projetos.</p>
+            </Card>
+          );
+        }
+
+        return (
+          <div className="space-y-4">
+            {grupos.map(([dia, eventos]) => (
+              <div key={dia}>
+                <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold mb-2">
+                  {format(parseISO(`${dia}T00:00:00`), "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                </p>
+                <Card className="divide-y divide-border">
+                  {eventos.map(renderEvento)}
+                </Card>
+              </div>
+            ))}
+          </div>
+        );
+      })()}
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-lg">
