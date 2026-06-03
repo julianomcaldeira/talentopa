@@ -236,6 +236,50 @@ const ConsultorAgenda = () => {
     };
   }, [items]);
 
+  // Reagendar via drag-and-drop: mantém o horário, troca apenas o dia.
+  const reagendarParaDia = async (item: AgendaItem, novoDia: Date) => {
+    const ini = parseISO(item.inicio);
+    const fim = parseISO(item.fim);
+    if (isSameDay(ini, novoDia)) return;
+    const shiftDate = (d: Date) => {
+      const nd = new Date(d);
+      nd.setFullYear(novoDia.getFullYear(), novoDia.getMonth(), novoDia.getDate());
+      return nd;
+    };
+    const novoInicio = shiftDate(ini).toISOString();
+    const novoFim = shiftDate(fim).toISOString();
+
+    const conflito = encontrarConflito(novoInicio, novoFim, item.status, item.id);
+    if (conflito) {
+      toast({
+        title: "Conflito de horário",
+        description: descreverConflito(conflito) + ". Evento não reagendado.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Atualização otimista
+    setItems((prev) => prev.map((x) => (x.id === item.id ? { ...x, inicio: novoInicio, fim: novoFim } : x)));
+    setDiaSelecionado(novoDia);
+
+    const { error } = await supabase
+      .from("consultor_agenda")
+      .update({ inicio: novoInicio, fim: novoFim })
+      .eq("id", item.id);
+
+    if (error) {
+      toast({ title: "Erro ao reagendar", description: error.message, variant: "destructive" });
+      carregar();
+      return;
+    }
+    toast({
+      title: "Evento reagendado",
+      description: `${item.titulo} → ${format(novoDia, "dd/MM/yyyy")} ${format(parseISO(novoInicio), "HH:mm")}`,
+    });
+  };
+
+
   return (
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-4 flex-wrap">
