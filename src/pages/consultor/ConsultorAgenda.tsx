@@ -22,7 +22,7 @@ interface AgendaItem {
   id: string;
   consultor_user_id: string;
   projeto_id: string | null;
-  titulo: string;
+  nome: string;
   descricao: string | null;
   inicio: string;
   fim: string;
@@ -31,7 +31,7 @@ interface AgendaItem {
 
 interface ProjetoOption {
   id: string;
-  titulo: string;
+  nome: string;
 }
 
 const statusMeta: Record<AgendaStatus, { label: string; cls: string; dot: string }> = {
@@ -91,7 +91,7 @@ const ConsultorAgenda = () => {
     if (pids.length) {
       const { data: prjs } = await supabase
         .from("projetos")
-        .select("id, titulo")
+        .select("id, nome")
         .in("id", pids);
       setProjetos((prjs || []) as ProjetoOption[]);
     } else {
@@ -268,7 +268,7 @@ const ConsultorAgenda = () => {
                             {format(parseISO(ev.inicio), "HH:mm")} – {format(parseISO(ev.fim), "HH:mm")}
                           </span>
                           {projeto && (
-                            <Badge variant="outline" className="text-[11px]">{projeto.titulo}</Badge>
+                            <Badge variant="outline" className="text-[11px]">{projeto.nome}</Badge>
                           )}
                         </div>
                         <p className="font-medium text-foreground mt-1">{ev.titulo}</p>
@@ -349,7 +349,7 @@ const ConsultorAgenda = () => {
                   <SelectContent>
                     <SelectItem value="none">Sem vínculo</SelectItem>
                     {projetos.map((p) => (
-                      <SelectItem key={p.id} value={p.id}>{p.titulo}</SelectItem>
+                      <SelectItem key={p.id} value={p.id}>{p.nome}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
