@@ -22,7 +22,7 @@ interface AgendaItem {
   id: string;
   consultor_user_id: string;
   projeto_id: string | null;
-  nome: string;
+  titulo: string;
   descricao: string | null;
   inicio: string;
   fim: string;
