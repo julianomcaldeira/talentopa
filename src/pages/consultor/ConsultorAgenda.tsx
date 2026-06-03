@@ -348,7 +348,22 @@ const ConsultorAgenda = () => {
           const projeto = projetos.find((p) => p.id === ev.projeto_id);
           const meta = statusMeta[ev.status];
           return (
-            <div key={ev.id} className="p-4 flex items-start justify-between gap-4 flex-wrap">
+            <div
+              key={ev.id}
+              draggable={view === "calendar"}
+              onDragStart={(e) => {
+                setDraggingId(ev.id);
+                e.dataTransfer.effectAllowed = "move";
+                e.dataTransfer.setData("text/plain", ev.id);
+              }}
+              onDragEnd={() => { setDraggingId(null); setDropTargetKey(null); }}
+              className={cn(
+                "p-4 flex items-start justify-between gap-4 flex-wrap transition-opacity",
+                view === "calendar" && "cursor-grab active:cursor-grabbing",
+                draggingId === ev.id && "opacity-50",
+              )}
+              title={view === "calendar" ? "Arraste para outro dia do calendário para reagendar" : undefined}
+            >
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className={`inline-flex items-center gap-1.5 text-[11px] font-medium px-2 py-0.5 rounded-full border ${meta.cls}`}>
