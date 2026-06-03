@@ -61,6 +61,31 @@ const ConsultorAgenda = () => {
   const [filtroStatus, setFiltroStatus] = useState<"all" | AgendaStatus>("all");
   const [view, setView] = useState<"list" | "calendar">("list");
   const [diaSelecionado, setDiaSelecionado] = useState<Date | undefined>(new Date());
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [dropTargetKey, setDropTargetKey] = useState<string | null>(null);
+
+  // Detecta conflito (sobreposição) com eventos existentes que reservam o horário.
+  // Eventos com status "vago" representam disponibilidade e não conflitam.
+  const encontrarConflito = (
+    inicioISO: string,
+    fimISO: string,
+    statusNovo: AgendaStatus,
+    ignorarId?: string,
+  ): AgendaItem | null => {
+    if (statusNovo === "vago") return null;
+    const ini = new Date(inicioISO).getTime();
+    const fim = new Date(fimISO).getTime();
+    return items.find((it) => {
+      if (ignorarId && it.id === ignorarId) return false;
+      if (it.status === "vago") return false;
+      const a = new Date(it.inicio).getTime();
+      const b = new Date(it.fim).getTime();
+      return a < fim && b > ini;
+    }) || null;
+  };
+
+  const descreverConflito = (c: AgendaItem) =>
+    `Conflita com "${c.titulo}" (${format(parseISO(c.inicio), "dd/MM HH:mm")} – ${format(parseISO(c.fim), "HH:mm")})`;
 
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -142,6 +167,16 @@ const ConsultorAgenda = () => {
       return;
     }
 
+    const conflito = encontrarConflito(inicioISO, fimISO, form.status, editing?.id);
+    if (conflito) {
+      toast({
+        title: "Conflito de horário",
+        description: descreverConflito(conflito) + ". Ajuste o período ou marque como 'Vago'.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setSaving(true);
     const payload = {
       consultor_user_id: user.id,
@@ -200,6 +235,50 @@ const ConsultorAgenda = () => {
       vago: items.filter((i) => i.status === "vago").length,
     };
   }, [items]);
+
+  // Reagendar via drag-and-drop: mantém o horário, troca apenas o dia.
+  const reagendarParaDia = async (item: AgendaItem, novoDia: Date) => {
+    const ini = parseISO(item.inicio);
+    const fim = parseISO(item.fim);
+    if (isSameDay(ini, novoDia)) return;
+    const shiftDate = (d: Date) => {
+      const nd = new Date(d);
+      nd.setFullYear(novoDia.getFullYear(), novoDia.getMonth(), novoDia.getDate());
+      return nd;
+    };
+    const novoInicio = shiftDate(ini).toISOString();
+    const novoFim = shiftDate(fim).toISOString();
+
+    const conflito = encontrarConflito(novoInicio, novoFim, item.status, item.id);
+    if (conflito) {
+      toast({
+        title: "Conflito de horário",
+        description: descreverConflito(conflito) + ". Evento não reagendado.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Atualização otimista
+    setItems((prev) => prev.map((x) => (x.id === item.id ? { ...x, inicio: novoInicio, fim: novoFim } : x)));
+    setDiaSelecionado(novoDia);
+
+    const { error } = await supabase
+      .from("consultor_agenda")
+      .update({ inicio: novoInicio, fim: novoFim })
+      .eq("id", item.id);
+
+    if (error) {
+      toast({ title: "Erro ao reagendar", description: error.message, variant: "destructive" });
+      carregar();
+      return;
+    }
+    toast({
+      title: "Evento reagendado",
+      description: `${item.titulo} → ${format(novoDia, "dd/MM/yyyy")} ${format(parseISO(novoInicio), "HH:mm")}`,
+    });
+  };
+
 
   return (
     <div className="space-y-6">
@@ -269,7 +348,22 @@ const ConsultorAgenda = () => {
           const projeto = projetos.find((p) => p.id === ev.projeto_id);
           const meta = statusMeta[ev.status];
           return (
-            <div key={ev.id} className="p-4 flex items-start justify-between gap-4 flex-wrap">
+            <div
+              key={ev.id}
+              draggable={view === "calendar"}
+              onDragStart={(e) => {
+                setDraggingId(ev.id);
+                e.dataTransfer.effectAllowed = "move";
+                e.dataTransfer.setData("text/plain", ev.id);
+              }}
+              onDragEnd={() => { setDraggingId(null); setDropTargetKey(null); }}
+              className={cn(
+                "p-4 flex items-start justify-between gap-4 flex-wrap transition-opacity",
+                view === "calendar" && "cursor-grab active:cursor-grabbing",
+                draggingId === ev.id && "opacity-50",
+              )}
+              title={view === "calendar" ? "Arraste para outro dia do calendário para reagendar" : undefined}
+            >
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className={`inline-flex items-center gap-1.5 text-[11px] font-medium px-2 py-0.5 rounded-full border ${meta.cls}`}>
@@ -330,6 +424,37 @@ const ConsultorAgenda = () => {
                     agendado: "relative after:content-[''] after:absolute after:bottom-1 after:left-1/2 after:-translate-x-1/2 after:h-1 after:w-1 after:rounded-full after:bg-primary",
                     bloqueado: "relative after:content-[''] after:absolute after:bottom-1 after:left-1/2 after:-translate-x-1/2 after:h-1 after:w-1 after:rounded-full after:bg-destructive",
                     vago: "relative after:content-[''] after:absolute after:bottom-1 after:left-1/2 after:-translate-x-1/2 after:h-1 after:w-1 after:rounded-full after:bg-emerald-500",
+                  }}
+                  components={{
+                    DayContent: ({ date }: { date: Date }) => {
+                      const key = format(date, "yyyy-MM-dd");
+                      const isOver = dropTargetKey === key;
+                      return (
+                        <div
+                          onDragOver={(e) => {
+                            if (!draggingId) return;
+                            e.preventDefault();
+                            e.dataTransfer.dropEffect = "move";
+                            if (dropTargetKey !== key) setDropTargetKey(key);
+                          }}
+                          onDragLeave={() => { if (dropTargetKey === key) setDropTargetKey(null); }}
+                          onDrop={(e) => {
+                            e.preventDefault();
+                            const id = e.dataTransfer.getData("text/plain") || draggingId;
+                            setDropTargetKey(null);
+                            setDraggingId(null);
+                            const ev = items.find((x) => x.id === id);
+                            if (ev) reagendarParaDia(ev, date);
+                          }}
+                          className={cn(
+                            "w-full h-full flex items-center justify-center rounded-md",
+                            isOver && "ring-2 ring-primary ring-offset-1 bg-primary/10",
+                          )}
+                        >
+                          {date.getDate()}
+                        </div>
+                      );
+                    },
                   }}
                 />
                 <div className="mt-2 px-1 pb-1 flex items-center gap-3 text-[11px] text-muted-foreground flex-wrap">
