@@ -167,6 +167,16 @@ const ConsultorAgenda = () => {
       return;
     }
 
+    const conflito = encontrarConflito(inicioISO, fimISO, form.status, editing?.id);
+    if (conflito) {
+      toast({
+        title: "Conflito de horário",
+        description: descreverConflito(conflito) + ". Ajuste o período ou marque como 'Vago'.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setSaving(true);
     const payload = {
       consultor_user_id: user.id,
