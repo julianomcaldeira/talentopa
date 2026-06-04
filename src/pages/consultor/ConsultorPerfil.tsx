@@ -85,7 +85,13 @@ const ConsultorPerfil = () => {
             </div>
             <div className="space-y-2">
               <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Telefone</Label>
-              <Input value={profileForm.telefone} onChange={(e) => setProfileForm({ ...profileForm, telefone: e.target.value })} />
+              <Input
+                value={profileForm.telefone}
+                onChange={(e) => setProfileForm({ ...profileForm, telefone: maskPhone(e.target.value) })}
+                placeholder="(99) 99999-9999"
+                maxLength={15}
+                inputMode="tel"
+              />
             </div>
             <div className="space-y-2">
               <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Cidade</Label>
