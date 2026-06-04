@@ -10,6 +10,7 @@ import { PageHeader, DataCard, LoadingState, SectionTitle } from "@/components/d
 import { MapPin, Linkedin } from "lucide-react";
 import AvatarUpload from "@/components/profile/AvatarUpload";
 import ChangePasswordCard from "@/components/profile/ChangePasswordCard";
+import { maskPhone, unmask } from "@/lib/cnpjMask";
 
 const ConsultorPerfil = () => {
   const { user, profile } = useAuth();
