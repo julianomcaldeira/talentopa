@@ -199,25 +199,31 @@ const AdminConsultores = () => {
 
   const handleCreateConsultor = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (newUser.telefone && unmask(newUser.telefone).length < 10) {
+      toast({ title: "Telefone inválido", description: "Use o formato (99) 99999-9999.", variant: "destructive" });
+      return;
+    }
     setCreating(true);
     try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const token = sessionData.session?.access_token;
       const res = await supabase.functions.invoke("admin-create-user", {
         body: {
           email: newUser.email,
           password: newUser.password,
           nome: newUser.nome,
           tipo_usuario: "consultor",
-          extra: { telefone: newUser.telefone, cidade: newUser.cidade, estado: newUser.estado },
+          extra: {
+            telefone: newUser.telefone ? newUser.telefone.trim() : null,
+            cidade: newUser.cidade || null,
+            estado: newUser.estado || null,
+          },
         },
       });
+      if (res.error) throw new Error(res.error.message);
       if (res.data?.error) throw new Error(res.data.error);
       toast({ title: "Consultor cadastrado com sucesso!" });
       setCreateOpen(false);
       setNewUser({ nome: "", email: "", password: "", telefone: "", cidade: "", estado: "" });
       setLoading(true);
-      // re-fetch (simplified: reload page data)
       window.location.reload();
     } catch (err: any) {
       toast({ title: "Erro ao cadastrar", description: err.message, variant: "destructive" });
