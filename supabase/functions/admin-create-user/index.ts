@@ -46,7 +46,7 @@ Deno.serve(async (req) => {
       email,
       password,
       email_confirm: true,
-      user_metadata: { nome, tipo_usuario },
+      user_metadata: { nome, tipo_usuario, telefone: extra?.telefone ?? null },
     });
 
     if (createError) throw createError;
