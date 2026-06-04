@@ -475,7 +475,7 @@ const AdminConsultores = () => {
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label htmlFor="c-tel">Telefone</Label>
-                <Input id="c-tel" value={newUser.telefone} onChange={(e) => setNewUser({ ...newUser, telefone: e.target.value })} placeholder="(11) 99999-9999" />
+                <Input id="c-tel" value={newUser.telefone} onChange={(e) => setNewUser({ ...newUser, telefone: maskPhone(e.target.value) })} placeholder="(99) 99999-9999" maxLength={15} inputMode="tel" />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="c-cidade">Cidade</Label>
