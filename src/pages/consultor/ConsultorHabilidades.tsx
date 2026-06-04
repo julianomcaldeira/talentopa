@@ -5,6 +5,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
@@ -30,6 +40,7 @@ const ConsultorHabilidades = () => {
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
   const [selectedSoftware, setSelectedSoftware] = useState("");
   const [selectedModulo, setSelectedModulo] = useState("");
   const [form, setForm] = useState(emptyForm);
@@ -97,9 +108,16 @@ const ConsultorHabilidades = () => {
     fetchData();
   };
 
-  const handleDelete = async (id: string) => {
-    await supabase.from("consultor_habilidades").delete().eq("id", id);
-    toast({ title: "Habilidade removida!" }); fetchData();
+  const confirmarDelete = async () => {
+    if (!deleteId) return;
+    const { error } = await supabase.from("consultor_habilidades").delete().eq("id", deleteId);
+    if (error) {
+      toast({ title: "Erro ao remover", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Habilidade removida!" });
+    }
+    setDeleteId(null);
+    fetchData();
   };
 
   return (
@@ -149,7 +167,7 @@ const ConsultorHabilidades = () => {
                   <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary" onClick={() => abrirEdicao(hab)}>
                     <Pencil size={14} />
                   </Button>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => handleDelete(hab.id)}>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => setDeleteId(hab.id)}>
                     <Trash2 size={14} />
                   </Button>
                 </div>
@@ -214,6 +232,23 @@ const ConsultorHabilidades = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={!!deleteId} onOpenChange={(open) => { if (!open) setDeleteId(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir habilidade?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não pode ser desfeita. A habilidade será removida permanentemente do seu perfil.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmarDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
