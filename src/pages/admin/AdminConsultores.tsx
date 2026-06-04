@@ -10,7 +10,7 @@ import { PageHeader, DataCard, EmptyState, LoadingState, StatusBadge, SectionTit
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { maskPhone, unmask } from "@/lib/cnpjMask";
+import { maskPhone, validatePhone, normalizePhone } from "@/lib/phoneUtils";
 
 interface ConsultorRow {
   user_id: string;
@@ -199,8 +199,9 @@ const AdminConsultores = () => {
 
   const handleCreateConsultor = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (newUser.telefone && unmask(newUser.telefone).length < 10) {
-      toast({ title: "Telefone inválido", description: "Use o formato (99) 99999-9999.", variant: "destructive" });
+    const phoneCheck = validatePhone(newUser.telefone);
+    if (!phoneCheck.valid) {
+      toast({ title: "Telefone inválido", description: phoneCheck.error, variant: "destructive" });
       return;
     }
     setCreating(true);
@@ -212,7 +213,7 @@ const AdminConsultores = () => {
           nome: newUser.nome,
           tipo_usuario: "consultor",
           extra: {
-            telefone: newUser.telefone ? newUser.telefone.trim() : null,
+            telefone: normalizePhone(newUser.telefone),
             cidade: newUser.cidade || null,
             estado: newUser.estado || null,
           },
