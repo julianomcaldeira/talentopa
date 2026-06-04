@@ -41,7 +41,7 @@ const ConsultorPerfil = () => {
     if (!user) return;
     const phoneCheck = validatePhone(profileForm.telefone);
     if (!phoneCheck.valid) {
-      toast({ title: "Telefone inválido", description: phoneCheck.error, variant: "destructive" });
+      toast(getPhoneErrorToast(phoneCheck.error));
       return;
     }
     setSaving(true);
