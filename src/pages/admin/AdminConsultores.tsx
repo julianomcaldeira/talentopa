@@ -10,7 +10,7 @@ import { PageHeader, DataCard, EmptyState, LoadingState, StatusBadge, SectionTit
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { maskPhone, validatePhone, normalizePhone } from "@/lib/phoneUtils";
+import { maskPhone, validatePhone, normalizePhone, getPhoneErrorToast } from "@/lib/phoneUtils";
 
 interface ConsultorRow {
   user_id: string;
@@ -201,7 +201,7 @@ const AdminConsultores = () => {
     e.preventDefault();
     const phoneCheck = validatePhone(newUser.telefone);
     if (!phoneCheck.valid) {
-      toast({ title: "Telefone inválido", description: phoneCheck.error, variant: "destructive" });
+      toast(getPhoneErrorToast(phoneCheck.error));
       return;
     }
     setCreating(true);

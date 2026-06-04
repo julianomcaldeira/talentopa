@@ -10,7 +10,7 @@ import { PageHeader, DataCard, LoadingState, SectionTitle } from "@/components/d
 import { MapPin, Linkedin } from "lucide-react";
 import AvatarUpload from "@/components/profile/AvatarUpload";
 import ChangePasswordCard from "@/components/profile/ChangePasswordCard";
-import { maskPhone, validatePhone, normalizePhone } from "@/lib/phoneUtils";
+import { maskPhone, validatePhone, normalizePhone, getPhoneErrorToast } from "@/lib/phoneUtils";
 
 const ConsultorPerfil = () => {
   const { user, profile } = useAuth();
@@ -41,7 +41,7 @@ const ConsultorPerfil = () => {
     if (!user) return;
     const phoneCheck = validatePhone(profileForm.telefone);
     if (!phoneCheck.valid) {
-      toast({ title: "Telefone inválido", description: phoneCheck.error, variant: "destructive" });
+      toast(getPhoneErrorToast(phoneCheck.error));
       return;
     }
     setSaving(true);
