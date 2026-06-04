@@ -201,7 +201,7 @@ const AdminConsultores = () => {
     e.preventDefault();
     const phoneCheck = validatePhone(newUser.telefone);
     if (!phoneCheck.valid) {
-      toast({ title: "Telefone inválido", description: phoneCheck.error, variant: "destructive" });
+      toast(getPhoneErrorToast(phoneCheck.error));
       return;
     }
     setCreating(true);
