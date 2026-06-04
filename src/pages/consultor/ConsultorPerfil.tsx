@@ -10,7 +10,7 @@ import { PageHeader, DataCard, LoadingState, SectionTitle } from "@/components/d
 import { MapPin, Linkedin } from "lucide-react";
 import AvatarUpload from "@/components/profile/AvatarUpload";
 import ChangePasswordCard from "@/components/profile/ChangePasswordCard";
-import { maskPhone, unmask } from "@/lib/cnpjMask";
+import { maskPhone, validatePhone, normalizePhone } from "@/lib/phoneUtils";
 
 const ConsultorPerfil = () => {
   const { user, profile } = useAuth();
@@ -39,14 +39,15 @@ const ConsultorPerfil = () => {
 
   const handleSave = async () => {
     if (!user) return;
-    if (profileForm.telefone && unmask(profileForm.telefone).length < 10) {
-      toast({ title: "Telefone inválido", description: "Use o formato (99) 99999-9999.", variant: "destructive" });
+    const phoneCheck = validatePhone(profileForm.telefone);
+    if (!phoneCheck.valid) {
+      toast({ title: "Telefone inválido", description: phoneCheck.error, variant: "destructive" });
       return;
     }
     setSaving(true);
     await supabase.from("profiles").update({
       nome: profileForm.nome,
-      telefone: profileForm.telefone ? profileForm.telefone.trim() : null,
+      telefone: normalizePhone(profileForm.telefone),
       cidade: profileForm.cidade || null,
       estado: profileForm.estado || null,
     }).eq("user_id", user.id);
