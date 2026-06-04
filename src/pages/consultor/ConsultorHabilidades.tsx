@@ -167,7 +167,7 @@ const ConsultorHabilidades = () => {
                   <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary" onClick={() => abrirEdicao(hab)}>
                     <Pencil size={14} />
                   </Button>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => handleDelete(hab.id)}>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => setDeleteId(hab.id)}>
                     <Trash2 size={14} />
                   </Button>
                 </div>
