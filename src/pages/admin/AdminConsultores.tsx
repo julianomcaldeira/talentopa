@@ -10,6 +10,7 @@ import { PageHeader, DataCard, EmptyState, LoadingState, StatusBadge, SectionTit
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { maskPhone, unmask } from "@/lib/cnpjMask";
 
 interface ConsultorRow {
   user_id: string;
@@ -198,25 +199,31 @@ const AdminConsultores = () => {
 
   const handleCreateConsultor = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (newUser.telefone && unmask(newUser.telefone).length < 10) {
+      toast({ title: "Telefone inválido", description: "Use o formato (99) 99999-9999.", variant: "destructive" });
+      return;
+    }
     setCreating(true);
     try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const token = sessionData.session?.access_token;
       const res = await supabase.functions.invoke("admin-create-user", {
         body: {
           email: newUser.email,
           password: newUser.password,
           nome: newUser.nome,
           tipo_usuario: "consultor",
-          extra: { telefone: newUser.telefone, cidade: newUser.cidade, estado: newUser.estado },
+          extra: {
+            telefone: newUser.telefone ? newUser.telefone.trim() : null,
+            cidade: newUser.cidade || null,
+            estado: newUser.estado || null,
+          },
         },
       });
+      if (res.error) throw new Error(res.error.message);
       if (res.data?.error) throw new Error(res.data.error);
       toast({ title: "Consultor cadastrado com sucesso!" });
       setCreateOpen(false);
       setNewUser({ nome: "", email: "", password: "", telefone: "", cidade: "", estado: "" });
       setLoading(true);
-      // re-fetch (simplified: reload page data)
       window.location.reload();
     } catch (err: any) {
       toast({ title: "Erro ao cadastrar", description: err.message, variant: "destructive" });
@@ -468,7 +475,7 @@ const AdminConsultores = () => {
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label htmlFor="c-tel">Telefone</Label>
-                <Input id="c-tel" value={newUser.telefone} onChange={(e) => setNewUser({ ...newUser, telefone: e.target.value })} placeholder="(11) 99999-9999" />
+                <Input id="c-tel" value={newUser.telefone} onChange={(e) => setNewUser({ ...newUser, telefone: maskPhone(e.target.value) })} placeholder="(99) 99999-9999" maxLength={15} inputMode="tel" />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="c-cidade">Cidade</Label>
