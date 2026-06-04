@@ -10,6 +10,7 @@ import { PageHeader, DataCard, EmptyState, LoadingState, StatusBadge, SectionTit
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { maskPhone, unmask } from "@/lib/cnpjMask";
 
 interface ConsultorRow {
   user_id: string;
