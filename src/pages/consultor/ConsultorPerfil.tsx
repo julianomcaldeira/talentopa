@@ -10,6 +10,7 @@ import { PageHeader, DataCard, LoadingState, SectionTitle } from "@/components/d
 import { MapPin, Linkedin } from "lucide-react";
 import AvatarUpload from "@/components/profile/AvatarUpload";
 import ChangePasswordCard from "@/components/profile/ChangePasswordCard";
+import { maskPhone, unmask } from "@/lib/cnpjMask";
 
 const ConsultorPerfil = () => {
   const { user, profile } = useAuth();
@@ -38,9 +39,16 @@ const ConsultorPerfil = () => {
 
   const handleSave = async () => {
     if (!user) return;
+    if (profileForm.telefone && unmask(profileForm.telefone).length < 10) {
+      toast({ title: "Telefone inválido", description: "Use o formato (99) 99999-9999.", variant: "destructive" });
+      return;
+    }
     setSaving(true);
     await supabase.from("profiles").update({
-      nome: profileForm.nome, telefone: profileForm.telefone, cidade: profileForm.cidade, estado: profileForm.estado,
+      nome: profileForm.nome,
+      telefone: profileForm.telefone ? profileForm.telefone.trim() : null,
+      cidade: profileForm.cidade || null,
+      estado: profileForm.estado || null,
     }).eq("user_id", user.id);
     await supabase.from("consultor_perfil").update({
       linkedin: profileForm.linkedin, bio_profissional: profileForm.bio_profissional,
@@ -77,7 +85,13 @@ const ConsultorPerfil = () => {
             </div>
             <div className="space-y-2">
               <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Telefone</Label>
-              <Input value={profileForm.telefone} onChange={(e) => setProfileForm({ ...profileForm, telefone: e.target.value })} />
+              <Input
+                value={profileForm.telefone}
+                onChange={(e) => setProfileForm({ ...profileForm, telefone: maskPhone(e.target.value) })}
+                placeholder="(99) 99999-9999"
+                maxLength={15}
+                inputMode="tel"
+              />
             </div>
             <div className="space-y-2">
               <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Cidade</Label>
