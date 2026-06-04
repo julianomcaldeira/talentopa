@@ -40,6 +40,7 @@ const ConsultorHabilidades = () => {
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
   const [selectedSoftware, setSelectedSoftware] = useState("");
   const [selectedModulo, setSelectedModulo] = useState("");
   const [form, setForm] = useState(emptyForm);
