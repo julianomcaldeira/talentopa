@@ -39,9 +39,16 @@ const ConsultorPerfil = () => {
 
   const handleSave = async () => {
     if (!user) return;
+    if (profileForm.telefone && unmask(profileForm.telefone).length < 10) {
+      toast({ title: "Telefone inválido", description: "Use o formato (99) 99999-9999.", variant: "destructive" });
+      return;
+    }
     setSaving(true);
     await supabase.from("profiles").update({
-      nome: profileForm.nome, telefone: profileForm.telefone, cidade: profileForm.cidade, estado: profileForm.estado,
+      nome: profileForm.nome,
+      telefone: profileForm.telefone ? profileForm.telefone.trim() : null,
+      cidade: profileForm.cidade || null,
+      estado: profileForm.estado || null,
     }).eq("user_id", user.id);
     await supabase.from("consultor_perfil").update({
       linkedin: profileForm.linkedin, bio_profissional: profileForm.bio_profissional,
