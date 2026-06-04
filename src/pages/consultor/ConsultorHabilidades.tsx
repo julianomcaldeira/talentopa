@@ -108,9 +108,16 @@ const ConsultorHabilidades = () => {
     fetchData();
   };
 
-  const handleDelete = async (id: string) => {
-    await supabase.from("consultor_habilidades").delete().eq("id", id);
-    toast({ title: "Habilidade removida!" }); fetchData();
+  const confirmarDelete = async () => {
+    if (!deleteId) return;
+    const { error } = await supabase.from("consultor_habilidades").delete().eq("id", deleteId);
+    if (error) {
+      toast({ title: "Erro ao remover", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Habilidade removida!" });
+    }
+    setDeleteId(null);
+    fetchData();
   };
 
   return (
