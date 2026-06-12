@@ -393,36 +393,56 @@ const CanalProjetos = () => {
         <div className="flex items-center justify-center py-16">
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>
-      ) : projetos.length === 0 ? (
-        <Card className="p-10 text-center">
-          <FolderKanban className="h-8 w-8 mx-auto text-muted-foreground mb-3" />
-          <p className="font-medium text-foreground">Nenhum projeto ainda</p>
-          <p className="text-sm text-muted-foreground mt-1">
-            Clique em "Novo projeto" para criar o primeiro.
-          </p>
-        </Card>
       ) : (
-        <Card className="divide-y divide-border">
-          {projetos.map((p) => (
-            <div key={p.id} className="flex items-center justify-between gap-4 p-4">
-              <div className="min-w-0">
-                <p className="font-medium text-foreground truncate">{p.nome}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  {p.prazo_estimado
-                    ? `Prazo: ${new Date(p.prazo_estimado).toLocaleDateString("pt-BR")}`
-                    : "Sem prazo"}{" "}
-                  ·{" "}
-                  {p.valor_estimado
-                    ? `R$ ${Number(p.valor_estimado).toLocaleString("pt-BR")}`
-                    : "Sem valor"}
+        <Tabs defaultValue="canal" className="w-full">
+          <TabsList>
+            <TabsTrigger value="canal">
+              Criados pelo canal ({projetosCanal.length})
+            </TabsTrigger>
+            <TabsTrigger value="consultores">
+              Realizados pelos consultores ({projetosConsultores.length})
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="canal" className="mt-4">
+            {projetosCanal.length === 0 ? (
+              <Card className="p-10 text-center">
+                <FolderKanban className="h-8 w-8 mx-auto text-muted-foreground mb-3" />
+                <p className="font-medium text-foreground">Nenhum projeto ainda</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Clique em "Novo projeto" para criar o primeiro.
                 </p>
-              </div>
-              <Badge variant="outline" className="capitalize">
-                {p.status?.replace(/_/g, " ")}
-              </Badge>
-            </div>
-          ))}
-        </Card>
+              </Card>
+            ) : (
+              <Card className="divide-y divide-border">
+                {projetosCanal.map((p) => (
+                  <ProjetoItem key={p.id} p={p} />
+                ))}
+              </Card>
+            )}
+          </TabsContent>
+
+          <TabsContent value="consultores" className="mt-4">
+            {projetosConsultores.length === 0 ? (
+              <Card className="p-10 text-center">
+                <FolderKanban className="h-8 w-8 mx-auto text-muted-foreground mb-3" />
+                <p className="font-medium text-foreground">
+                  Nenhum projeto realizado pelos seus consultores ainda
+                </p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Quando um consultor vinculado ao seu canal tiver uma proposta
+                  aceita, o projeto aparecerá aqui.
+                </p>
+              </Card>
+            ) : (
+              <Card className="divide-y divide-border">
+                {projetosConsultores.map((p) => (
+                  <ProjetoItem key={p.id} p={p} showConsultor />
+                ))}
+              </Card>
+            )}
+          </TabsContent>
+        </Tabs>
       )}
     </div>
   );
