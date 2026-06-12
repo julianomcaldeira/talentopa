@@ -26,7 +26,7 @@ const ConsultorProjetos = () => {
   const [loading, setLoading] = useState(true);
   const [proposalDialog, setProposalDialog] = useState(false);
   const [selectedProjeto, setSelectedProjeto] = useState<any>(null);
-  const [proposalForm, setProposalForm] = useState({ estimativa_horas: "", valor_proposta: "", comentarios: "" });
+  const [proposalForm, setProposalForm] = useState({ estimativa_horas: "", valor_proposta: "", prazo_entrega_dias: "", comentarios: "" });
   const [mySkills, setMySkills] = useState<any[]>([]);
   const [projetoScopes, setProjetoScopes] = useState<Map<string, { modulos: string[]; funcs: string[] }>>(new Map());
   const [chatProjeto, setChatProjeto] = useState<any>(null);
@@ -141,12 +141,13 @@ const ConsultorProjetos = () => {
       projeto_id: selectedProjeto.id, consultor_user_id: user.id,
       estimativa_horas: Number(proposalForm.estimativa_horas) || null,
       valor_proposta: Number(proposalForm.valor_proposta) || null,
+      prazo_entrega_dias: Number(proposalForm.prazo_entrega_dias) || null,
       comentarios: proposalForm.comentarios || null,
-    });
+    } as any);
     if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
     toast({ title: "Proposta enviada com sucesso!" });
     setProposalDialog(false);
-    setProposalForm({ estimativa_horas: "", valor_proposta: "", comentarios: "" });
+    setProposalForm({ estimativa_horas: "", valor_proposta: "", prazo_entrega_dias: "", comentarios: "" });
   };
 
   const getMatchScore = (projeto: any): number => {
@@ -597,7 +598,7 @@ const ConsultorProjetos = () => {
             <p className="text-xs text-muted-foreground">{selectedProjeto?.softwares?.nome}</p>
           </div>
           <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Estimativa de horas</Label>
                 <Input type="number" value={proposalForm.estimativa_horas} onChange={(e) => setProposalForm({ ...proposalForm, estimativa_horas: e.target.value })} placeholder="120" />
@@ -605,6 +606,10 @@ const ConsultorProjetos = () => {
               <div className="space-y-2">
                 <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Valor (R$)</Label>
                 <Input type="number" value={proposalForm.valor_proposta} onChange={(e) => setProposalForm({ ...proposalForm, valor_proposta: e.target.value })} placeholder="36000" />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Prazo entrega (dias)</Label>
+                <Input type="number" value={proposalForm.prazo_entrega_dias} onChange={(e) => setProposalForm({ ...proposalForm, prazo_entrega_dias: e.target.value })} placeholder="45" />
               </div>
             </div>
             <div className="space-y-2">

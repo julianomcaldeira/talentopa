@@ -16,15 +16,10 @@ interface AjustarPropostaDialogProps {
   onSuccess?: () => void;
 }
 
-/**
- * Permite ao consultor:
- *  - "Ajuste rápido" (opção 1): edita direto valor/horas quando status = pre_aprovada
- *  - "Contraproposta formal" (opção 2): envia nova proposta quando status = aguardando_consultor,
- *    levando a proposta de volta para pré-aprovação da empresa.
- */
 export const AjustarPropostaDialog = ({ open, onOpenChange, proposta, onSuccess }: AjustarPropostaDialogProps) => {
   const [valor, setValor] = useState("");
   const [horas, setHoras] = useState("");
+  const [prazoDias, setPrazoDias] = useState("");
   const [motivo, setMotivo] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -36,6 +31,7 @@ export const AjustarPropostaDialog = ({ open, onOpenChange, proposta, onSuccess 
     if (open && proposta) {
       setValor(String(proposta.valor_proposta ?? ""));
       setHoras(String(proposta.estimativa_horas ?? ""));
+      setPrazoDias(String(proposta.prazo_entrega_dias ?? ""));
       setMotivo("");
     }
   }, [open, proposta]);
@@ -45,10 +41,11 @@ export const AjustarPropostaDialog = ({ open, onOpenChange, proposta, onSuccess 
   const submit = async (modo: "ajuste" | "contraproposta") => {
     const v = parseFloat(valor.replace(",", "."));
     const h = horas ? parseFloat(horas.replace(",", ".")) : null;
+    const pd = prazoDias ? parseInt(prazoDias, 10) : null;
     if (!v || v <= 0) { toast.error("Informe um valor válido"); return; }
     setLoading(true);
     const fn = modo === "ajuste" ? "consultor_ajustar_proposta" : "consultor_enviar_contraproposta";
-    const args: any = { p_proposta_id: proposta.id, p_valor: v, p_horas: h };
+    const args: any = { p_proposta_id: proposta.id, p_valor: v, p_horas: h, p_prazo_dias: pd };
     if (modo === "ajuste") args.p_motivo = motivo || null;
     else args.p_justificativa = motivo || null;
     const { error } = await (supabase as any).rpc(fn, args);
@@ -83,7 +80,7 @@ export const AjustarPropostaDialog = ({ open, onOpenChange, proposta, onSuccess 
             <p className="text-xs text-muted-foreground">
               Disponível enquanto a proposta está <strong>pré-aprovada</strong>. O novo valor é gravado e a empresa é notificada — não há mudança de status.
             </p>
-            <FormGrid valor={valor} setValor={setValor} horas={horas} setHoras={setHoras} motivo={motivo} setMotivo={setMotivo} motivoLabel="Motivo do ajuste (opcional)" />
+            <FormGrid valor={valor} setValor={setValor} horas={horas} setHoras={setHoras} prazoDias={prazoDias} setPrazoDias={setPrazoDias} motivo={motivo} setMotivo={setMotivo} motivoLabel="Motivo do ajuste (opcional)" />
             <DialogFooter>
               <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>Cancelar</Button>
               <Button onClick={() => submit("ajuste")} disabled={loading || !isPreAprovada}>
@@ -96,7 +93,7 @@ export const AjustarPropostaDialog = ({ open, onOpenChange, proposta, onSuccess 
             <div className="rounded-lg border border-warning/30 bg-warning/5 p-3 text-xs text-foreground/80">
               A contraproposta encerra a aprovação atual e volta para a empresa <strong>pré-aprovar novamente</strong>. Use quando precisar renegociar formalmente o valor.
             </div>
-            <FormGrid valor={valor} setValor={setValor} horas={horas} setHoras={setHoras} motivo={motivo} setMotivo={setMotivo} motivoLabel="Justificativa (recomendada)" />
+            <FormGrid valor={valor} setValor={setValor} horas={horas} setHoras={setHoras} prazoDias={prazoDias} setPrazoDias={setPrazoDias} motivo={motivo} setMotivo={setMotivo} motivoLabel="Justificativa (recomendada)" />
             <DialogFooter>
               <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>Cancelar</Button>
               <Button variant="destructive" onClick={() => submit("contraproposta")} disabled={loading}>
@@ -110,9 +107,9 @@ export const AjustarPropostaDialog = ({ open, onOpenChange, proposta, onSuccess 
   );
 };
 
-const FormGrid = ({ valor, setValor, horas, setHoras, motivo, setMotivo, motivoLabel }: any) => (
+const FormGrid = ({ valor, setValor, horas, setHoras, prazoDias, setPrazoDias, motivo, setMotivo, motivoLabel }: any) => (
   <div className="space-y-3">
-    <div className="grid grid-cols-2 gap-3">
+    <div className="grid grid-cols-3 gap-3">
       <div className="space-y-1.5">
         <Label className="text-xs">Novo valor (R$)</Label>
         <Input type="number" min={0} step="0.01" value={valor} onChange={(e) => setValor(e.target.value)} />
@@ -120,6 +117,10 @@ const FormGrid = ({ valor, setValor, horas, setHoras, motivo, setMotivo, motivoL
       <div className="space-y-1.5">
         <Label className="text-xs">Estimativa de horas</Label>
         <Input type="number" min={0} value={horas} onChange={(e) => setHoras(e.target.value)} />
+      </div>
+      <div className="space-y-1.5">
+        <Label className="text-xs">Prazo de entrega (dias)</Label>
+        <Input type="number" min={0} value={prazoDias} onChange={(e) => setPrazoDias(e.target.value)} />
       </div>
     </div>
     <div className="space-y-1.5">
