@@ -29,6 +29,7 @@ interface ProjetoRow {
   fases?: { id: string; nome: string; status: string; ordem: number }[];
   propostas_count?: number;
   empresa_nome?: string;
+  consultores_nomes?: string[];
 }
 
 type SortKey = "recent" | "oldest" | "name_asc" | "health_desc" | "health_asc" | "propostas_desc" | "prazo_asc";
