@@ -297,6 +297,7 @@ const EmpresaNovoProjeto = ({ onSuccess }: EmpresaNovoProjetoProps = {}) => {
         problema_atual: form.problema_atual || null, objetivo: form.objetivo || null,
         prazo_estimado: form.prazo_estimado || null,
         prazo_propostas: form.prazo_propostas || null,
+        horas_estimadas: form.horas_estimadas ? Number(form.horas_estimadas) : null,
         software_id: form.software_id || null,
         observacoes: form.observacoes || null,
         modelo_contratacao: (form.modelo_contratacao || null) as any,
