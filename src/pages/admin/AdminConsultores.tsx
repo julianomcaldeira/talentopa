@@ -313,6 +313,11 @@ const AdminConsultores = () => {
                   </div>
                 </div>
                 <div className="flex items-center gap-3 flex-shrink-0">
+                  {c.canal_nome && (
+                    <Badge variant="outline" className="text-[11px] hidden md:inline-flex gap-1 border-primary/30 text-primary">
+                      <Network size={10} /> {c.canal_nome}
+                    </Badge>
+                  )}
                   {c.habilidades.length > 0 && (
                     <Badge variant="secondary" className="text-[11px] hidden sm:inline-flex">
                       {c.habilidades.length} habilidade{c.habilidades.length !== 1 ? "s" : ""}
