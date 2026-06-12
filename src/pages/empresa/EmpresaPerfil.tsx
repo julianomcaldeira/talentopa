@@ -9,6 +9,7 @@ import { PageHeader, DataCard, LoadingState, SectionTitle } from "@/components/d
 import { MapPin } from "lucide-react";
 import AvatarUpload from "@/components/profile/AvatarUpload";
 import ChangePasswordCard from "@/components/profile/ChangePasswordCard";
+import ChangeEmailCard from "@/components/profile/ChangeEmailCard";
 import { EstadoSelect } from "@/components/forms/EstadoSelect";
 
 const SectionLabel = ({ children }: { children: React.ReactNode }) => (
@@ -99,6 +100,8 @@ const EmpresaPerfil = () => {
             <div className="space-y-2"><SectionLabel>Inscrição Estadual</SectionLabel><Input value={form.inscricao_estadual} onChange={(e) => setForm({ ...form, inscricao_estadual: e.target.value })} /></div>
           </div>
         </DataCard>
+
+        <ChangeEmailCard />
 
         <ChangePasswordCard />
 
