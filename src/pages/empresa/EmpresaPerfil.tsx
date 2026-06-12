@@ -9,6 +9,7 @@ import { PageHeader, DataCard, LoadingState, SectionTitle } from "@/components/d
 import { MapPin } from "lucide-react";
 import AvatarUpload from "@/components/profile/AvatarUpload";
 import ChangePasswordCard from "@/components/profile/ChangePasswordCard";
+import { EstadoSelect } from "@/components/forms/EstadoSelect";
 
 const SectionLabel = ({ children }: { children: React.ReactNode }) => (
   <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{children}</Label>
@@ -94,7 +95,7 @@ const EmpresaPerfil = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             <div className="space-y-2 md:col-span-3"><SectionLabel>Endereço completo</SectionLabel><Input value={form.endereco} onChange={(e) => setForm({ ...form, endereco: e.target.value })} /></div>
             <div className="space-y-2"><SectionLabel>Cidade</SectionLabel><Input value={form.cidade} onChange={(e) => setForm({ ...form, cidade: e.target.value })} /></div>
-            <div className="space-y-2"><SectionLabel>Estado</SectionLabel><Input value={form.estado} onChange={(e) => setForm({ ...form, estado: e.target.value })} /></div>
+            <div className="space-y-2"><SectionLabel>Estado</SectionLabel><EstadoSelect value={form.estado} onChange={(uf) => setForm({ ...form, estado: uf })} /></div>
             <div className="space-y-2"><SectionLabel>Inscrição Estadual</SectionLabel><Input value={form.inscricao_estadual} onChange={(e) => setForm({ ...form, inscricao_estadual: e.target.value })} /></div>
           </div>
         </DataCard>

@@ -11,6 +11,7 @@ import { MapPin, Linkedin } from "lucide-react";
 import AvatarUpload from "@/components/profile/AvatarUpload";
 import ChangePasswordCard from "@/components/profile/ChangePasswordCard";
 import { maskPhone, validatePhone, normalizePhone, getPhoneErrorToast } from "@/lib/phoneUtils";
+import { EstadoSelect } from "@/components/forms/EstadoSelect";
 
 const ConsultorPerfil = () => {
   const { user, profile } = useAuth();
@@ -100,7 +101,7 @@ const ConsultorPerfil = () => {
             </div>
             <div className="space-y-2">
               <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Estado</Label>
-              <Input value={profileForm.estado} onChange={(e) => setProfileForm({ ...profileForm, estado: e.target.value })} />
+              <EstadoSelect value={profileForm.estado} onChange={(uf) => setProfileForm({ ...profileForm, estado: uf })} />
             </div>
           </div>
         </DataCard>

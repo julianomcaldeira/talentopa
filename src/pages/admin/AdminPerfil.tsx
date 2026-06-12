@@ -9,6 +9,7 @@ import { PageHeader, DataCard, SectionTitle, LoadingState } from "@/components/d
 import AvatarUpload from "@/components/profile/AvatarUpload";
 import ChangePasswordCard from "@/components/profile/ChangePasswordCard";
 import { UserCog } from "lucide-react";
+import { EstadoSelect } from "@/components/forms/EstadoSelect";
 
 const AdminPerfil = () => {
   const { user, profile } = useAuth();
@@ -105,7 +106,7 @@ const AdminPerfil = () => {
             </div>
             <div className="space-y-2">
               <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Estado</Label>
-              <Input value={form.estado} onChange={(e) => setForm({ ...form, estado: e.target.value })} maxLength={2} />
+              <EstadoSelect value={form.estado} onChange={(uf) => setForm({ ...form, estado: uf })} />
             </div>
           </div>
         </div>

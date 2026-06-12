@@ -2120,8 +2120,26 @@ export type Database = {
       }
       canal_convidar_consultor: { Args: { p_email: string }; Returns: string }
       concluir_projeto: { Args: { p_projeto_id: string }; Returns: Json }
+      consultor_ajustar_proposta: {
+        Args: {
+          p_horas?: number
+          p_motivo?: string
+          p_proposta_id: string
+          p_valor: number
+        }
+        Returns: Json
+      }
       consultor_confirmar_inicio: {
         Args: { p_proposta_id: string }
+        Returns: Json
+      }
+      consultor_enviar_contraproposta: {
+        Args: {
+          p_horas?: number
+          p_justificativa?: string
+          p_proposta_id: string
+          p_valor: number
+        }
         Returns: Json
       }
       consultor_recusar_inicio: {
@@ -2313,6 +2331,7 @@ export type Database = {
         | "aguardando_consultor"
         | "pre_aprovada"
         | "pendente_aprovacao_canal"
+        | "contraproposta_consultor"
       tipo_fatura: "empresa" | "consultor" | "plataforma"
     }
     CompositeTypes: {
@@ -2487,6 +2506,7 @@ export const Constants = {
         "aguardando_consultor",
         "pre_aprovada",
         "pendente_aprovacao_canal",
+        "contraproposta_consultor",
       ],
       tipo_fatura: ["empresa", "consultor", "plataforma"],
     },
