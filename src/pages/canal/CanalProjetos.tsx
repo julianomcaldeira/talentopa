@@ -22,7 +22,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2, FolderKanban, Plus } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Loader2, FolderKanban, Plus, User } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 
@@ -33,6 +34,8 @@ interface Projeto {
   valor_estimado: number | null;
   prazo_estimado: string | null;
   created_at: string;
+  consultor_nome?: string | null;
+  empresa_nome?: string | null;
 }
 
 interface EmpresaOption {
@@ -45,10 +48,37 @@ interface ConsultorOption {
   nome: string;
 }
 
+const ProjetoItem = ({ p, showConsultor }: { p: Projeto; showConsultor?: boolean }) => (
+  <div className="flex items-center justify-between gap-4 p-4">
+    <div className="min-w-0">
+      <p className="font-medium text-foreground truncate">{p.nome}</p>
+      <p className="text-xs text-muted-foreground mt-0.5">
+        {p.empresa_nome ? `${p.empresa_nome} · ` : ""}
+        {p.prazo_estimado
+          ? `Prazo: ${new Date(p.prazo_estimado).toLocaleDateString("pt-BR")}`
+          : "Sem prazo"}{" "}
+        ·{" "}
+        {p.valor_estimado
+          ? `R$ ${Number(p.valor_estimado).toLocaleString("pt-BR")}`
+          : "Sem valor"}
+      </p>
+      {showConsultor && p.consultor_nome && (
+        <p className="text-xs text-foreground/80 mt-1 flex items-center gap-1">
+          <User className="h-3 w-3" /> {p.consultor_nome}
+        </p>
+      )}
+    </div>
+    <Badge variant="outline" className="capitalize">
+      {p.status?.replace(/_/g, " ")}
+    </Badge>
+  </div>
+);
+
 const CanalProjetos = () => {
   const { user } = useAuth();
   const [canalId, setCanalId] = useState<string | null>(null);
-  const [projetos, setProjetos] = useState<Projeto[]>([]);
+  const [projetosCanal, setProjetosCanal] = useState<Projeto[]>([]);
+  const [projetosConsultores, setProjetosConsultores] = useState<Projeto[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [open, setOpen] = useState(false);
@@ -65,13 +95,86 @@ const CanalProjetos = () => {
     prazo: "",
   });
 
+  const enrichProjetos = async (rows: any[]): Promise<Projeto[]> => {
+    if (!rows.length) return [];
+    const ids = rows.map((r) => r.id);
+    const empresaIds = Array.from(new Set(rows.map((r) => r.empresa_user_id).filter(Boolean)));
+
+    const [{ data: alocs }, { data: profsEmp }] = await Promise.all([
+      supabase
+        .from("alocacoes")
+        .select("projeto_id, consultor_user_id, status")
+        .in("projeto_id", ids)
+        .eq("status", "aprovada"),
+      empresaIds.length
+        ? supabase.from("profiles").select("user_id, nome").in("user_id", empresaIds)
+        : Promise.resolve({ data: [] as any[] }),
+    ]);
+
+    const consultorIds = Array.from(
+      new Set(((alocs as any[]) || []).map((a) => a.consultor_user_id).filter(Boolean))
+    );
+    const { data: profsCons } = consultorIds.length
+      ? await supabase.from("profiles").select("user_id, nome").in("user_id", consultorIds)
+      : ({ data: [] as any[] } as any);
+
+    const consultorByProj = new Map<string, string>();
+    ((alocs as any[]) || []).forEach((a) => {
+      const nome = (profsCons as any[])?.find((p) => p.user_id === a.consultor_user_id)?.nome;
+      if (nome && !consultorByProj.has(a.projeto_id)) consultorByProj.set(a.projeto_id, nome);
+    });
+    const empresaMap = new Map<string, string>();
+    ((profsEmp as any[]) || []).forEach((p) => empresaMap.set(p.user_id, p.nome));
+
+    return rows.map((r) => ({
+      ...r,
+      consultor_nome: consultorByProj.get(r.id) || null,
+      empresa_nome: empresaMap.get(r.empresa_user_id) || null,
+    }));
+  };
+
   const loadProjetos = async (cid: string) => {
-    const { data } = await supabase
+    // 1) Projetos criados pelo canal
+    const { data: criados } = await supabase
       .from("projetos")
-      .select("id, nome, status, valor_estimado, prazo_estimado, created_at")
+      .select("id, nome, status, valor_estimado, prazo_estimado, created_at, empresa_user_id")
       .eq("canal_id", cid)
       .order("created_at", { ascending: false });
-    setProjetos((data as any) || []);
+
+    // 2) Projetos executados pelos consultores vinculados
+    const { data: links } = await supabase
+      .from("canal_consultores")
+      .select("consultor_user_id")
+      .eq("canal_id", cid)
+      .eq("status", "ativo");
+    const consultorIds = ((links as any[]) || []).map((l) => l.consultor_user_id).filter(Boolean);
+
+    let projetosDosConsultores: any[] = [];
+    if (consultorIds.length) {
+      const { data: props } = await supabase
+        .from("propostas")
+        .select("projeto_id, status")
+        .in("consultor_user_id", consultorIds)
+        .in("status", ["aceita", "pre_aprovada"]);
+      const projetoIds = Array.from(new Set(((props as any[]) || []).map((p) => p.projeto_id)));
+      const criadosIds = new Set(((criados as any[]) || []).map((p) => p.id));
+      const filtrados = projetoIds.filter((id) => !criadosIds.has(id));
+      if (filtrados.length) {
+        const { data: pjs } = await supabase
+          .from("projetos")
+          .select("id, nome, status, valor_estimado, prazo_estimado, created_at, empresa_user_id")
+          .in("id", filtrados)
+          .order("created_at", { ascending: false });
+        projetosDosConsultores = (pjs as any[]) || [];
+      }
+    }
+
+    const [enrCanal, enrCons] = await Promise.all([
+      enrichProjetos((criados as any[]) || []),
+      enrichProjetos(projetosDosConsultores),
+    ]);
+    setProjetosCanal(enrCanal);
+    setProjetosConsultores(enrCons);
   };
 
   useEffect(() => {
@@ -316,36 +419,56 @@ const CanalProjetos = () => {
         <div className="flex items-center justify-center py-16">
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>
-      ) : projetos.length === 0 ? (
-        <Card className="p-10 text-center">
-          <FolderKanban className="h-8 w-8 mx-auto text-muted-foreground mb-3" />
-          <p className="font-medium text-foreground">Nenhum projeto ainda</p>
-          <p className="text-sm text-muted-foreground mt-1">
-            Clique em "Novo projeto" para criar o primeiro.
-          </p>
-        </Card>
       ) : (
-        <Card className="divide-y divide-border">
-          {projetos.map((p) => (
-            <div key={p.id} className="flex items-center justify-between gap-4 p-4">
-              <div className="min-w-0">
-                <p className="font-medium text-foreground truncate">{p.nome}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  {p.prazo_estimado
-                    ? `Prazo: ${new Date(p.prazo_estimado).toLocaleDateString("pt-BR")}`
-                    : "Sem prazo"}{" "}
-                  ·{" "}
-                  {p.valor_estimado
-                    ? `R$ ${Number(p.valor_estimado).toLocaleString("pt-BR")}`
-                    : "Sem valor"}
+        <Tabs defaultValue="canal" className="w-full">
+          <TabsList>
+            <TabsTrigger value="canal">
+              Criados pelo canal ({projetosCanal.length})
+            </TabsTrigger>
+            <TabsTrigger value="consultores">
+              Realizados pelos consultores ({projetosConsultores.length})
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="canal" className="mt-4">
+            {projetosCanal.length === 0 ? (
+              <Card className="p-10 text-center">
+                <FolderKanban className="h-8 w-8 mx-auto text-muted-foreground mb-3" />
+                <p className="font-medium text-foreground">Nenhum projeto ainda</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Clique em "Novo projeto" para criar o primeiro.
                 </p>
-              </div>
-              <Badge variant="outline" className="capitalize">
-                {p.status?.replace(/_/g, " ")}
-              </Badge>
-            </div>
-          ))}
-        </Card>
+              </Card>
+            ) : (
+              <Card className="divide-y divide-border">
+                {projetosCanal.map((p) => (
+                  <ProjetoItem key={p.id} p={p} />
+                ))}
+              </Card>
+            )}
+          </TabsContent>
+
+          <TabsContent value="consultores" className="mt-4">
+            {projetosConsultores.length === 0 ? (
+              <Card className="p-10 text-center">
+                <FolderKanban className="h-8 w-8 mx-auto text-muted-foreground mb-3" />
+                <p className="font-medium text-foreground">
+                  Nenhum projeto realizado pelos seus consultores ainda
+                </p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Quando um consultor vinculado ao seu canal tiver uma proposta
+                  aceita, o projeto aparecerá aqui.
+                </p>
+              </Card>
+            ) : (
+              <Card className="divide-y divide-border">
+                {projetosConsultores.map((p) => (
+                  <ProjetoItem key={p.id} p={p} showConsultor />
+                ))}
+              </Card>
+            )}
+          </TabsContent>
+        </Tabs>
       )}
     </div>
   );
