@@ -22,7 +22,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2, FolderKanban, Plus } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Loader2, FolderKanban, Plus, User } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 
@@ -33,6 +34,8 @@ interface Projeto {
   valor_estimado: number | null;
   prazo_estimado: string | null;
   created_at: string;
+  consultor_nome?: string | null;
+  empresa_nome?: string | null;
 }
 
 interface EmpresaOption {
