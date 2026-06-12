@@ -1655,6 +1655,7 @@ export type Database = {
           descricao: string | null
           empresa_user_id: string
           escopo_ia: string | null
+          horas_estimadas: number | null
           id: string
           modelo_contratacao:
             | Database["public"]["Enums"]["modelo_contratacao"]
@@ -1680,6 +1681,7 @@ export type Database = {
           descricao?: string | null
           empresa_user_id: string
           escopo_ia?: string | null
+          horas_estimadas?: number | null
           id?: string
           modelo_contratacao?:
             | Database["public"]["Enums"]["modelo_contratacao"]
@@ -1705,6 +1707,7 @@ export type Database = {
           descricao?: string | null
           empresa_user_id?: string
           escopo_ia?: string | null
+          horas_estimadas?: number | null
           id?: string
           modelo_contratacao?:
             | Database["public"]["Enums"]["modelo_contratacao"]
