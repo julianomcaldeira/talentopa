@@ -1,4 +1,5 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { PageHeader, DataCard, StatusBadge, EmptyState, LoadingState, StatCard } from "@/components/dashboard/DashboardComponents";
