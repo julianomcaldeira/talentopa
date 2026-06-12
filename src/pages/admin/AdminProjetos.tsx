@@ -222,7 +222,7 @@ const AdminProjetos = () => {
           <div className="relative flex-1">
             <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/60" />
             <Input
-              placeholder="Buscar por nome, protocolo ou empresa..."
+              placeholder="Buscar por nome, protocolo, empresa, consultor, software..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-10"
