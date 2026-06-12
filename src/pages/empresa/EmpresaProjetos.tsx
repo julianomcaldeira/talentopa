@@ -581,17 +581,25 @@ const EmpresaProjetos = () => {
                     </div>
                     <StatusBadge status={prop.status} />
                   </div>
-                  <div className="flex items-center gap-4 mt-3 mb-2">
-                    {prop.estimativa_horas && (
-                      <span className="text-xs text-muted-foreground flex items-center gap-1">
-                        <Clock size={12} /> {prop.estimativa_horas}h
-                      </span>
-                    )}
-                    {prop.valor_proposta && (
-                      <span className="text-xs text-foreground font-medium flex items-center gap-1">
-                        <DollarSign size={12} /> R$ {Number(prop.valor_proposta).toLocaleString("pt-BR")}
-                      </span>
-                    )}
+                  <div className="grid grid-cols-3 gap-2 mt-3 mb-2">
+                    <div className="rounded-lg border border-border/60 bg-background p-2">
+                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Valor da proposta</p>
+                      <p className="text-sm font-bold text-foreground mt-0.5 flex items-center gap-1">
+                        <DollarSign size={12} /> {prop.valor_proposta ? `R$ ${Number(prop.valor_proposta).toLocaleString("pt-BR")}` : "—"}
+                      </p>
+                    </div>
+                    <div className="rounded-lg border border-border/60 bg-background p-2">
+                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Prazo de entrega</p>
+                      <p className="text-sm font-bold text-foreground mt-0.5 flex items-center gap-1">
+                        <Calendar size={12} /> {prop.prazo_entrega_dias ? `${prop.prazo_entrega_dias} dia${prop.prazo_entrega_dias === 1 ? "" : "s"}` : "—"}
+                      </p>
+                    </div>
+                    <div className="rounded-lg border border-border/60 bg-background p-2">
+                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Esforço</p>
+                      <p className="text-sm font-bold text-foreground mt-0.5 flex items-center gap-1">
+                        <Clock size={12} /> {prop.estimativa_horas ? `${prop.estimativa_horas}h` : "—"}
+                      </p>
+                    </div>
                   </div>
                   {prop.comentarios && <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{prop.comentarios}</p>}
                   <div className="flex flex-wrap gap-2 mt-3">
