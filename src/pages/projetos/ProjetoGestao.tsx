@@ -55,24 +55,29 @@ const ProjetoGestao = () => {
   }, [projeto, user, role, propostaAceita, isEmpresa, isConsultor]);
 
   const fetchAll = async () => {
-    if (!projetoId) return;
-    const [projRes, fasesRes, propRes, entRes] = await Promise.all([
-      supabase.from("projetos").select("*, softwares(nome)").eq("id", projetoId).single(),
-      supabase.from("projeto_fases").select("*").eq("projeto_id", projetoId).order("ordem", { ascending: true }),
-      supabase.from("propostas").select("*").eq("projeto_id", projetoId).eq("status", "aceita").maybeSingle(),
-      (supabase as any).from("projeto_entregaveis").select("*").eq("projeto_id", projetoId).order("created_at", { ascending: false }),
-    ]);
-    setProjeto(projRes.data);
-    setFases(fasesRes.data || []);
-    setPropostaAceita(propRes.data);
-    setEntregaveis(entRes.data || []);
+    if (!projetoId) { setLoading(false); return; }
+    try {
+      const [projRes, fasesRes, propRes, entRes] = await Promise.all([
+        supabase.from("projetos").select("*, softwares(nome)").eq("id", projetoId).maybeSingle(),
+        supabase.from("projeto_fases").select("*").eq("projeto_id", projetoId).order("ordem", { ascending: true }),
+        supabase.from("propostas").select("*").eq("projeto_id", projetoId).eq("status", "aceita").maybeSingle(),
+        (supabase as any).from("projeto_entregaveis").select("*").eq("projeto_id", projetoId).order("created_at", { ascending: false }),
+      ]);
+      setProjeto(projRes.data);
+      setFases(fasesRes.data || []);
+      setPropostaAceita(propRes.data);
+      setEntregaveis(entRes.data || []);
 
-    const uploaderIds: string[] = Array.from(new Set((entRes.data || []).map((e: any) => String(e.uploader_user_id))));
-    if (uploaderIds.length > 0) {
-      const { data: profs } = await supabase.from("profiles").select("user_id, nome").in("user_id", uploaderIds);
-      setUploaderProfiles(new Map((profs || []).map(p => [p.user_id, p.nome])));
+      const uploaderIds: string[] = Array.from(new Set((entRes.data || []).map((e: any) => String(e.uploader_user_id))));
+      if (uploaderIds.length > 0) {
+        const { data: profs } = await supabase.from("profiles").select("user_id, nome").in("user_id", uploaderIds);
+        setUploaderProfiles(new Map((profs || []).map(p => [p.user_id, p.nome])));
+      }
+    } catch (e: any) {
+      toast({ title: "Erro ao carregar projeto", description: e?.message || String(e), variant: "destructive" });
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   useEffect(() => { fetchAll(); /* eslint-disable-next-line */ }, [projetoId]);
