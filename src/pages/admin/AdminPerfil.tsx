@@ -9,6 +9,7 @@ import { PageHeader, DataCard, SectionTitle, LoadingState } from "@/components/d
 import AvatarUpload from "@/components/profile/AvatarUpload";
 import ChangePasswordCard from "@/components/profile/ChangePasswordCard";
 import { UserCog } from "lucide-react";
+import { EstadoSelect } from "@/components/forms/EstadoSelect";
 
 const AdminPerfil = () => {
   const { user, profile } = useAuth();

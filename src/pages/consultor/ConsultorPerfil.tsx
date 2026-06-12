@@ -11,6 +11,7 @@ import { MapPin, Linkedin } from "lucide-react";
 import AvatarUpload from "@/components/profile/AvatarUpload";
 import ChangePasswordCard from "@/components/profile/ChangePasswordCard";
 import { maskPhone, validatePhone, normalizePhone, getPhoneErrorToast } from "@/lib/phoneUtils";
+import { EstadoSelect } from "@/components/forms/EstadoSelect";
 
 const ConsultorPerfil = () => {
   const { user, profile } = useAuth();
