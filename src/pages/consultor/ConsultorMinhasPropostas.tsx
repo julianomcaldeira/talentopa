@@ -254,29 +254,32 @@ const ConsultorMinhasPropostas = () => {
               )}
               {p.status === "aguardando_consultor" && (
                 <>
-                  <Button size="sm" onClick={async () => {
-                    const { error } = await (supabase as any).rpc("consultor_confirmar_inicio", { p_proposta_id: p.id });
+                  <Button size="sm" onClick={async (e) => {
+                    e.stopPropagation();
+                    const { data, error } = await (supabase as any).rpc("consultor_confirmar_inicio", { p_proposta_id: p.id });
                     if (error) { toast.error(error.message); return; }
                     toast.success("Projeto iniciado! Acompanhe na gestão compartilhada.");
-                    window.location.reload();
+                    await fetchData();
+                    if (p.projetos?.id) navigate(`/consultor/projetos/${p.projetos.id}/gestao`);
                   }}>
                     <CheckCircle2 size={14} /> Confirmar início
                   </Button>
                   <Button variant="outline" size="sm" onClick={() => setAjustarProposta(p)}>
                     <Pencil size={14} /> Contraproposta
                   </Button>
-                  <Button variant="outline" size="sm" onClick={async () => {
+                  <Button variant="outline" size="sm" onClick={async (e) => {
+                    e.stopPropagation();
                     const { error } = await (supabase as any).rpc("consultor_recusar_inicio", { p_proposta_id: p.id });
                     if (error) { toast.error(error.message); return; }
                     toast.success("Você recusou o início do projeto.");
-                    window.location.reload();
+                    await fetchData();
                   }}>
                     <XCircle size={14} /> Recusar
                   </Button>
                 </>
               )}
               {p.status === "aceita" && p.projetos?.id && (
-                <Button size="sm" onClick={() => window.location.href = `/consultor/projetos/${p.projetos.id}/gestao`}>
+                <Button size="sm" onClick={(e) => { e.stopPropagation(); navigate(`/consultor/projetos/${p.projetos.id}/gestao`); }}>
                   Gestão do projeto
                 </Button>
               )}
