@@ -2313,6 +2313,7 @@ export type Database = {
         | "aguardando_consultor"
         | "pre_aprovada"
         | "pendente_aprovacao_canal"
+        | "contraproposta_consultor"
       tipo_fatura: "empresa" | "consultor" | "plataforma"
     }
     CompositeTypes: {
@@ -2487,6 +2488,7 @@ export const Constants = {
         "aguardando_consultor",
         "pre_aprovada",
         "pendente_aprovacao_canal",
+        "contraproposta_consultor",
       ],
       tipo_fatura: ["empresa", "consultor", "plataforma"],
     },
