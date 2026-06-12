@@ -3,7 +3,7 @@ import { Link, useLocation, Outlet, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, Server, Puzzle, Cog, FileText, Users, Building2,
   FolderKanban, DollarSign, LogOut, Menu, X, ChevronRight, Search, 
-  Star, Settings, BarChart3, BookOpen, Brain, Sparkles, MessageSquare, Trophy, Bot, FileSpreadsheet, SlidersHorizontal, Activity, ScrollText, Briefcase, Workflow, ShieldAlert, ShieldCheck, UserCog, Mail, CalendarDays
+  Star, Settings, BarChart3, BookOpen, Brain, Sparkles, MessageSquare, Trophy, Bot, FileSpreadsheet, SlidersHorizontal, Activity, ScrollText, Briefcase, Workflow, ShieldAlert, ShieldCheck, UserCog, Mail, CalendarDays, Network
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
@@ -174,6 +174,7 @@ const adminLinks = [
   { to: "/admin/projetos", icon: FolderKanban, label: "Projetos" },
   { to: "/admin/estados-projeto", icon: Workflow, label: "Estados do Projeto" },
   { to: "/admin/consultores", icon: Users, label: "Consultores" },
+  { to: "/admin/canais", icon: Network, label: "Canais" },
   { to: "/admin/empresas", icon: Building2, label: "Empresas" },
   { to: "/admin/moderacao", icon: MessageSquare, label: "Moderação" },
   { to: "/admin/moderacao/tentativas-bloqueadas", icon: ShieldAlert, label: "Tentativas Bloqueadas" },
