@@ -105,7 +105,7 @@ const AdminPerfil = () => {
             </div>
             <div className="space-y-2">
               <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Estado</Label>
-              <Input value={form.estado} onChange={(e) => setForm({ ...form, estado: e.target.value })} maxLength={2} />
+              <EstadoSelect value={form.estado} onChange={(uf) => setForm({ ...form, estado: uf })} />
             </div>
           </div>
         </div>

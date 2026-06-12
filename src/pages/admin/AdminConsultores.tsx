@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { maskPhone, validatePhone, normalizePhone, getPhoneErrorToast } from "@/lib/phoneUtils";
+import { EstadoSelect } from "@/components/forms/EstadoSelect";
 
 interface ConsultorRow {
   user_id: string;
@@ -485,7 +486,7 @@ const AdminConsultores = () => {
             </div>
             <div className="space-y-2">
               <Label htmlFor="c-estado">Estado</Label>
-              <Input id="c-estado" value={newUser.estado} onChange={(e) => setNewUser({ ...newUser, estado: e.target.value })} placeholder="SP" />
+              <EstadoSelect id="c-estado" value={newUser.estado} onChange={(uf) => setNewUser({ ...newUser, estado: uf })} />
             </div>
             <div className="flex justify-end gap-3 pt-2">
               <Button type="button" variant="outline" onClick={() => setCreateOpen(false)}>Cancelar</Button>

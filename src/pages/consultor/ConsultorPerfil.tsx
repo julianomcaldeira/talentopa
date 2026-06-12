@@ -100,7 +100,7 @@ const ConsultorPerfil = () => {
             </div>
             <div className="space-y-2">
               <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Estado</Label>
-              <Input value={profileForm.estado} onChange={(e) => setProfileForm({ ...profileForm, estado: e.target.value })} />
+              <EstadoSelect value={profileForm.estado} onChange={(uf) => setProfileForm({ ...profileForm, estado: uf })} />
             </div>
           </div>
         </DataCard>

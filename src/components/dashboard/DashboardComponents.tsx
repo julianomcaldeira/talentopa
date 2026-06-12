@@ -52,6 +52,7 @@ const defaultStatusColors: Record<string, string> = {
   aguardando_consultor: "badge-warning",
   aceita: "badge-success",
   recusada: "badge-destructive",
+  contraproposta_consultor: "badge-warning",
 };
 
 const defaultStatusLabels: Record<string, string> = {
@@ -71,6 +72,7 @@ const defaultStatusLabels: Record<string, string> = {
   aguardando_consultor: "Aguardando consultor",
   aceita: "Aceita",
   recusada: "Recusada",
+  contraproposta_consultor: "Contraproposta",
 };
 
 export const StatusBadge = ({ status, labels }: StatusBadgeProps) => {
