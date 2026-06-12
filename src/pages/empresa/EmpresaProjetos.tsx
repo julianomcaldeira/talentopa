@@ -591,7 +591,7 @@ const EmpresaProjetos = () => {
                     <div className="rounded-lg border border-border/60 bg-background p-2">
                       <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Prazo de entrega</p>
                       <p className="text-sm font-bold text-foreground mt-0.5 flex items-center gap-1">
-                        <Calendar size={12} /> {prop.prazo_entrega_dias ? `${prop.prazo_entrega_dias} dia${prop.prazo_entrega_dias === 1 ? "" : "s"}` : "—"}
+                        <CalendarIcon size={12} /> {prop.prazo_entrega_dias ? `${prop.prazo_entrega_dias} dia${prop.prazo_entrega_dias === 1 ? "" : "s"}` : "—"}
                       </p>
                     </div>
                     <div className="rounded-lg border border-border/60 bg-background p-2">
