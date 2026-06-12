@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Users, Search, Star, FolderKanban, Eye, MapPin, Mail, Phone, Briefcase, Award, Calendar, Linkedin, FileText, UserPlus } from "lucide-react";
+import { Users, Search, Star, FolderKanban, Eye, MapPin, Mail, Phone, Briefcase, Award, Calendar, Linkedin, FileText, UserPlus, Network } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -57,6 +57,8 @@ interface ConsultorRow {
   }[];
   media_nota: number;
   total_projetos: number;
+  canal_nome: string | null;
+  canal_data_vinculo: string | null;
 }
 
 const nivelLabels: Record<string, string> = {
@@ -106,12 +108,18 @@ const AdminConsultores = () => {
       if (userIds.length === 0) { setLoading(false); return; }
 
       // 2) parallel fetches
-      const [profilesRes, habilidadesRes, avaliacoesRes, propostasRes] = await Promise.all([
+      const [profilesRes, habilidadesRes, avaliacoesRes, propostasRes, canalLinksRes] = await Promise.all([
         supabase.from("profiles").select("*").in("user_id", userIds),
         supabase.from("consultor_habilidades").select("*, softwares(nome), modulos(nome), funcionalidades(nome)").in("user_id", userIds),
         supabase.from("avaliacoes").select("*, projetos(nome)").in("avaliado_user_id", userIds),
         supabase.from("propostas").select("*, projetos(nome, protocolo)").in("consultor_user_id", userIds),
+        supabase.from("canal_consultores").select("consultor_user_id, data_vinculo, canais(nome)").in("consultor_user_id", userIds).eq("status", "ativo"),
       ]);
+
+      const canalMap = new Map<string, { nome: string | null; data: string | null }>();
+      ((canalLinksRes.data as any[]) || []).forEach((l) => {
+        canalMap.set(l.consultor_user_id, { nome: l.canais?.nome || null, data: l.data_vinculo });
+      });
 
       // profiles for avaliadores
       const avaliadorIds = [...new Set((avaliacoesRes.data || []).map((a) => a.avaliador_user_id))];
@@ -172,6 +180,8 @@ const AdminConsultores = () => {
           propostas: props,
           media_nota: media,
           total_projetos: props.filter((p) => p.status === "aceita").length,
+          canal_nome: canalMap.get(cp.user_id)?.nome || null,
+          canal_data_vinculo: canalMap.get(cp.user_id)?.data || null,
         };
       });
 
@@ -188,7 +198,8 @@ const AdminConsultores = () => {
       !term ||
       c.profile.nome.toLowerCase().includes(term) ||
       c.profile.email.toLowerCase().includes(term) ||
-      c.habilidades.some((h) => h.software_nome.toLowerCase().includes(term));
+      c.habilidades.some((h) => h.software_nome.toLowerCase().includes(term)) ||
+      (c.canal_nome?.toLowerCase().includes(term) ?? false);
     const matchesNivel =
       nivelFilter === "todos" || c.habilidades.some((h) => h.nivel === nivelFilter);
     return matchesSearch && matchesNivel;
@@ -303,6 +314,11 @@ const AdminConsultores = () => {
                   </div>
                 </div>
                 <div className="flex items-center gap-3 flex-shrink-0">
+                  {c.canal_nome && (
+                    <Badge variant="outline" className="text-[11px] hidden md:inline-flex gap-1 border-primary/30 text-primary">
+                      <Network size={10} /> {c.canal_nome}
+                    </Badge>
+                  )}
                   {c.habilidades.length > 0 && (
                     <Badge variant="secondary" className="text-[11px] hidden sm:inline-flex">
                       {c.habilidades.length} habilidade{c.habilidades.length !== 1 ? "s" : ""}
@@ -358,6 +374,15 @@ const AdminConsultores = () => {
                       <InfoBox label="LinkedIn" value={selectedConsultor.perfil.linkedin} icon={<Linkedin size={14} />} />
                     )}
                     <InfoBox label="Nota média" value={selectedConsultor.media_nota > 0 ? `${selectedConsultor.media_nota.toFixed(1)} / 5` : "Sem avaliações"} icon={<Star size={14} />} />
+                    <InfoBox
+                      label="Canal vinculado"
+                      value={
+                        selectedConsultor.canal_nome
+                          ? `${selectedConsultor.canal_nome}${selectedConsultor.canal_data_vinculo ? ` · desde ${new Date(selectedConsultor.canal_data_vinculo).toLocaleDateString("pt-BR")}` : ""}`
+                          : "Sem vínculo"
+                      }
+                      icon={<Network size={14} />}
+                    />
                   </div>
                   {selectedConsultor.perfil?.bio_profissional && (
                     <div>
