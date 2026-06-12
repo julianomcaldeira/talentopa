@@ -116,11 +116,15 @@ const AdminProjetos = () => {
     const now = Date.now();
     const day = 86400000;
     return projetos.filter(p => {
-      const term = search.toLowerCase();
+      const term = search.trim().toLowerCase();
       const matchesSearch = !term ||
         p.nome.toLowerCase().includes(term) ||
         p.protocolo?.toLowerCase().includes(term) ||
-        p.empresa_nome?.toLowerCase().includes(term);
+        p.empresa_nome?.toLowerCase().includes(term) ||
+        p.software?.nome?.toLowerCase().includes(term) ||
+        p.descricao?.toLowerCase().includes(term) ||
+        p.objetivo?.toLowerCase().includes(term) ||
+        (p.consultores_nomes || []).some(n => n.toLowerCase().includes(term));
       if (!matchesSearch) return false;
       if (statusFilter !== "todos" && p.status !== statusFilter) return false;
       if (softwareFilter !== "todos" && p.software_id !== softwareFilter) return false;
