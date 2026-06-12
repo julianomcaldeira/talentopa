@@ -92,6 +92,7 @@ const EmpresaNovoProjeto = ({ onSuccess }: EmpresaNovoProjetoProps = {}) => {
     prazo_propostas: "",
     software_id: "", observacoes: "",
     modelo_contratacao: "" as "" | "presencial" | "hibrido" | "remoto",
+    horas_estimadas: "",
   });
   const [anexos, setAnexos] = useState<AnexoLocal[]>([]);
   const [classificacao, setClassificacao] = useState<ClassificacaoIA | null>(null);
@@ -218,6 +219,7 @@ const EmpresaNovoProjeto = ({ onSuccess }: EmpresaNovoProjetoProps = {}) => {
       software_id: p.software_id || "",
       observacoes: p.observacoes || "",
       modelo_contratacao: (p.modelo_contratacao || "") as any,
+      horas_estimadas: "",
     });
     toast({ title: "Projeto espelhado", description: `Dados de "${p.nome}" copiados.` });
   };
@@ -295,6 +297,7 @@ const EmpresaNovoProjeto = ({ onSuccess }: EmpresaNovoProjetoProps = {}) => {
         problema_atual: form.problema_atual || null, objetivo: form.objetivo || null,
         prazo_estimado: form.prazo_estimado || null,
         prazo_propostas: form.prazo_propostas || null,
+        horas_estimadas: form.horas_estimadas ? Number(form.horas_estimadas) : null,
         software_id: form.software_id || null,
         observacoes: form.observacoes || null,
         modelo_contratacao: (form.modelo_contratacao || null) as any,
@@ -532,11 +535,24 @@ const EmpresaNovoProjeto = ({ onSuccess }: EmpresaNovoProjetoProps = {}) => {
                 {gravandoCampo === "objetivo" && <p className="text-xs text-primary flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-primary animate-pulse" />Ouvindo... fale com naturalidade, a transcrição será adicionada automaticamente.</p>}
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <SectionLabel>Prazo Estimado de Entrega</SectionLabel>
                   <Input type="date" value={form.prazo_estimado} onChange={(e) => setForm({ ...form, prazo_estimado: e.target.value })} className="bg-background" />
-                  <p className="text-[11px] text-muted-foreground">Data desejada para conclusão do projeto.</p>
+                  <p className="text-[11px] text-muted-foreground">Data desejada para conclusão.</p>
+                </div>
+                <div className="space-y-2">
+                  <SectionLabel>Horas Estimadas</SectionLabel>
+                  <Input
+                    type="number"
+                    min={1}
+                    step={1}
+                    placeholder="Ex.: 120"
+                    value={form.horas_estimadas}
+                    onChange={(e) => setForm({ ...form, horas_estimadas: e.target.value })}
+                    className="bg-background"
+                  />
+                  <p className="text-[11px] text-muted-foreground">Quantidade total de horas previstas para o projeto.</p>
                 </div>
                 <div className="space-y-2">
                   <SectionLabel>Prazo para receber propostas *</SectionLabel>
@@ -547,7 +563,7 @@ const EmpresaNovoProjeto = ({ onSuccess }: EmpresaNovoProjetoProps = {}) => {
                     onChange={(e) => setForm({ ...form, prazo_propostas: e.target.value })}
                     className="bg-background border-primary/20 focus-visible:border-primary"
                   />
-                  <p className="text-[11px] text-muted-foreground">Até quando os consultores podem enviar propostas. Você pode editar depois.</p>
+                  <p className="text-[11px] text-muted-foreground">Até quando consultores podem enviar propostas.</p>
                 </div>
               </div>
 
