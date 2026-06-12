@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { PageHeader, DataCard, SectionTitle, LoadingState } from "@/components/dashboard/DashboardComponents";
 import AvatarUpload from "@/components/profile/AvatarUpload";
 import ChangePasswordCard from "@/components/profile/ChangePasswordCard";
+import ChangeEmailCard from "@/components/profile/ChangeEmailCard";
 import { UserCog } from "lucide-react";
 import { EstadoSelect } from "@/components/forms/EstadoSelect";
 
@@ -114,6 +115,8 @@ const AdminPerfil = () => {
           <Button onClick={salvar} disabled={saving}>{saving ? "Salvando..." : "Salvar alterações"}</Button>
         </div>
       </DataCard>
+
+      <ChangeEmailCard />
 
       <ChangePasswordCard />
     </div>

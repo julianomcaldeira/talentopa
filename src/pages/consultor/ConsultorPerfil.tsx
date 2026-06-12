@@ -10,6 +10,8 @@ import { PageHeader, DataCard, LoadingState, SectionTitle } from "@/components/d
 import { MapPin, Linkedin } from "lucide-react";
 import AvatarUpload from "@/components/profile/AvatarUpload";
 import ChangePasswordCard from "@/components/profile/ChangePasswordCard";
+import ChangeEmailCard from "@/components/profile/ChangeEmailCard";
+import CanalVinculadoCard from "@/components/profile/CanalVinculadoCard";
 import { maskPhone, validatePhone, normalizePhone, getPhoneErrorToast } from "@/lib/phoneUtils";
 import { EstadoSelect } from "@/components/forms/EstadoSelect";
 
@@ -122,6 +124,10 @@ const ConsultorPerfil = () => {
             </div>
           </div>
         </DataCard>
+
+        <CanalVinculadoCard />
+
+        <ChangeEmailCard />
 
         <ChangePasswordCard />
 
