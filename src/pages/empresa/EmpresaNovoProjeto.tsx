@@ -92,6 +92,7 @@ const EmpresaNovoProjeto = ({ onSuccess }: EmpresaNovoProjetoProps = {}) => {
     prazo_propostas: "",
     software_id: "", observacoes: "",
     modelo_contratacao: "" as "" | "presencial" | "hibrido" | "remoto",
+    horas_estimadas: "",
   });
   const [anexos, setAnexos] = useState<AnexoLocal[]>([]);
   const [classificacao, setClassificacao] = useState<ClassificacaoIA | null>(null);
