@@ -385,7 +385,7 @@ const ConsultorMinhasPropostas = () => {
           const arquivadas = filtered.filter(p => archivedIds.has(p.id));
           const cols = [
             { key: "enviada", label: "Pendentes", color: "bg-info", items: visiveis.filter(p => p.status === "enviada") },
-            { key: "pre_aprovada", label: "Pré-aprovadas", color: "bg-primary", items: visiveis.filter(p => p.status === "pre_aprovada" || p.status === "aguardando_consultor") },
+            { key: "pre_aprovada", label: "Pré-aprovadas", color: "bg-primary", items: visiveis.filter(p => p.status === "pre_aprovada" || p.status === "aguardando_consultor" || p.status === "contraproposta_consultor") },
             { key: "aceita", label: "Aceitas", color: "bg-success", items: visiveis.filter(p => p.status === "aceita") },
             { key: "recusada", label: "Recusadas", color: "bg-destructive", items: visiveis.filter(p => p.status === "recusada") },
             { key: "arquivada", label: "Arquivadas", color: "bg-muted-foreground", items: arquivadas },
