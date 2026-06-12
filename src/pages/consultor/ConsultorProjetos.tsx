@@ -598,7 +598,7 @@ const ConsultorProjetos = () => {
             <p className="text-xs text-muted-foreground">{selectedProjeto?.softwares?.nome}</p>
           </div>
           <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Estimativa de horas</Label>
                 <Input type="number" value={proposalForm.estimativa_horas} onChange={(e) => setProposalForm({ ...proposalForm, estimativa_horas: e.target.value })} placeholder="120" />
@@ -606,6 +606,10 @@ const ConsultorProjetos = () => {
               <div className="space-y-2">
                 <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Valor (R$)</Label>
                 <Input type="number" value={proposalForm.valor_proposta} onChange={(e) => setProposalForm({ ...proposalForm, valor_proposta: e.target.value })} placeholder="36000" />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Prazo entrega (dias)</Label>
+                <Input type="number" value={proposalForm.prazo_entrega_dias} onChange={(e) => setProposalForm({ ...proposalForm, prazo_entrega_dias: e.target.value })} placeholder="45" />
               </div>
             </div>
             <div className="space-y-2">
