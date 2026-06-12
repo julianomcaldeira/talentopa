@@ -72,19 +72,18 @@ const ConsultorMinhasPropostas = () => {
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
-  useEffect(() => {
+  const fetchData = useCallback(async () => {
     if (!user) return;
-    const fetchData = async () => {
-      const { data } = await supabase
-        .from("propostas")
-        .select("*, projetos(id, nome, protocolo, status, descricao, objetivo, prazo_estimado, modelo_contratacao, softwares(nome))")
-        .eq("consultor_user_id", user.id)
-        .order("created_at", { ascending: false });
-      if (data) setPropostas(data);
-      setLoading(false);
-    };
-    fetchData();
+    const { data } = await supabase
+      .from("propostas")
+      .select("*, projetos(id, nome, protocolo, status, descricao, objetivo, prazo_estimado, modelo_contratacao, softwares(nome))")
+      .eq("consultor_user_id", user.id)
+      .order("created_at", { ascending: false });
+    if (data) setPropostas(data);
+    setLoading(false);
   }, [user]);
+
+  useEffect(() => { fetchData(); }, [fetchData]);
 
   const enviadas = propostas.filter((p) => p.status === "enviada").length;
   const preAprovadas = propostas.filter((p) => p.status === "pre_aprovada" || p.status === "aguardando_consultor").length;
