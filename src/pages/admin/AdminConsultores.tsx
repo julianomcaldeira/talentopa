@@ -180,6 +180,8 @@ const AdminConsultores = () => {
           propostas: props,
           media_nota: media,
           total_projetos: props.filter((p) => p.status === "aceita").length,
+          canal_nome: canalMap.get(cp.user_id)?.nome || null,
+          canal_data_vinculo: canalMap.get(cp.user_id)?.data || null,
         };
       });
 
