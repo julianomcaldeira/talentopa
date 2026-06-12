@@ -26,7 +26,7 @@ const ConsultorProjetos = () => {
   const [loading, setLoading] = useState(true);
   const [proposalDialog, setProposalDialog] = useState(false);
   const [selectedProjeto, setSelectedProjeto] = useState<any>(null);
-  const [proposalForm, setProposalForm] = useState({ estimativa_horas: "", valor_proposta: "", comentarios: "" });
+  const [proposalForm, setProposalForm] = useState({ estimativa_horas: "", valor_proposta: "", prazo_entrega_dias: "", comentarios: "" });
   const [mySkills, setMySkills] = useState<any[]>([]);
   const [projetoScopes, setProjetoScopes] = useState<Map<string, { modulos: string[]; funcs: string[] }>>(new Map());
   const [chatProjeto, setChatProjeto] = useState<any>(null);
