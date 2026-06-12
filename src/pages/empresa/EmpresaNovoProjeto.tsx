@@ -219,6 +219,7 @@ const EmpresaNovoProjeto = ({ onSuccess }: EmpresaNovoProjetoProps = {}) => {
       software_id: p.software_id || "",
       observacoes: p.observacoes || "",
       modelo_contratacao: (p.modelo_contratacao || "") as any,
+      horas_estimadas: "",
     });
     toast({ title: "Projeto espelhado", description: `Dados de "${p.nome}" copiados.` });
   };
