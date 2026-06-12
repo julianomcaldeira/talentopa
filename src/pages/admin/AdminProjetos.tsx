@@ -29,6 +29,7 @@ interface ProjetoRow {
   fases?: { id: string; nome: string; status: string; ordem: number }[];
   propostas_count?: number;
   empresa_nome?: string;
+  consultores_nomes?: string[];
 }
 
 type SortKey = "recent" | "oldest" | "name_asc" | "health_desc" | "health_asc" | "propostas_desc" | "prazo_asc";
@@ -65,17 +66,29 @@ const AdminProjetos = () => {
 
     if (!data) { setLoading(false); return; }
 
-    // Fetch empresa names and proposal counts
+    // Fetch empresa names and proposals (with consultor)
     const userIds = [...new Set(data.map(p => p.empresa_user_id))];
     const [profilesRes, propostasRes] = await Promise.all([
       supabase.from("profiles").select("user_id, nome").in("user_id", userIds),
-      supabase.from("propostas").select("id, projeto_id"),
+      supabase.from("propostas").select("id, projeto_id, consultor_user_id, status"),
     ]);
 
+    const consultorIds = [...new Set((propostasRes.data || []).map(p => p.consultor_user_id).filter(Boolean))] as string[];
+    const { data: consultorProfiles } = consultorIds.length
+      ? await supabase.from("profiles").select("user_id, nome").in("user_id", consultorIds)
+      : { data: [] as { user_id: string; nome: string }[] };
+
     const profileMap = new Map((profilesRes.data || []).map(p => [p.user_id, p.nome]));
+    const consultorMap = new Map((consultorProfiles || []).map(p => [p.user_id, p.nome]));
     const propostaCountMap = new Map<string, number>();
+    const consultoresByProjeto = new Map<string, Set<string>>();
     (propostasRes.data || []).forEach(p => {
       propostaCountMap.set(p.projeto_id, (propostaCountMap.get(p.projeto_id) || 0) + 1);
+      const nome = p.consultor_user_id ? consultorMap.get(p.consultor_user_id) : null;
+      if (nome) {
+        if (!consultoresByProjeto.has(p.projeto_id)) consultoresByProjeto.set(p.projeto_id, new Set());
+        consultoresByProjeto.get(p.projeto_id)!.add(nome);
+      }
     });
 
     const enriched: ProjetoRow[] = data.map(p => ({
@@ -84,6 +97,7 @@ const AdminProjetos = () => {
       fases: p.projeto_fases || [],
       propostas_count: propostaCountMap.get(p.id) || 0,
       empresa_nome: profileMap.get(p.empresa_user_id) || "Empresa",
+      consultores_nomes: Array.from(consultoresByProjeto.get(p.id) || []),
     }));
 
     setProjetos(enriched);
@@ -102,11 +116,15 @@ const AdminProjetos = () => {
     const now = Date.now();
     const day = 86400000;
     return projetos.filter(p => {
-      const term = search.toLowerCase();
+      const term = search.trim().toLowerCase();
       const matchesSearch = !term ||
         p.nome.toLowerCase().includes(term) ||
         p.protocolo?.toLowerCase().includes(term) ||
-        p.empresa_nome?.toLowerCase().includes(term);
+        p.empresa_nome?.toLowerCase().includes(term) ||
+        p.software?.nome?.toLowerCase().includes(term) ||
+        p.descricao?.toLowerCase().includes(term) ||
+        p.objetivo?.toLowerCase().includes(term) ||
+        (p.consultores_nomes || []).some(n => n.toLowerCase().includes(term));
       if (!matchesSearch) return false;
       if (statusFilter !== "todos" && p.status !== statusFilter) return false;
       if (softwareFilter !== "todos" && p.software_id !== softwareFilter) return false;
@@ -204,7 +222,7 @@ const AdminProjetos = () => {
           <div className="relative flex-1">
             <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/60" />
             <Input
-              placeholder="Buscar por nome, protocolo ou empresa..."
+              placeholder="Buscar por nome, protocolo, empresa, consultor, software..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-10"
