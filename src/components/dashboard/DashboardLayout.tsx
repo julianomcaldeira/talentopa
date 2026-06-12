@@ -174,6 +174,7 @@ const adminLinks = [
   { to: "/admin/projetos", icon: FolderKanban, label: "Projetos" },
   { to: "/admin/estados-projeto", icon: Workflow, label: "Estados do Projeto" },
   { to: "/admin/consultores", icon: Users, label: "Consultores" },
+  { to: "/admin/canais", icon: Network, label: "Canais" },
   { to: "/admin/empresas", icon: Building2, label: "Empresas" },
   { to: "/admin/moderacao", icon: MessageSquare, label: "Moderação" },
   { to: "/admin/moderacao/tentativas-bloqueadas", icon: ShieldAlert, label: "Tentativas Bloqueadas" },
