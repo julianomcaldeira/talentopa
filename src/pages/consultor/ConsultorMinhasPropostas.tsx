@@ -35,6 +35,7 @@ const PAGE_SIZE = 5;
 
 const ConsultorMinhasPropostas = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [propostas, setPropostas] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [detalheProposta, setDetalheProposta] = useState<any | null>(null);
