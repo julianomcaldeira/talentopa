@@ -48,6 +48,32 @@ interface ConsultorOption {
   nome: string;
 }
 
+const ProjetoItem = ({ p, showConsultor }: { p: Projeto; showConsultor?: boolean }) => (
+  <div className="flex items-center justify-between gap-4 p-4">
+    <div className="min-w-0">
+      <p className="font-medium text-foreground truncate">{p.nome}</p>
+      <p className="text-xs text-muted-foreground mt-0.5">
+        {p.empresa_nome ? `${p.empresa_nome} · ` : ""}
+        {p.prazo_estimado
+          ? `Prazo: ${new Date(p.prazo_estimado).toLocaleDateString("pt-BR")}`
+          : "Sem prazo"}{" "}
+        ·{" "}
+        {p.valor_estimado
+          ? `R$ ${Number(p.valor_estimado).toLocaleString("pt-BR")}`
+          : "Sem valor"}
+      </p>
+      {showConsultor && p.consultor_nome && (
+        <p className="text-xs text-foreground/80 mt-1 flex items-center gap-1">
+          <User className="h-3 w-3" /> {p.consultor_nome}
+        </p>
+      )}
+    </div>
+    <Badge variant="outline" className="capitalize">
+      {p.status?.replace(/_/g, " ")}
+    </Badge>
+  </div>
+);
+
 const CanalProjetos = () => {
   const { user } = useAuth();
   const [canalId, setCanalId] = useState<string | null>(null);
