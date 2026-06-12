@@ -161,6 +161,7 @@ const ConsultorMinhasPropostas = () => {
                 <SelectItem value="enviada">Pendente</SelectItem>
                 <SelectItem value="pre_aprovada">Pré-aprovada</SelectItem>
                 <SelectItem value="aguardando_consultor">Aguardando confirmação</SelectItem>
+                <SelectItem value="contraproposta_consultor">Contraproposta</SelectItem>
                 <SelectItem value="aceita">Aceita</SelectItem>
                 <SelectItem value="recusada">Recusada</SelectItem>
               </SelectContent>
