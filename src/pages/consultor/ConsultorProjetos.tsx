@@ -141,12 +141,13 @@ const ConsultorProjetos = () => {
       projeto_id: selectedProjeto.id, consultor_user_id: user.id,
       estimativa_horas: Number(proposalForm.estimativa_horas) || null,
       valor_proposta: Number(proposalForm.valor_proposta) || null,
+      prazo_entrega_dias: Number(proposalForm.prazo_entrega_dias) || null,
       comentarios: proposalForm.comentarios || null,
-    });
+    } as any);
     if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
     toast({ title: "Proposta enviada com sucesso!" });
     setProposalDialog(false);
-    setProposalForm({ estimativa_horas: "", valor_proposta: "", comentarios: "" });
+    setProposalForm({ estimativa_horas: "", valor_proposta: "", prazo_entrega_dias: "", comentarios: "" });
   };
 
   const getMatchScore = (projeto: any): number => {
