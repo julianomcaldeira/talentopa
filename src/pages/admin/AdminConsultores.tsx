@@ -198,7 +198,8 @@ const AdminConsultores = () => {
       !term ||
       c.profile.nome.toLowerCase().includes(term) ||
       c.profile.email.toLowerCase().includes(term) ||
-      c.habilidades.some((h) => h.software_nome.toLowerCase().includes(term));
+      c.habilidades.some((h) => h.software_nome.toLowerCase().includes(term)) ||
+      (c.canal_nome?.toLowerCase().includes(term) ?? false);
     const matchesNivel =
       nivelFilter === "todos" || c.habilidades.some((h) => h.nivel === nivelFilter);
     return matchesSearch && matchesNivel;
