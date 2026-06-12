@@ -57,6 +57,8 @@ interface ConsultorRow {
   }[];
   media_nota: number;
   total_projetos: number;
+  canal_nome: string | null;
+  canal_data_vinculo: string | null;
 }
 
 const nivelLabels: Record<string, string> = {
