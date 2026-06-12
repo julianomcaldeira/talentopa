@@ -66,17 +66,29 @@ const AdminProjetos = () => {
 
     if (!data) { setLoading(false); return; }
 
-    // Fetch empresa names and proposal counts
+    // Fetch empresa names and proposals (with consultor)
     const userIds = [...new Set(data.map(p => p.empresa_user_id))];
     const [profilesRes, propostasRes] = await Promise.all([
       supabase.from("profiles").select("user_id, nome").in("user_id", userIds),
-      supabase.from("propostas").select("id, projeto_id"),
+      supabase.from("propostas").select("id, projeto_id, consultor_user_id, status"),
     ]);
 
+    const consultorIds = [...new Set((propostasRes.data || []).map(p => p.consultor_user_id).filter(Boolean))] as string[];
+    const { data: consultorProfiles } = consultorIds.length
+      ? await supabase.from("profiles").select("user_id, nome").in("user_id", consultorIds)
+      : { data: [] as { user_id: string; nome: string }[] };
+
     const profileMap = new Map((profilesRes.data || []).map(p => [p.user_id, p.nome]));
+    const consultorMap = new Map((consultorProfiles || []).map(p => [p.user_id, p.nome]));
     const propostaCountMap = new Map<string, number>();
+    const consultoresByProjeto = new Map<string, Set<string>>();
     (propostasRes.data || []).forEach(p => {
       propostaCountMap.set(p.projeto_id, (propostaCountMap.get(p.projeto_id) || 0) + 1);
+      const nome = p.consultor_user_id ? consultorMap.get(p.consultor_user_id) : null;
+      if (nome) {
+        if (!consultoresByProjeto.has(p.projeto_id)) consultoresByProjeto.set(p.projeto_id, new Set());
+        consultoresByProjeto.get(p.projeto_id)!.add(nome);
+      }
     });
 
     const enriched: ProjetoRow[] = data.map(p => ({
@@ -85,6 +97,7 @@ const AdminProjetos = () => {
       fases: p.projeto_fases || [],
       propostas_count: propostaCountMap.get(p.id) || 0,
       empresa_nome: profileMap.get(p.empresa_user_id) || "Empresa",
+      consultores_nomes: Array.from(consultoresByProjeto.get(p.id) || []),
     }));
 
     setProjetos(enriched);
