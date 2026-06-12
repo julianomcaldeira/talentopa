@@ -373,6 +373,15 @@ const AdminConsultores = () => {
                       <InfoBox label="LinkedIn" value={selectedConsultor.perfil.linkedin} icon={<Linkedin size={14} />} />
                     )}
                     <InfoBox label="Nota média" value={selectedConsultor.media_nota > 0 ? `${selectedConsultor.media_nota.toFixed(1)} / 5` : "Sem avaliações"} icon={<Star size={14} />} />
+                    <InfoBox
+                      label="Canal vinculado"
+                      value={
+                        selectedConsultor.canal_nome
+                          ? `${selectedConsultor.canal_nome}${selectedConsultor.canal_data_vinculo ? ` · desde ${new Date(selectedConsultor.canal_data_vinculo).toLocaleDateString("pt-BR")}` : ""}`
+                          : "Sem vínculo"
+                      }
+                      icon={<Network size={14} />}
+                    />
                   </div>
                   {selectedConsultor.perfil?.bio_profissional && (
                     <div>
