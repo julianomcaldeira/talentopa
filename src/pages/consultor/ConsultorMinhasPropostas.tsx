@@ -2,7 +2,8 @@ import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { PageHeader, DataCard, StatusBadge, EmptyState, LoadingState, StatCard } from "@/components/dashboard/DashboardComponents";
-import { Send, CheckCircle2, XCircle, Clock, Eye, MessageSquare, Filter, X, Search, Calendar, Archive, ArchiveRestore, GripVertical } from "lucide-react";
+import { Send, CheckCircle2, XCircle, Clock, Eye, MessageSquare, Filter, X, Search, Calendar, Archive, ArchiveRestore, GripVertical, Pencil } from "lucide-react";
+import { AjustarPropostaDialog } from "@/components/propostas/AjustarPropostaDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -37,6 +38,7 @@ const ConsultorMinhasPropostas = () => {
   const [loading, setLoading] = useState(true);
   const [detalheProposta, setDetalheProposta] = useState<any | null>(null);
   const [chatProposta, setChatProposta] = useState<any | null>(null);
+  const [ajustarProposta, setAjustarProposta] = useState<any | null>(null);
 
   // Filters
   const [search, setSearch] = useState("");
@@ -234,8 +236,18 @@ const ConsultorMinhasPropostas = () => {
                 <MessageSquare size={14} /> Comunicação
               </Button>
               {p.status === "pre_aprovada" && (
-                <span className="inline-flex items-center rounded-lg border border-primary/20 bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">
-                  Comunicação liberada para alinhamento
+                <>
+                  <span className="inline-flex items-center rounded-lg border border-primary/20 bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">
+                    Comunicação liberada para alinhamento
+                  </span>
+                  <Button variant="outline" size="sm" onClick={() => setAjustarProposta(p)}>
+                    <Pencil size={14} /> Atualizar valor
+                  </Button>
+                </>
+              )}
+              {p.status === "contraproposta_consultor" && (
+                <span className="inline-flex items-center rounded-lg border border-warning/30 bg-warning/10 px-2.5 py-1 text-xs font-semibold text-warning">
+                  Aguardando nova pré-aprovação da empresa
                 </span>
               )}
               {p.status === "aguardando_consultor" && (
@@ -247,6 +259,9 @@ const ConsultorMinhasPropostas = () => {
                     window.location.reload();
                   }}>
                     <CheckCircle2 size={14} /> Confirmar início
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => setAjustarProposta(p)}>
+                    <Pencil size={14} /> Contraproposta
                   </Button>
                   <Button variant="outline" size="sm" onClick={async () => {
                     const { error } = await (supabase as any).rpc("consultor_recusar_inicio", { p_proposta_id: p.id });
@@ -501,6 +516,13 @@ const ConsultorMinhasPropostas = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      <AjustarPropostaDialog
+        open={!!ajustarProposta}
+        onOpenChange={(v) => { if (!v) setAjustarProposta(null); }}
+        proposta={ajustarProposta}
+        onSuccess={() => window.location.reload()}
+      />
     </div>
   );
 };
