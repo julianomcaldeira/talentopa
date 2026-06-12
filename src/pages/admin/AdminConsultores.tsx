@@ -108,12 +108,18 @@ const AdminConsultores = () => {
       if (userIds.length === 0) { setLoading(false); return; }
 
       // 2) parallel fetches
-      const [profilesRes, habilidadesRes, avaliacoesRes, propostasRes] = await Promise.all([
+      const [profilesRes, habilidadesRes, avaliacoesRes, propostasRes, canalLinksRes] = await Promise.all([
         supabase.from("profiles").select("*").in("user_id", userIds),
         supabase.from("consultor_habilidades").select("*, softwares(nome), modulos(nome), funcionalidades(nome)").in("user_id", userIds),
         supabase.from("avaliacoes").select("*, projetos(nome)").in("avaliado_user_id", userIds),
         supabase.from("propostas").select("*, projetos(nome, protocolo)").in("consultor_user_id", userIds),
+        supabase.from("canal_consultores").select("consultor_user_id, data_vinculo, canais(nome)").in("consultor_user_id", userIds).eq("status", "ativo"),
       ]);
+
+      const canalMap = new Map<string, { nome: string | null; data: string | null }>();
+      ((canalLinksRes.data as any[]) || []).forEach((l) => {
+        canalMap.set(l.consultor_user_id, { nome: l.canais?.nome || null, data: l.data_vinculo });
+      });
 
       // profiles for avaliadores
       const avaliadorIds = [...new Set((avaliacoesRes.data || []).map((a) => a.avaliador_user_id))];
