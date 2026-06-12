@@ -51,7 +51,8 @@ interface ConsultorOption {
 const CanalProjetos = () => {
   const { user } = useAuth();
   const [canalId, setCanalId] = useState<string | null>(null);
-  const [projetos, setProjetos] = useState<Projeto[]>([]);
+  const [projetosCanal, setProjetosCanal] = useState<Projeto[]>([]);
+  const [projetosConsultores, setProjetosConsultores] = useState<Projeto[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [open, setOpen] = useState(false);
@@ -68,13 +69,86 @@ const CanalProjetos = () => {
     prazo: "",
   });
 
+  const enrichProjetos = async (rows: any[]): Promise<Projeto[]> => {
+    if (!rows.length) return [];
+    const ids = rows.map((r) => r.id);
+    const empresaIds = Array.from(new Set(rows.map((r) => r.empresa_user_id).filter(Boolean)));
+
+    const [{ data: alocs }, { data: profsEmp }] = await Promise.all([
+      supabase
+        .from("alocacoes")
+        .select("projeto_id, consultor_user_id, status")
+        .in("projeto_id", ids)
+        .eq("status", "aprovada"),
+      empresaIds.length
+        ? supabase.from("profiles").select("user_id, nome").in("user_id", empresaIds)
+        : Promise.resolve({ data: [] as any[] }),
+    ]);
+
+    const consultorIds = Array.from(
+      new Set(((alocs as any[]) || []).map((a) => a.consultor_user_id).filter(Boolean))
+    );
+    const { data: profsCons } = consultorIds.length
+      ? await supabase.from("profiles").select("user_id, nome").in("user_id", consultorIds)
+      : ({ data: [] as any[] } as any);
+
+    const consultorByProj = new Map<string, string>();
+    ((alocs as any[]) || []).forEach((a) => {
+      const nome = (profsCons as any[])?.find((p) => p.user_id === a.consultor_user_id)?.nome;
+      if (nome && !consultorByProj.has(a.projeto_id)) consultorByProj.set(a.projeto_id, nome);
+    });
+    const empresaMap = new Map<string, string>();
+    ((profsEmp as any[]) || []).forEach((p) => empresaMap.set(p.user_id, p.nome));
+
+    return rows.map((r) => ({
+      ...r,
+      consultor_nome: consultorByProj.get(r.id) || null,
+      empresa_nome: empresaMap.get(r.empresa_user_id) || null,
+    }));
+  };
+
   const loadProjetos = async (cid: string) => {
-    const { data } = await supabase
+    // 1) Projetos criados pelo canal
+    const { data: criados } = await supabase
       .from("projetos")
-      .select("id, nome, status, valor_estimado, prazo_estimado, created_at")
+      .select("id, nome, status, valor_estimado, prazo_estimado, created_at, empresa_user_id")
       .eq("canal_id", cid)
       .order("created_at", { ascending: false });
-    setProjetos((data as any) || []);
+
+    // 2) Projetos executados pelos consultores vinculados
+    const { data: links } = await supabase
+      .from("canal_consultores")
+      .select("consultor_user_id")
+      .eq("canal_id", cid)
+      .eq("status", "ativo");
+    const consultorIds = ((links as any[]) || []).map((l) => l.consultor_user_id).filter(Boolean);
+
+    let projetosDosConsultores: any[] = [];
+    if (consultorIds.length) {
+      const { data: props } = await supabase
+        .from("propostas")
+        .select("projeto_id, status")
+        .in("consultor_user_id", consultorIds)
+        .in("status", ["aceita", "pre_aprovada"]);
+      const projetoIds = Array.from(new Set(((props as any[]) || []).map((p) => p.projeto_id)));
+      const criadosIds = new Set(((criados as any[]) || []).map((p) => p.id));
+      const filtrados = projetoIds.filter((id) => !criadosIds.has(id));
+      if (filtrados.length) {
+        const { data: pjs } = await supabase
+          .from("projetos")
+          .select("id, nome, status, valor_estimado, prazo_estimado, created_at, empresa_user_id")
+          .in("id", filtrados)
+          .order("created_at", { ascending: false });
+        projetosDosConsultores = (pjs as any[]) || [];
+      }
+    }
+
+    const [enrCanal, enrCons] = await Promise.all([
+      enrichProjetos((criados as any[]) || []),
+      enrichProjetos(projetosDosConsultores),
+    ]);
+    setProjetosCanal(enrCanal);
+    setProjetosConsultores(enrCons);
   };
 
   useEffect(() => {
