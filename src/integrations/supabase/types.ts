@@ -2124,6 +2124,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      canal_can_view_projeto: {
+        Args: { _projeto_id: string; _user_id: string }
+        Returns: boolean
+      }
       canal_convidar_consultor: { Args: { p_email: string }; Returns: string }
       concluir_projeto: { Args: { p_projeto_id: string }; Returns: Json }
       consultor_ajustar_proposta:
