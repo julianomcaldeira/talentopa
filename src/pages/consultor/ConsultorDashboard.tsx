@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   FolderKanban, DollarSign, Send, CheckCircle2, ArrowUpRight,
-  Clock, TrendingUp, Briefcase, Target, Zap, ChevronRight, Star, BarChart3
+  Clock, TrendingUp, Briefcase, Target, Zap, ChevronRight, Star, BarChart3,
+  CalendarDays, CalendarRange, Sparkles, Wallet, AlertCircle
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -14,6 +15,54 @@ import {
   BarChart, Bar, PieChart, Pie, Cell, AreaChart, Area,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from "recharts";
+
+const WORK_HOURS_PER_DAY = 8;
+const MONTH_LABELS = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+const MONTH_SHORT = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+
+function businessDaysInRange(start: Date, end: Date) {
+  const days: string[] = [];
+  const d = new Date(start);
+  d.setHours(0,0,0,0);
+  const e = new Date(end);
+  e.setHours(0,0,0,0);
+  while (d <= e) {
+    const dow = d.getDay();
+    if (dow !== 0 && dow !== 6) {
+      days.push(`${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`);
+    }
+    d.setDate(d.getDate() + 1);
+  }
+  return days;
+}
+
+function computeAvailability(year: number, month: number, agenda: any[], rate: number, fromToday = false) {
+  const first = fromToday ? new Date() : new Date(year, month, 1);
+  if (fromToday) first.setHours(0,0,0,0);
+  const last = new Date(year, month + 1, 0);
+  const allBusinessDays = businessDaysInRange(first, last);
+  const busyKeys = new Set<string>();
+  agenda.forEach((a) => {
+    const ai = new Date(a.inicio);
+    const af = new Date(a.fim);
+    if (af < first || ai > last) return;
+    const cur = new Date(Math.max(ai.getTime(), first.getTime()));
+    cur.setHours(0,0,0,0);
+    const end = new Date(Math.min(af.getTime(), last.getTime()));
+    while (cur <= end) {
+      const dow = cur.getDay();
+      if (dow !== 0 && dow !== 6) {
+        busyKeys.add(`${cur.getFullYear()}-${cur.getMonth()}-${cur.getDate()}`);
+      }
+      cur.setDate(cur.getDate() + 1);
+    }
+  });
+  const freeDays = allBusinessDays.filter((k) => !busyKeys.has(k)).length;
+  const totalDays = allBusinessDays.length;
+  const horas = freeDays * WORK_HOURS_PER_DAY;
+  const receita = horas * rate;
+  return { freeDays, totalDays, horas, receita, mes: MONTH_LABELS[month], mesShort: MONTH_SHORT[month], year };
+}
 
 const formatCurrency = (val: number) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(val);
