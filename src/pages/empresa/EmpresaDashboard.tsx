@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   FolderKanban, DollarSign, Users, ArrowUpRight, Plus, Send, CheckCircle2,
-  TrendingUp, Clock, ChevronRight, BarChart3, FileText, Building2
+  Clock, ChevronRight, BarChart3, FileText, Package, Layers, Sparkles, Target, TrendingDown
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,9 @@ import {
   PieChart, Pie, Cell, BarChart, Bar, AreaChart, Area,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from "recharts";
+
+// Benchmark: average segment usage potential for a module (catalog-relative)
+const SEGMENT_POTENTIAL = 0.85;
 const formatCurrency = (val: number) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(val);
 
