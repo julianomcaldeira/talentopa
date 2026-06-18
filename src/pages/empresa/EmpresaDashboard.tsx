@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   FolderKanban, DollarSign, Users, ArrowUpRight, Plus, Send, CheckCircle2,
-  TrendingUp, Clock, ChevronRight, BarChart3, FileText, Building2
+  Clock, ChevronRight, BarChart3, FileText, Package, Layers, Sparkles, Target, TrendingDown
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,9 @@ import {
   PieChart, Pie, Cell, BarChart, Bar, AreaChart, Area,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from "recharts";
+
+// Benchmark: average segment usage potential for a module (catalog-relative)
+const SEGMENT_POTENTIAL = 0.85;
 const formatCurrency = (val: number) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(val);
 
@@ -39,6 +42,9 @@ const EmpresaDashboard = () => {
   const navigate = useNavigate();
   const [projetos, setProjetos] = useState<any[]>([]);
   const [propostas, setPropostas] = useState<any[]>([]);
+  const [catalog, setCatalog] = useState<any[]>([]); // softwares with modulos/funcionalidades
+  const [usedFuncIds, setUsedFuncIds] = useState<Set<string>>(new Set());
+  const [activeSoftwareId, setActiveSoftwareId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -46,13 +52,14 @@ const EmpresaDashboard = () => {
     const fetchData = async () => {
       const { data: projetosData } = await supabase
         .from("projetos")
-        .select("*, softwares(nome), projeto_fases(id, nome, status)")
+        .select("*, softwares(id, nome), projeto_fases(id, nome, status)")
         .eq("empresa_user_id", user.id)
         .order("created_at", { ascending: false });
 
       const projs = projetosData || [];
       setProjetos(projs);
 
+      // Fetch propostas
       if (projs.length > 0) {
         const projIds = projs.map((p) => p.id);
         const { data: propostasData } = await supabase
@@ -75,7 +82,26 @@ const EmpresaDashboard = () => {
             }))
           );
         }
+
+        // Funcionalidades contratadas pela empresa (acumulado de todos os projetos)
+        const { data: pfs } = await supabase
+          .from("projeto_funcionalidades")
+          .select("funcionalidade_id")
+          .in("projeto_id", projIds);
+        setUsedFuncIds(new Set((pfs || []).map((r: any) => r.funcionalidade_id)));
       }
+
+      // Catálogo: somente softwares que a empresa já contratou (via projetos)
+      const softwareIds = [...new Set(projs.map((p: any) => p.software_id).filter(Boolean))];
+      if (softwareIds.length > 0) {
+        const { data: softs } = await supabase
+          .from("softwares")
+          .select("id, nome, modulos(id, nome, funcionalidades(id, nome))")
+          .in("id", softwareIds);
+        setCatalog(softs || []);
+        if (softs && softs.length > 0) setActiveSoftwareId(softs[0].id);
+      }
+
       setLoading(false);
     };
     fetchData();
@@ -87,6 +113,39 @@ const EmpresaDashboard = () => {
   const propostasAceitas = propostas.filter((p) => p.status === "aceita");
   const totalInvestido = propostasAceitas.reduce((sum, p) => sum + (p.valor_proposta || 0), 0);
   const completionRate = projetos.length > 0 ? Math.round((doneCount / projetos.length) * 100) : 0;
+
+  // ===== Catalog analytics =====
+  const activeSoftware = useMemo(
+    () => catalog.find((s) => s.id === activeSoftwareId) || catalog[0] || null,
+    [catalog, activeSoftwareId]
+  );
+
+  const moduleUsage = useMemo(() => {
+    if (!activeSoftware) return [];
+    return (activeSoftware.modulos || [])
+      .map((m: any) => {
+        const funcs = m.funcionalidades || [];
+        const total = funcs.length;
+        const usadas = funcs.filter((f: any) => usedFuncIds.has(f.id)).length;
+        const usoPct = total > 0 ? Math.round((usadas / total) * 100) : 0;
+        const potencialPct = Math.round(SEGMENT_POTENTIAL * 100);
+        const gap = Math.max(0, potencialPct - usoPct);
+        return {
+          id: m.id,
+          nome: m.nome,
+          usoPct,
+          potencialPct,
+          gap,
+          notUsed: funcs.filter((f: any) => !usedFuncIds.has(f.id)),
+          total,
+        };
+      })
+      .filter((m: any) => m.total > 0)
+      .sort((a: any, b: any) => b.gap - a.gap);
+  }, [activeSoftware, usedFuncIds]);
+
+  const topGapModules = useMemo(() => moduleUsage.slice(0, 4), [moduleUsage]);
+
 
   if (loading) {
     return (
@@ -148,7 +207,205 @@ const EmpresaDashboard = () => {
         </div>
       </motion.div>
 
+      {/* ===== MEUS PRODUTOS ===== */}
+      {catalog.length > 0 && (
+        <motion.section custom={1} variants={fadeUp} initial="hidden" animate="visible" className="space-y-3">
+          <div className="flex items-center gap-2 px-1">
+            <Package size={14} className="text-muted-foreground" />
+            <p className="text-[11px] uppercase tracking-[0.12em] text-muted-foreground font-semibold">
+              Meus produtos
+            </p>
+          </div>
+          <div className="bg-card rounded-2xl border border-border/60 shadow-card p-5">
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <Package size={18} className="text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-foreground">Produtos cadastrados</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Softwares ERP em uso na sua operação ({catalog.length})
+                </p>
+                <div className="flex flex-wrap gap-2 mt-3">
+                  {catalog.map((s) => (
+                    <span
+                      key={s.id}
+                      className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full bg-primary/10 text-primary border border-primary/20"
+                    >
+                      <CheckCircle2 size={12} /> {s.nome}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </motion.section>
+      )}
+
+      {/* ===== MEUS MÓDULOS — USO ATUAL VS. POTENCIAL ===== */}
+      {catalog.length > 0 && activeSoftware && (
+        <motion.section custom={2} variants={fadeUp} initial="hidden" animate="visible" className="space-y-3">
+          <div className="flex items-center gap-2 px-1">
+            <Layers size={14} className="text-muted-foreground" />
+            <p className="text-[11px] uppercase tracking-[0.12em] text-muted-foreground font-semibold">
+              Meus módulos — Uso atual vs. potencial
+            </p>
+          </div>
+          <div className="bg-card rounded-2xl border border-border/60 shadow-card p-5 md:p-6">
+            {/* Header with product tabs + CTA */}
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-5">
+              <div className="flex items-center gap-2 flex-wrap">
+                {catalog.map((s) => {
+                  const isActive = s.id === activeSoftware.id;
+                  return (
+                    <button
+                      key={s.id}
+                      onClick={() => setActiveSoftwareId(s.id)}
+                      className={`inline-flex items-center gap-2 text-xs font-medium px-3 py-1.5 rounded-lg border transition-all ${
+                        isActive
+                          ? "bg-success/10 text-success border-success/30 shadow-sm"
+                          : "bg-muted/40 text-muted-foreground border-transparent hover:border-border"
+                      }`}
+                    >
+                      <span className={`w-1.5 h-1.5 rounded-full ${isActive ? "bg-success" : "bg-muted-foreground/40"}`} />
+                      {s.nome}
+                    </button>
+                  );
+                })}
+              </div>
+              <Button asChild size="sm">
+                <Link to="/empresa/novo-projeto">
+                  <Plus size={14} className="mr-1.5" /> Novo projeto
+                </Link>
+              </Button>
+            </div>
+
+            {/* Legend */}
+            <div className="flex items-center gap-4 text-[11px] text-muted-foreground mb-5 pb-4 border-b border-border/40">
+              <div className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-sm bg-primary" /> Uso atual
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-sm bg-success" /> Potencial (média do segmento)
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-sm bg-warning" /> Gap
+              </div>
+            </div>
+
+            {moduleUsage.length === 0 ? (
+              <div className="py-10 text-center">
+                <Layers size={28} className="text-muted-foreground/30 mx-auto mb-2" />
+                <p className="text-sm text-muted-foreground">Sem módulos no catálogo deste produto</p>
+              </div>
+            ) : (
+              <div className="space-y-5">
+                {moduleUsage.slice(0, 6).map((m: any) => (
+                  <div key={m.id} className="group">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm font-semibold text-foreground">{m.nome}</p>
+                      {m.gap > 0 && (
+                        <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-warning/15 text-warning border border-warning/20">
+                          gap +{m.gap}%
+                        </span>
+                      )}
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-3">
+                        <span className="text-[11px] text-muted-foreground w-20 flex-shrink-0">Uso atual</span>
+                        <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
+                          <div
+                            className="h-full bg-primary rounded-full transition-all"
+                            style={{ width: `${m.usoPct}%` }}
+                          />
+                        </div>
+                        <span className="text-xs font-semibold text-primary w-10 text-right">{m.usoPct}%</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-[11px] text-muted-foreground w-20 flex-shrink-0">Potencial</span>
+                        <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
+                          <div
+                            className="h-full bg-success rounded-full transition-all"
+                            style={{ width: `${m.potencialPct}%` }}
+                          />
+                        </div>
+                        <span className="text-xs font-semibold text-success w-10 text-right">{m.potencialPct}%</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </motion.section>
+      )}
+
+      {/* ===== O QUE FALTA VOCÊ USAR ===== */}
+      {topGapModules.length > 0 && topGapModules.some((m: any) => m.notUsed.length > 0) && (
+        <motion.section custom={3} variants={fadeUp} initial="hidden" animate="visible" className="space-y-3">
+          <div className="flex items-center gap-2 px-1">
+            <Target size={14} className="text-muted-foreground" />
+            <p className="text-[11px] uppercase tracking-[0.12em] text-muted-foreground font-semibold">
+              O que falta você usar
+            </p>
+          </div>
+          <div className="bg-card rounded-2xl border border-border/60 shadow-card p-5 md:p-6">
+            <div className="flex items-start gap-3 mb-5">
+              <div className="w-10 h-10 rounded-xl bg-warning/10 flex items-center justify-center flex-shrink-0">
+                <TrendingDown size={18} className="text-warning" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-foreground">Funcionalidades com gap de uso</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Oportunidades de novos projetos em {activeSoftware?.nome}
+                </p>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {topGapModules
+                .filter((m: any) => m.notUsed.length > 0)
+                .map((m: any) => (
+                  <div
+                    key={m.id}
+                    className="rounded-xl border border-border/60 bg-gradient-to-br from-muted/20 to-transparent p-4 hover:border-warning/40 transition-colors"
+                  >
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-warning/15 text-warning">
+                        +{m.gap}%
+                      </span>
+                      <p className="text-sm font-semibold text-foreground">{m.nome}</p>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {m.notUsed.slice(0, 6).map((f: any) => (
+                        <span
+                          key={f.id}
+                          className="inline-flex items-center text-[11px] px-2.5 py-1 rounded-full border border-border/60 bg-background text-muted-foreground hover:text-foreground hover:border-primary/40 transition-colors"
+                        >
+                          {f.nome}
+                        </span>
+                      ))}
+                      {m.notUsed.length > 6 && (
+                        <span className="inline-flex items-center text-[11px] px-2.5 py-1 rounded-full bg-muted text-muted-foreground">
+                          +{m.notUsed.length - 6}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+            </div>
+          </div>
+        </motion.section>
+      )}
+
+      {/* ===== RESUMO GERAL ===== */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-2 px-1">
+          <Sparkles size={14} className="text-muted-foreground" />
+          <p className="text-[11px] uppercase tracking-[0.12em] text-muted-foreground font-semibold">Resumo geral</p>
+        </div>
+
       {/* Stats Grid */}
+
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((stat, i) => (
           <motion.div
@@ -209,6 +466,9 @@ const EmpresaDashboard = () => {
           </div>
         </div>
       </motion.div>
+      </div>
+
+
 
       {/* Charts Row */}
       {(() => {
