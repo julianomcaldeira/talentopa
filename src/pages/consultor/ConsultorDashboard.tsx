@@ -244,7 +244,177 @@ const ConsultorDashboard = () => {
         </div>
       </motion.div>
 
-      {/* Stats Grid */}
+      {/* ===== DISPONIBILIDADE — MÊS VIGENTE ===== */}
+      <motion.section custom={1} variants={fadeUp} initial="hidden" animate="visible" className="space-y-3">
+        <div className="flex items-center justify-between px-1">
+          <div className="flex items-center gap-2">
+            <CalendarDays size={14} className="text-muted-foreground" />
+            <p className="text-[11px] uppercase tracking-[0.12em] text-muted-foreground font-semibold">
+              Disponibilidade — {currentAvailability.mes}
+            </p>
+          </div>
+          <span className="text-[11px] text-muted-foreground hidden md:block">
+            Base: {WORK_HOURS_PER_DAY}h/dia útil · @ {formatCurrency(valorHora)}/h
+          </span>
+        </div>
+        <div className="relative overflow-hidden bg-card rounded-2xl border border-border/60 shadow-card p-5 md:p-6">
+          <div className="absolute -right-16 -top-16 w-56 h-56 rounded-full bg-primary/5 blur-3xl pointer-events-none" />
+          <div className="relative grid grid-cols-1 lg:grid-cols-4 gap-4 lg:items-stretch">
+            {/* Header chip + CTA */}
+            <div className="flex flex-col justify-between gap-3 lg:col-span-1">
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <Sparkles size={16} className="text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-[11px] text-muted-foreground">Mês vigente</p>
+                    <p className="text-sm font-semibold text-foreground capitalize">
+                      {currentAvailability.mes} / {currentAvailability.year}
+                    </p>
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Janelas livres da sua agenda convertidas em capacidade real de receita.
+                </p>
+              </div>
+              <Button asChild size="sm" className="w-full">
+                <Link to="/consultor/projetos">
+                  <Target size={14} className="mr-1.5" /> Encontrar projetos
+                </Link>
+              </Button>
+            </div>
+
+            {/* Free days */}
+            <div className="rounded-xl border border-destructive/20 bg-destructive/5 p-4 flex flex-col justify-between">
+              <div className="flex items-center justify-between mb-2">
+                <div className="w-8 h-8 rounded-lg bg-destructive/10 flex items-center justify-center">
+                  <AlertCircle size={14} className="text-destructive" />
+                </div>
+                <span className="text-[10px] font-semibold text-destructive/80 uppercase tracking-wider">
+                  Capacidade ociosa
+                </span>
+              </div>
+              <div>
+                <p className="text-3xl font-display font-bold text-destructive tracking-tight">
+                  {currentAvailability.freeDays}<span className="text-base font-semibold ml-1">dias</span>
+                </p>
+                <p className="text-[12px] text-muted-foreground mt-0.5">Dias sem agenda restantes no mês</p>
+              </div>
+            </div>
+
+            {/* Available hours */}
+            <div className="rounded-xl border border-border/60 bg-muted/30 p-4 flex flex-col justify-between">
+              <div className="flex items-center justify-between mb-2">
+                <div className="w-8 h-8 rounded-lg bg-info/10 flex items-center justify-center">
+                  <Clock size={14} className="text-info" />
+                </div>
+                <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                  {currentAvailability.totalDays} dias úteis
+                </span>
+              </div>
+              <div>
+                <p className="text-3xl font-display font-bold text-foreground tracking-tight">
+                  {currentAvailability.horas}<span className="text-base font-semibold ml-1">h</span>
+                </p>
+                <p className="text-[12px] text-muted-foreground mt-0.5">Horas disponíveis para alocação</p>
+                <Progress
+                  value={currentAvailability.totalDays ? ((currentAvailability.totalDays - currentAvailability.freeDays) / currentAvailability.totalDays) * 100 : 0}
+                  className="mt-2 h-1.5"
+                />
+              </div>
+            </div>
+
+            {/* Potential revenue */}
+            <div className="rounded-xl border border-success/20 bg-success/5 p-4 flex flex-col justify-between">
+              <div className="flex items-center justify-between mb-2">
+                <div className="w-8 h-8 rounded-lg bg-success/10 flex items-center justify-center">
+                  <Wallet size={14} className="text-success" />
+                </div>
+                <span className="text-[10px] font-semibold text-success uppercase tracking-wider">
+                  Potencial
+                </span>
+              </div>
+              <div>
+                <p className="text-2xl md:text-3xl font-display font-bold text-success tracking-tight">
+                  {formatCurrency(currentAvailability.receita)}
+                </p>
+                <p className="text-[12px] text-muted-foreground mt-0.5">
+                  Receita adicional @ {formatCurrency(valorHora)}/h
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </motion.section>
+
+      {/* ===== PROJEÇÃO — PRÓXIMOS 3 MESES ===== */}
+      <motion.section custom={2} variants={fadeUp} initial="hidden" animate="visible" className="space-y-3">
+        <div className="flex items-center justify-between px-1">
+          <div className="flex items-center gap-2">
+            <CalendarRange size={14} className="text-muted-foreground" />
+            <p className="text-[11px] uppercase tracking-[0.12em] text-muted-foreground font-semibold">
+              Disponibilidade — Próximos 3 meses
+            </p>
+          </div>
+          <span className="text-[11px] text-muted-foreground hidden md:block">{periodoProj}</span>
+        </div>
+        <div className="bg-card rounded-2xl border border-border/60 shadow-card p-5 md:p-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
+            {projection.map((p, idx) => (
+              <div
+                key={p.mes}
+                className="relative rounded-xl border border-border/60 bg-gradient-to-br from-muted/20 to-transparent p-4 hover:border-primary/40 transition-colors"
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
+                    {p.mes}
+                  </span>
+                  <span className="text-[10px] font-medium text-muted-foreground/70">
+                    {String(idx + 1).padStart(2, "0")}
+                  </span>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-sm border-b border-border/40 pb-2">
+                    <span className="text-destructive text-xs font-medium">Dias sem agenda</span>
+                    <span className="text-destructive font-display font-bold">{p.freeDays} dias</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm pb-1">
+                    <span className="text-muted-foreground text-xs">Horas</span>
+                    <span className="text-foreground font-display font-semibold">{p.horas}h</span>
+                  </div>
+                  <div className="mt-2 pt-2 border-t border-border/40">
+                    <p className="text-lg font-display font-bold text-success tracking-tight">
+                      {formatCurrency(p.receita)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Acumulado */}
+          <div className="mt-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3 rounded-xl bg-gradient-to-r from-primary/5 via-accent/5 to-success/5 border border-border/60 p-4">
+            <div>
+              <p className="text-xs text-muted-foreground">Total acumulado ({projection[0]?.mesShort}–{projection[projection.length - 1]?.mesShort})</p>
+              <p className="text-sm font-display font-semibold text-foreground mt-0.5">
+                {projTotal.horas}h · {projTotal.dias} dias
+              </p>
+            </div>
+            <div className="text-right">
+              <p className="text-[11px] text-muted-foreground uppercase tracking-wider font-semibold">Potencial</p>
+              <p className="text-2xl font-display font-bold text-success tracking-tight">
+                {formatCurrency(projTotal.receita)}
+              </p>
+            </div>
+          </div>
+        </div>
+      </motion.section>
+
+      {/* ===== RESUMO GERAL ===== */}
+      <div className="space-y-3">
+        <p className="text-[11px] uppercase tracking-[0.12em] text-muted-foreground font-semibold px-1">Resumo Geral</p>
+
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((stat, i) => (
           <motion.div
