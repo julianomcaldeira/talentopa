@@ -79,12 +79,16 @@ const ConsultorDashboard = () => {
   const { user, profile } = useAuth();
   const [projetosDisponiveis, setProjetosDisponiveis] = useState<any[]>([]);
   const [minhasPropostas, setMinhasPropostas] = useState<any[]>([]);
+  const [agenda, setAgenda] = useState<any[]>([]);
+  const [valorHora, setValorHora] = useState<number>(60);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!user) return;
     const fetchData = async () => {
-      const [projetosRes, propostasRes] = await Promise.all([
+      const horizonEnd = new Date();
+      horizonEnd.setMonth(horizonEnd.getMonth() + 4);
+      const [projetosRes, propostasRes, agendaRes, habRes] = await Promise.all([
         supabase
           .from("projetos")
           .select("*, softwares(nome)")
@@ -96,10 +100,26 @@ const ConsultorDashboard = () => {
           .select("*, projetos(nome, protocolo, status, softwares(nome))")
           .eq("consultor_user_id", user.id)
           .order("created_at", { ascending: false }),
+        supabase
+          .from("consultor_agenda")
+          .select("inicio, fim, status")
+          .eq("consultor_user_id", user.id)
+          .lte("inicio", horizonEnd.toISOString()),
+        supabase
+          .from("consultor_habilidades")
+          .select("valor_hora")
+          .eq("consultor_user_id", user.id),
       ]);
 
       if (projetosRes.data) setProjetosDisponiveis(projetosRes.data);
       if (propostasRes.data) setMinhasPropostas(propostasRes.data);
+      if (agendaRes.data) setAgenda(agendaRes.data);
+      if (habRes.data && habRes.data.length > 0) {
+        const valores = habRes.data.map((h: any) => Number(h.valor_hora)).filter((n: number) => n > 0);
+        if (valores.length > 0) {
+          setValorHora(valores.reduce((a: number, b: number) => a + b, 0) / valores.length);
+        }
+      }
       setLoading(false);
     };
     fetchData();
