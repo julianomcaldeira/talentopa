@@ -348,13 +348,13 @@ const EmpresaNovoProjeto = ({ onSuccess }: EmpresaNovoProjetoProps = {}) => {
 
       // Recontratação
       if (recontratarConsultor) {
-        await supabase.from("notificacoes").insert({
-          user_id: recontratarConsultor.user_id,
-          tipo: "convite_projeto",
-          titulo: "Convite para novo projeto",
-          mensagem: `Você foi convidado(a) a enviar uma proposta para o projeto "${form.nome}".`,
-          referencia_id: projeto.id,
-          referencia_tipo: "projeto",
+        await supabase.rpc("create_notification", {
+          p_user_id: recontratarConsultor.user_id,
+          p_tipo: "convite_projeto",
+          p_titulo: "Convite para novo projeto",
+          p_mensagem: `Você foi convidado(a) a enviar uma proposta para o projeto "${form.nome}".`,
+          p_referencia_id: projeto.id,
+          p_referencia_tipo: "projeto",
         });
         await supabase.from("mensagens").insert({
           projeto_id: projeto.id,

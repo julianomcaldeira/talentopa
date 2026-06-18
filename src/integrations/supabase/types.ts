@@ -421,6 +421,27 @@ export type Database = {
         }
         Relationships: []
       }
+      consultor_assinatura: {
+        Row: {
+          created_at: string
+          plano: Database["public"]["Enums"]["plano_assinatura"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          plano?: Database["public"]["Enums"]["plano_assinatura"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          plano?: Database["public"]["Enums"]["plano_assinatura"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       consultor_buscas_favoritas: {
         Row: {
           created_at: string
@@ -507,7 +528,6 @@ export type Database = {
           curriculo_url: string | null
           id: string
           linkedin: string | null
-          plano: Database["public"]["Enums"]["plano_assinatura"]
           updated_at: string
           user_id: string
         }
@@ -517,7 +537,6 @@ export type Database = {
           curriculo_url?: string | null
           id?: string
           linkedin?: string | null
-          plano?: Database["public"]["Enums"]["plano_assinatura"]
           updated_at?: string
           user_id: string
         }
@@ -527,7 +546,6 @@ export type Database = {
           curriculo_url?: string | null
           id?: string
           linkedin?: string | null
-          plano?: Database["public"]["Enums"]["plano_assinatura"]
           updated_at?: string
           user_id?: string
         }
@@ -2177,6 +2195,17 @@ export type Database = {
       consultor_recusar_inicio: {
         Args: { p_proposta_id: string }
         Returns: Json
+      }
+      create_notification: {
+        Args: {
+          p_mensagem: string
+          p_referencia_id?: string
+          p_referencia_tipo?: string
+          p_tipo: string
+          p_titulo: string
+          p_user_id: string
+        }
+        Returns: string
       }
       empresa_aceitar_proposta: {
         Args: { p_proposta_id: string }

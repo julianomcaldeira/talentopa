@@ -29,7 +29,7 @@ interface ConsultorRow {
     bio_profissional: string | null;
     linkedin: string | null;
     curriculo_url: string | null;
-    plano: string;
+    plano: string | null;
   } | null;
   habilidades: {
     id: string;
@@ -108,13 +108,16 @@ const AdminConsultores = () => {
       if (userIds.length === 0) { setLoading(false); return; }
 
       // 2) parallel fetches
-      const [profilesRes, habilidadesRes, avaliacoesRes, propostasRes, canalLinksRes] = await Promise.all([
+      const [profilesRes, habilidadesRes, avaliacoesRes, propostasRes, canalLinksRes, planosRes] = await Promise.all([
         supabase.from("profiles").select("*").in("user_id", userIds),
         supabase.from("consultor_habilidades").select("*, softwares(nome), modulos(nome), funcionalidades(nome)").in("user_id", userIds),
         supabase.from("avaliacoes").select("*, projetos(nome)").in("avaliado_user_id", userIds),
         supabase.from("propostas").select("*, projetos(nome, protocolo)").in("consultor_user_id", userIds),
         supabase.from("canal_consultores").select("consultor_user_id, data_vinculo, canais(nome)").in("consultor_user_id", userIds).eq("status", "ativo"),
+        supabase.from("consultor_assinatura").select("user_id, plano").in("user_id", userIds),
       ]);
+
+      const planoMap = new Map<string, string>(((planosRes.data as any[]) || []).map((p) => [p.user_id, p.plano]));
 
       const canalMap = new Map<string, { nome: string | null; data: string | null }>();
       ((canalLinksRes.data as any[]) || []).forEach((l) => {
@@ -174,7 +177,7 @@ const AdminConsultores = () => {
           profile: profile
             ? { nome: profile.nome, email: profile.email, telefone: profile.telefone, cidade: profile.cidade, estado: profile.estado, status: profile.status, avatar_url: profile.avatar_url, created_at: profile.created_at }
             : { nome: "Consultor", email: "", telefone: null, cidade: null, estado: null, status: "ativo", avatar_url: null, created_at: cp.created_at },
-          perfil: { bio_profissional: cp.bio_profissional, linkedin: cp.linkedin, curriculo_url: cp.curriculo_url, plano: cp.plano },
+          perfil: { bio_profissional: cp.bio_profissional, linkedin: cp.linkedin, curriculo_url: cp.curriculo_url, plano: planoMap.get(cp.user_id) || "standard" },
           habilidades: habs,
           avaliacoes: avals,
           propostas: props,
