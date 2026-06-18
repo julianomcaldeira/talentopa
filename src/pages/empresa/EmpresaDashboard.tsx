@@ -114,6 +114,39 @@ const EmpresaDashboard = () => {
   const totalInvestido = propostasAceitas.reduce((sum, p) => sum + (p.valor_proposta || 0), 0);
   const completionRate = projetos.length > 0 ? Math.round((doneCount / projetos.length) * 100) : 0;
 
+  // ===== Catalog analytics =====
+  const activeSoftware = useMemo(
+    () => catalog.find((s) => s.id === activeSoftwareId) || catalog[0] || null,
+    [catalog, activeSoftwareId]
+  );
+
+  const moduleUsage = useMemo(() => {
+    if (!activeSoftware) return [];
+    return (activeSoftware.modulos || [])
+      .map((m: any) => {
+        const funcs = m.funcionalidades || [];
+        const total = funcs.length;
+        const usadas = funcs.filter((f: any) => usedFuncIds.has(f.id)).length;
+        const usoPct = total > 0 ? Math.round((usadas / total) * 100) : 0;
+        const potencialPct = Math.round(SEGMENT_POTENTIAL * 100);
+        const gap = Math.max(0, potencialPct - usoPct);
+        return {
+          id: m.id,
+          nome: m.nome,
+          usoPct,
+          potencialPct,
+          gap,
+          notUsed: funcs.filter((f: any) => !usedFuncIds.has(f.id)),
+          total,
+        };
+      })
+      .filter((m: any) => m.total > 0)
+      .sort((a: any, b: any) => b.gap - a.gap);
+  }, [activeSoftware, usedFuncIds]);
+
+  const topGapModules = useMemo(() => moduleUsage.slice(0, 4), [moduleUsage]);
+
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-32">
