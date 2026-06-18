@@ -42,6 +42,9 @@ const EmpresaDashboard = () => {
   const navigate = useNavigate();
   const [projetos, setProjetos] = useState<any[]>([]);
   const [propostas, setPropostas] = useState<any[]>([]);
+  const [catalog, setCatalog] = useState<any[]>([]); // softwares with modulos/funcionalidades
+  const [usedFuncIds, setUsedFuncIds] = useState<Set<string>>(new Set());
+  const [activeSoftwareId, setActiveSoftwareId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -49,13 +52,14 @@ const EmpresaDashboard = () => {
     const fetchData = async () => {
       const { data: projetosData } = await supabase
         .from("projetos")
-        .select("*, softwares(nome), projeto_fases(id, nome, status)")
+        .select("*, softwares(id, nome), projeto_fases(id, nome, status)")
         .eq("empresa_user_id", user.id)
         .order("created_at", { ascending: false });
 
       const projs = projetosData || [];
       setProjetos(projs);
 
+      // Fetch propostas
       if (projs.length > 0) {
         const projIds = projs.map((p) => p.id);
         const { data: propostasData } = await supabase
@@ -78,7 +82,26 @@ const EmpresaDashboard = () => {
             }))
           );
         }
+
+        // Funcionalidades contratadas pela empresa (acumulado de todos os projetos)
+        const { data: pfs } = await supabase
+          .from("projeto_funcionalidades")
+          .select("funcionalidade_id")
+          .in("projeto_id", projIds);
+        setUsedFuncIds(new Set((pfs || []).map((r: any) => r.funcionalidade_id)));
       }
+
+      // Catálogo: somente softwares que a empresa já contratou (via projetos)
+      const softwareIds = [...new Set(projs.map((p: any) => p.software_id).filter(Boolean))];
+      if (softwareIds.length > 0) {
+        const { data: softs } = await supabase
+          .from("softwares")
+          .select("id, nome, modulos(id, nome, funcionalidades(id, nome))")
+          .in("id", softwareIds);
+        setCatalog(softs || []);
+        if (softs && softs.length > 0) setActiveSoftwareId(softs[0].id);
+      }
+
       setLoading(false);
     };
     fetchData();
