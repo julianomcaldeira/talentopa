@@ -108,7 +108,7 @@ const ConsultorDashboard = () => {
         supabase
           .from("consultor_habilidades")
           .select("valor_hora")
-          .eq("consultor_user_id", user.id),
+          .eq("user_id", user.id),
       ]);
 
       if (projetosRes.data) setProjetosDisponiveis(projetosRes.data);
