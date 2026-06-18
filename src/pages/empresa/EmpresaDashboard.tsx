@@ -466,6 +466,9 @@ const EmpresaDashboard = () => {
           </div>
         </div>
       </motion.div>
+      </div>
+
+
 
       {/* Charts Row */}
       {(() => {
