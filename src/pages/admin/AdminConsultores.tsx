@@ -29,7 +29,7 @@ interface ConsultorRow {
     bio_profissional: string | null;
     linkedin: string | null;
     curriculo_url: string | null;
-    plano: string;
+    plano: string | null;
   } | null;
   habilidades: {
     id: string;
