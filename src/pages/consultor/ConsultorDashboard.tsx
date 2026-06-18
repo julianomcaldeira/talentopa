@@ -161,6 +161,29 @@ const ConsultorDashboard = () => {
     month, ...data,
   }));
 
+  // ---- Availability (current month + next 3 months) ----
+  const now = new Date();
+  const currentAvailability = useMemo(
+    () => computeAvailability(now.getFullYear(), now.getMonth(), agenda, valorHora, true),
+    [agenda, valorHora]
+  );
+  const projection = useMemo(() => {
+    const arr = [];
+    for (let i = 1; i <= 3; i++) {
+      const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+      arr.push(computeAvailability(d.getFullYear(), d.getMonth(), agenda, valorHora, false));
+    }
+    return arr;
+  }, [agenda, valorHora]);
+  const projTotal = projection.reduce(
+    (acc, p) => ({ horas: acc.horas + p.horas, dias: acc.dias + p.freeDays, receita: acc.receita + p.receita }),
+    { horas: 0, dias: 0, receita: 0 }
+  );
+  const periodoProj = projection.length
+    ? `${projection[0].mesShort} — ${projection[projection.length - 1].mesShort} / ${projection[projection.length - 1].year}`
+    : "";
+
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-32">
