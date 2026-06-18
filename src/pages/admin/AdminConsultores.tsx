@@ -177,7 +177,7 @@ const AdminConsultores = () => {
           profile: profile
             ? { nome: profile.nome, email: profile.email, telefone: profile.telefone, cidade: profile.cidade, estado: profile.estado, status: profile.status, avatar_url: profile.avatar_url, created_at: profile.created_at }
             : { nome: "Consultor", email: "", telefone: null, cidade: null, estado: null, status: "ativo", avatar_url: null, created_at: cp.created_at },
-          perfil: { bio_profissional: cp.bio_profissional, linkedin: cp.linkedin, curriculo_url: cp.curriculo_url, plano: cp.plano },
+          perfil: { bio_profissional: cp.bio_profissional, linkedin: cp.linkedin, curriculo_url: cp.curriculo_url, plano: planoMap.get(cp.user_id) || "standard" },
           habilidades: habs,
           avaliacoes: avals,
           propostas: props,
