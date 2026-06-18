@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   FolderKanban, DollarSign, Send, CheckCircle2, ArrowUpRight,
-  Clock, TrendingUp, Briefcase, Target, Zap, ChevronRight, Star, BarChart3
+  Clock, TrendingUp, Briefcase, Target, Zap, ChevronRight, Star, BarChart3,
+  CalendarDays, CalendarRange, Sparkles, Wallet, AlertCircle
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -14,6 +15,54 @@ import {
   BarChart, Bar, PieChart, Pie, Cell, AreaChart, Area,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from "recharts";
+
+const WORK_HOURS_PER_DAY = 8;
+const MONTH_LABELS = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+const MONTH_SHORT = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+
+function businessDaysInRange(start: Date, end: Date) {
+  const days: string[] = [];
+  const d = new Date(start);
+  d.setHours(0,0,0,0);
+  const e = new Date(end);
+  e.setHours(0,0,0,0);
+  while (d <= e) {
+    const dow = d.getDay();
+    if (dow !== 0 && dow !== 6) {
+      days.push(`${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`);
+    }
+    d.setDate(d.getDate() + 1);
+  }
+  return days;
+}
+
+function computeAvailability(year: number, month: number, agenda: any[], rate: number, fromToday = false) {
+  const first = fromToday ? new Date() : new Date(year, month, 1);
+  if (fromToday) first.setHours(0,0,0,0);
+  const last = new Date(year, month + 1, 0);
+  const allBusinessDays = businessDaysInRange(first, last);
+  const busyKeys = new Set<string>();
+  agenda.forEach((a) => {
+    const ai = new Date(a.inicio);
+    const af = new Date(a.fim);
+    if (af < first || ai > last) return;
+    const cur = new Date(Math.max(ai.getTime(), first.getTime()));
+    cur.setHours(0,0,0,0);
+    const end = new Date(Math.min(af.getTime(), last.getTime()));
+    while (cur <= end) {
+      const dow = cur.getDay();
+      if (dow !== 0 && dow !== 6) {
+        busyKeys.add(`${cur.getFullYear()}-${cur.getMonth()}-${cur.getDate()}`);
+      }
+      cur.setDate(cur.getDate() + 1);
+    }
+  });
+  const freeDays = allBusinessDays.filter((k) => !busyKeys.has(k)).length;
+  const totalDays = allBusinessDays.length;
+  const horas = freeDays * WORK_HOURS_PER_DAY;
+  const receita = horas * rate;
+  return { freeDays, totalDays, horas, receita, mes: MONTH_LABELS[month], mesShort: MONTH_SHORT[month], year };
+}
 
 const formatCurrency = (val: number) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(val);
@@ -30,12 +79,16 @@ const ConsultorDashboard = () => {
   const { user, profile } = useAuth();
   const [projetosDisponiveis, setProjetosDisponiveis] = useState<any[]>([]);
   const [minhasPropostas, setMinhasPropostas] = useState<any[]>([]);
+  const [agenda, setAgenda] = useState<any[]>([]);
+  const [valorHora, setValorHora] = useState<number>(60);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!user) return;
     const fetchData = async () => {
-      const [projetosRes, propostasRes] = await Promise.all([
+      const horizonEnd = new Date();
+      horizonEnd.setMonth(horizonEnd.getMonth() + 4);
+      const [projetosRes, propostasRes, agendaRes, habRes] = await Promise.all([
         supabase
           .from("projetos")
           .select("*, softwares(nome)")
@@ -47,10 +100,26 @@ const ConsultorDashboard = () => {
           .select("*, projetos(nome, protocolo, status, softwares(nome))")
           .eq("consultor_user_id", user.id)
           .order("created_at", { ascending: false }),
+        supabase
+          .from("consultor_agenda")
+          .select("inicio, fim, status")
+          .eq("consultor_user_id", user.id)
+          .lte("inicio", horizonEnd.toISOString()),
+        supabase
+          .from("consultor_habilidades")
+          .select("valor_hora")
+          .eq("user_id", user.id),
       ]);
 
       if (projetosRes.data) setProjetosDisponiveis(projetosRes.data);
       if (propostasRes.data) setMinhasPropostas(propostasRes.data);
+      if (agendaRes.data) setAgenda(agendaRes.data);
+      if (habRes.data && habRes.data.length > 0) {
+        const valores = habRes.data.map((h: any) => Number(h.valor_hora)).filter((n: number) => n > 0);
+        if (valores.length > 0) {
+          setValorHora(valores.reduce((a: number, b: number) => a + b, 0) / valores.length);
+        }
+      }
       setLoading(false);
     };
     fetchData();
@@ -91,6 +160,29 @@ const ConsultorDashboard = () => {
   const monthlyTrend = Array.from(monthMap.entries()).slice(-6).map(([month, data]) => ({
     month, ...data,
   }));
+
+  // ---- Availability (current month + next 3 months) ----
+  const now = new Date();
+  const currentAvailability = useMemo(
+    () => computeAvailability(now.getFullYear(), now.getMonth(), agenda, valorHora, true),
+    [agenda, valorHora]
+  );
+  const projection = useMemo(() => {
+    const arr = [];
+    for (let i = 1; i <= 3; i++) {
+      const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+      arr.push(computeAvailability(d.getFullYear(), d.getMonth(), agenda, valorHora, false));
+    }
+    return arr;
+  }, [agenda, valorHora]);
+  const projTotal = projection.reduce(
+    (acc, p) => ({ horas: acc.horas + p.horas, dias: acc.dias + p.freeDays, receita: acc.receita + p.receita }),
+    { horas: 0, dias: 0, receita: 0 }
+  );
+  const periodoProj = projection.length
+    ? `${projection[0].mesShort} — ${projection[projection.length - 1].mesShort} / ${projection[projection.length - 1].year}`
+    : "";
+
 
   if (loading) {
     return (
@@ -152,7 +244,177 @@ const ConsultorDashboard = () => {
         </div>
       </motion.div>
 
-      {/* Stats Grid */}
+      {/* ===== DISPONIBILIDADE — MÊS VIGENTE ===== */}
+      <motion.section custom={1} variants={fadeUp} initial="hidden" animate="visible" className="space-y-3">
+        <div className="flex items-center justify-between px-1">
+          <div className="flex items-center gap-2">
+            <CalendarDays size={14} className="text-muted-foreground" />
+            <p className="text-[11px] uppercase tracking-[0.12em] text-muted-foreground font-semibold">
+              Disponibilidade — {currentAvailability.mes}
+            </p>
+          </div>
+          <span className="text-[11px] text-muted-foreground hidden md:block">
+            Base: {WORK_HOURS_PER_DAY}h/dia útil · @ {formatCurrency(valorHora)}/h
+          </span>
+        </div>
+        <div className="relative overflow-hidden bg-card rounded-2xl border border-border/60 shadow-card p-5 md:p-6">
+          <div className="absolute -right-16 -top-16 w-56 h-56 rounded-full bg-primary/5 blur-3xl pointer-events-none" />
+          <div className="relative grid grid-cols-1 lg:grid-cols-4 gap-4 lg:items-stretch">
+            {/* Header chip + CTA */}
+            <div className="flex flex-col justify-between gap-3 lg:col-span-1">
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <Sparkles size={16} className="text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-[11px] text-muted-foreground">Mês vigente</p>
+                    <p className="text-sm font-semibold text-foreground capitalize">
+                      {currentAvailability.mes} / {currentAvailability.year}
+                    </p>
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Janelas livres da sua agenda convertidas em capacidade real de receita.
+                </p>
+              </div>
+              <Button asChild size="sm" className="w-full">
+                <Link to="/consultor/projetos">
+                  <Target size={14} className="mr-1.5" /> Encontrar projetos
+                </Link>
+              </Button>
+            </div>
+
+            {/* Free days */}
+            <div className="rounded-xl border border-destructive/20 bg-destructive/5 p-4 flex flex-col justify-between">
+              <div className="flex items-center justify-between mb-2">
+                <div className="w-8 h-8 rounded-lg bg-destructive/10 flex items-center justify-center">
+                  <AlertCircle size={14} className="text-destructive" />
+                </div>
+                <span className="text-[10px] font-semibold text-destructive/80 uppercase tracking-wider">
+                  Capacidade ociosa
+                </span>
+              </div>
+              <div>
+                <p className="text-3xl font-display font-bold text-destructive tracking-tight">
+                  {currentAvailability.freeDays}<span className="text-base font-semibold ml-1">dias</span>
+                </p>
+                <p className="text-[12px] text-muted-foreground mt-0.5">Dias sem agenda restantes no mês</p>
+              </div>
+            </div>
+
+            {/* Available hours */}
+            <div className="rounded-xl border border-border/60 bg-muted/30 p-4 flex flex-col justify-between">
+              <div className="flex items-center justify-between mb-2">
+                <div className="w-8 h-8 rounded-lg bg-info/10 flex items-center justify-center">
+                  <Clock size={14} className="text-info" />
+                </div>
+                <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                  {currentAvailability.totalDays} dias úteis
+                </span>
+              </div>
+              <div>
+                <p className="text-3xl font-display font-bold text-foreground tracking-tight">
+                  {currentAvailability.horas}<span className="text-base font-semibold ml-1">h</span>
+                </p>
+                <p className="text-[12px] text-muted-foreground mt-0.5">Horas disponíveis para alocação</p>
+                <Progress
+                  value={currentAvailability.totalDays ? ((currentAvailability.totalDays - currentAvailability.freeDays) / currentAvailability.totalDays) * 100 : 0}
+                  className="mt-2 h-1.5"
+                />
+              </div>
+            </div>
+
+            {/* Potential revenue */}
+            <div className="rounded-xl border border-success/20 bg-success/5 p-4 flex flex-col justify-between">
+              <div className="flex items-center justify-between mb-2">
+                <div className="w-8 h-8 rounded-lg bg-success/10 flex items-center justify-center">
+                  <Wallet size={14} className="text-success" />
+                </div>
+                <span className="text-[10px] font-semibold text-success uppercase tracking-wider">
+                  Potencial
+                </span>
+              </div>
+              <div>
+                <p className="text-2xl md:text-3xl font-display font-bold text-success tracking-tight">
+                  {formatCurrency(currentAvailability.receita)}
+                </p>
+                <p className="text-[12px] text-muted-foreground mt-0.5">
+                  Receita adicional @ {formatCurrency(valorHora)}/h
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </motion.section>
+
+      {/* ===== PROJEÇÃO — PRÓXIMOS 3 MESES ===== */}
+      <motion.section custom={2} variants={fadeUp} initial="hidden" animate="visible" className="space-y-3">
+        <div className="flex items-center justify-between px-1">
+          <div className="flex items-center gap-2">
+            <CalendarRange size={14} className="text-muted-foreground" />
+            <p className="text-[11px] uppercase tracking-[0.12em] text-muted-foreground font-semibold">
+              Disponibilidade — Próximos 3 meses
+            </p>
+          </div>
+          <span className="text-[11px] text-muted-foreground hidden md:block">{periodoProj}</span>
+        </div>
+        <div className="bg-card rounded-2xl border border-border/60 shadow-card p-5 md:p-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
+            {projection.map((p, idx) => (
+              <div
+                key={p.mes}
+                className="relative rounded-xl border border-border/60 bg-gradient-to-br from-muted/20 to-transparent p-4 hover:border-primary/40 transition-colors"
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
+                    {p.mes}
+                  </span>
+                  <span className="text-[10px] font-medium text-muted-foreground/70">
+                    {String(idx + 1).padStart(2, "0")}
+                  </span>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-sm border-b border-border/40 pb-2">
+                    <span className="text-destructive text-xs font-medium">Dias sem agenda</span>
+                    <span className="text-destructive font-display font-bold">{p.freeDays} dias</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm pb-1">
+                    <span className="text-muted-foreground text-xs">Horas</span>
+                    <span className="text-foreground font-display font-semibold">{p.horas}h</span>
+                  </div>
+                  <div className="mt-2 pt-2 border-t border-border/40">
+                    <p className="text-lg font-display font-bold text-success tracking-tight">
+                      {formatCurrency(p.receita)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Acumulado */}
+          <div className="mt-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3 rounded-xl bg-gradient-to-r from-primary/5 via-accent/5 to-success/5 border border-border/60 p-4">
+            <div>
+              <p className="text-xs text-muted-foreground">Total acumulado ({projection[0]?.mesShort}–{projection[projection.length - 1]?.mesShort})</p>
+              <p className="text-sm font-display font-semibold text-foreground mt-0.5">
+                {projTotal.horas}h · {projTotal.dias} dias
+              </p>
+            </div>
+            <div className="text-right">
+              <p className="text-[11px] text-muted-foreground uppercase tracking-wider font-semibold">Potencial</p>
+              <p className="text-2xl font-display font-bold text-success tracking-tight">
+                {formatCurrency(projTotal.receita)}
+              </p>
+            </div>
+          </div>
+        </div>
+      </motion.section>
+
+      {/* ===== RESUMO GERAL ===== */}
+      <div className="space-y-3">
+        <p className="text-[11px] uppercase tracking-[0.12em] text-muted-foreground font-semibold px-1">Resumo Geral</p>
+
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((stat, i) => (
           <motion.div
@@ -217,6 +479,9 @@ const ConsultorDashboard = () => {
           </div>
         </div>
       </motion.div>
+      </div>
+
+
 
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
