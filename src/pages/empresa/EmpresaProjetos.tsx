@@ -263,6 +263,18 @@ const EmpresaProjetos = () => {
     refetch();
   };
 
+  const rejectProposal = async (propostaId: string) => {
+    if (!window.confirm("Tem certeza que deseja recusar esta proposta? O consultor será notificado.")) return;
+    const { error } = await (supabase as any).rpc("empresa_recusar_proposta", { p_proposta_id: propostaId, p_motivo: null });
+    if (error) {
+      toast({ title: "Erro ao recusar proposta", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Proposta recusada", description: "O consultor foi notificado." });
+    if (selectedProjeto) await viewPropostas(selectedProjeto);
+    refetch();
+  };
+
   const renderDateFilter = (label: string, date: Date | undefined, onSelect: (date: Date | undefined) => void) => (
     <Popover>
       <PopoverTrigger asChild>
