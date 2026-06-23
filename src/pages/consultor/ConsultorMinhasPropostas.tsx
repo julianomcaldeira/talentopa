@@ -85,6 +85,34 @@ const ConsultorMinhasPropostas = () => {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
+  // Realtime: refletir mudanças de status de propostas (aceite/recusa/pré-aprovação) na hora
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel(`propostas-consultor-${user.id}`)
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "propostas", filter: `consultor_user_id=eq.${user.id}` },
+        (payload) => {
+          const oldStatus = (payload.old as any)?.status;
+          const newStatus = (payload.new as any)?.status;
+          if (oldStatus !== newStatus) {
+            const projetoNome = propostas.find((p) => p.id === (payload.new as any).id)?.projetos?.nome || "seu projeto";
+            if (newStatus === "aceita" || newStatus === "aguardando_consultor") {
+              toast.success(`Proposta aprovada em "${projetoNome}"`);
+            } else if (newStatus === "pre_aprovada") {
+              toast.success(`Proposta pré-aprovada em "${projetoNome}"`);
+            } else if (newStatus === "recusada") {
+              toast.error(`Proposta recusada em "${projetoNome}"`);
+            }
+          }
+          fetchData();
+        }
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user, fetchData, propostas]);
+
   const enviadas = propostas.filter((p) => p.status === "enviada").length;
   const preAprovadas = propostas.filter((p) => p.status === "pre_aprovada" || p.status === "aguardando_consultor").length;
   const aceitas = propostas.filter((p) => p.status === "aceita").length;
