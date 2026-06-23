@@ -11,7 +11,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { PageHeader, DataCard, StatusBadge, EmptyState, LoadingState } from "@/components/dashboard/DashboardComponents";
 import { ViewToggle, ViewMode } from "@/components/ui/view-toggle";
-import { FolderKanban, Eye, MapPin, Clock, DollarSign, User, MessageSquare, Pencil, Search, ChevronLeft, ChevronRight, Settings2, Plus, BadgeCheck, CheckCircle2, CalendarIcon, X } from "lucide-react";
+import { FolderKanban, Eye, MapPin, Clock, DollarSign, User, MessageSquare, Pencil, Search, ChevronLeft, ChevronRight, Settings2, Plus, BadgeCheck, CheckCircle2, CalendarIcon, X, XCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { ConsultorMatchList } from "@/components/matching/ConsultorMatchList";
