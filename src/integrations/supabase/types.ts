@@ -2219,6 +2219,10 @@ export type Database = {
         Args: { p_proposta_id: string }
         Returns: Json
       }
+      empresa_recusar_proposta: {
+        Args: { p_motivo?: string; p_proposta_id: string }
+        Returns: Json
+      }
       get_admin_advanced_metrics: { Args: never; Returns: Json }
       get_canal_dashboard_metrics: {
         Args: { p_canal_id?: string }
