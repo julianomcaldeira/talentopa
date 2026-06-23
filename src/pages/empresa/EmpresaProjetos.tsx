@@ -11,7 +11,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { PageHeader, DataCard, StatusBadge, EmptyState, LoadingState } from "@/components/dashboard/DashboardComponents";
 import { ViewToggle, ViewMode } from "@/components/ui/view-toggle";
-import { FolderKanban, Eye, MapPin, Clock, DollarSign, User, MessageSquare, Pencil, Search, ChevronLeft, ChevronRight, Settings2, Plus, BadgeCheck, CheckCircle2, CalendarIcon, X } from "lucide-react";
+import { FolderKanban, Eye, MapPin, Clock, DollarSign, User, MessageSquare, Pencil, Search, ChevronLeft, ChevronRight, Settings2, Plus, BadgeCheck, CheckCircle2, CalendarIcon, X, XCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { ConsultorMatchList } from "@/components/matching/ConsultorMatchList";
@@ -259,6 +259,18 @@ const EmpresaProjetos = () => {
       return;
     }
     toast({ title: "Projeto pré-aprovado", description: "A comunicação foi liberada para alinhamento com o consultor." });
+    if (selectedProjeto) await viewPropostas(selectedProjeto);
+    refetch();
+  };
+
+  const rejectProposal = async (propostaId: string) => {
+    if (!window.confirm("Tem certeza que deseja recusar esta proposta? O consultor será notificado.")) return;
+    const { error } = await (supabase as any).rpc("empresa_recusar_proposta", { p_proposta_id: propostaId, p_motivo: null });
+    if (error) {
+      toast({ title: "Erro ao recusar proposta", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Proposta recusada", description: "O consultor foi notificado." });
     if (selectedProjeto) await viewPropostas(selectedProjeto);
     refetch();
   };
@@ -611,6 +623,11 @@ const EmpresaProjetos = () => {
                     {(prop.status === "enviada" || prop.status === "pre_aprovada" || prop.status === "contraproposta_consultor") && (
                       <Button size="sm" onClick={() => acceptProposal(prop.id)}>
                         <CheckCircle2 size={14} /> Aprovação final
+                      </Button>
+                    )}
+                    {(prop.status === "enviada" || prop.status === "pre_aprovada" || prop.status === "contraproposta_consultor") && (
+                      <Button size="sm" variant="outline" className="text-destructive hover:text-destructive border-destructive/40 hover:bg-destructive/10" onClick={() => rejectProposal(prop.id)}>
+                        <XCircle size={14} /> Recusar
                       </Button>
                     )}
                   </div>
