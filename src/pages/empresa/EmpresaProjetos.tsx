@@ -625,6 +625,11 @@ const EmpresaProjetos = () => {
                         <CheckCircle2 size={14} /> Aprovação final
                       </Button>
                     )}
+                    {(prop.status === "enviada" || prop.status === "pre_aprovada" || prop.status === "contraproposta_consultor") && (
+                      <Button size="sm" variant="outline" className="text-destructive hover:text-destructive border-destructive/40 hover:bg-destructive/10" onClick={() => rejectProposal(prop.id)}>
+                        <XCircle size={14} /> Recusar
+                      </Button>
+                    )}
                   </div>
                 </div>
               ))}
