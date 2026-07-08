@@ -60,8 +60,8 @@ const HeroSection = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.25 }}
             >
-              Conectamos empresas que precisam implementar ERP aos consultores certos —
-              com matching técnico, gestão de projeto integrada e pagamento por entrega.
+              Empresa lança a demanda, Canal (RMO) orquestra a shortlist, Coordenador valida
+              tecnicamente e Consultor entrega — cada fase encerrada com documento assinado.
             </motion.p>
 
             <motion.div

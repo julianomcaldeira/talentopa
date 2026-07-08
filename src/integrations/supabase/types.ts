@@ -382,6 +382,57 @@ export type Database = {
           },
         ]
       }
+      canal_membros: {
+        Row: {
+          canal_id: string
+          convidado_por: string | null
+          convite_email: string | null
+          created_at: string
+          id: string
+          role: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          canal_id: string
+          convidado_por?: string | null
+          convite_email?: string | null
+          created_at?: string
+          id?: string
+          role: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          canal_id?: string
+          convidado_por?: string | null
+          convite_email?: string | null
+          created_at?: string
+          id?: string
+          role?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "canal_membros_canal_id_fkey"
+            columns: ["canal_id"]
+            isOneToOne: false
+            referencedRelation: "canais"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "canal_membros_canal_id_fkey"
+            columns: ["canal_id"]
+            isOneToOne: false
+            referencedRelation: "canais_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       consultor_agenda: {
         Row: {
           consultor_user_id: string
@@ -1393,8 +1444,14 @@ export type Database = {
       }
       projeto_fases: {
         Row: {
+          co_validada_em: string | null
+          co_validada_por: string | null
           created_at: string
           descricao: string | null
+          documento_encerramento_nome: string | null
+          documento_encerramento_url: string | null
+          encerrada_em: string | null
+          encerrada_por: string | null
           horas_estimadas: number | null
           horas_executadas: number | null
           id: string
@@ -1402,13 +1459,21 @@ export type Database = {
           ordem: number
           prazo: string | null
           projeto_id: string
+          rmo_validada_em: string | null
+          rmo_validada_por: string | null
           status: Database["public"]["Enums"]["status_fase"]
           updated_at: string
           valor: number | null
         }
         Insert: {
+          co_validada_em?: string | null
+          co_validada_por?: string | null
           created_at?: string
           descricao?: string | null
+          documento_encerramento_nome?: string | null
+          documento_encerramento_url?: string | null
+          encerrada_em?: string | null
+          encerrada_por?: string | null
           horas_estimadas?: number | null
           horas_executadas?: number | null
           id?: string
@@ -1416,13 +1481,21 @@ export type Database = {
           ordem?: number
           prazo?: string | null
           projeto_id: string
+          rmo_validada_em?: string | null
+          rmo_validada_por?: string | null
           status?: Database["public"]["Enums"]["status_fase"]
           updated_at?: string
           valor?: number | null
         }
         Update: {
+          co_validada_em?: string | null
+          co_validada_por?: string | null
           created_at?: string
           descricao?: string | null
+          documento_encerramento_nome?: string | null
+          documento_encerramento_url?: string | null
+          encerrada_em?: string | null
+          encerrada_por?: string | null
           horas_estimadas?: number | null
           horas_executadas?: number | null
           id?: string
@@ -1430,6 +1503,8 @@ export type Database = {
           ordem?: number
           prazo?: string | null
           projeto_id?: string
+          rmo_validada_em?: string | null
+          rmo_validada_por?: string | null
           status?: Database["public"]["Enums"]["status_fase"]
           updated_at?: string
           valor?: number | null
@@ -1664,10 +1739,97 @@ export type Database = {
           },
         ]
       }
+      projeto_shortlist: {
+        Row: {
+          adicionada_em: string
+          adicionada_por: string
+          created_at: string
+          id: string
+          observacao: string | null
+          projeto_id: string
+          proposta_id: string
+          status: Database["public"]["Enums"]["status_shortlist_item"]
+          updated_at: string
+        }
+        Insert: {
+          adicionada_em?: string
+          adicionada_por: string
+          created_at?: string
+          id?: string
+          observacao?: string | null
+          projeto_id: string
+          proposta_id: string
+          status?: Database["public"]["Enums"]["status_shortlist_item"]
+          updated_at?: string
+        }
+        Update: {
+          adicionada_em?: string
+          adicionada_por?: string
+          created_at?: string
+          id?: string
+          observacao?: string | null
+          projeto_id?: string
+          proposta_id?: string
+          status?: Database["public"]["Enums"]["status_shortlist_item"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "projeto_shortlist_projeto_id_fkey"
+            columns: ["projeto_id"]
+            isOneToOne: false
+            referencedRelation: "projetos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "projeto_shortlist_proposta_id_fkey"
+            columns: ["proposta_id"]
+            isOneToOne: false
+            referencedRelation: "propostas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      projeto_shortlist_pareceres: {
+        Row: {
+          aprovado: boolean
+          comentario: string | null
+          coordenador_user_id: string
+          created_at: string
+          id: string
+          shortlist_id: string
+        }
+        Insert: {
+          aprovado: boolean
+          comentario?: string | null
+          coordenador_user_id: string
+          created_at?: string
+          id?: string
+          shortlist_id: string
+        }
+        Update: {
+          aprovado?: boolean
+          comentario?: string | null
+          coordenador_user_id?: string
+          created_at?: string
+          id?: string
+          shortlist_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "projeto_shortlist_pareceres_shortlist_id_fkey"
+            columns: ["shortlist_id"]
+            isOneToOne: false
+            referencedRelation: "projeto_shortlist"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       projetos: {
         Row: {
           canal_id: string | null
           classificacao_ia: Json | null
+          coordenador_user_id: string | null
           created_at: string
           criado_por_tipo: string
           descricao: string | null
@@ -1694,6 +1856,7 @@ export type Database = {
         Insert: {
           canal_id?: string | null
           classificacao_ia?: Json | null
+          coordenador_user_id?: string | null
           created_at?: string
           criado_por_tipo?: string
           descricao?: string | null
@@ -1720,6 +1883,7 @@ export type Database = {
         Update: {
           canal_id?: string | null
           classificacao_ia?: Json | null
+          coordenador_user_id?: string | null
           created_at?: string
           criado_por_tipo?: string
           descricao?: string | null
@@ -2147,6 +2311,7 @@ export type Database = {
         Returns: boolean
       }
       canal_convidar_consultor: { Args: { p_email: string }; Returns: string }
+      canal_convidar_rmo: { Args: { p_email: string }; Returns: Json }
       concluir_projeto: { Args: { p_projeto_id: string }; Returns: Json }
       consultor_ajustar_proposta:
         | {
@@ -2170,6 +2335,14 @@ export type Database = {
           }
       consultor_confirmar_inicio: {
         Args: { p_proposta_id: string }
+        Returns: Json
+      }
+      consultor_encerrar_fase: {
+        Args: {
+          p_documento_nome?: string
+          p_documento_url: string
+          p_fase_id: string
+        }
         Returns: Json
       }
       consultor_enviar_contraproposta:
@@ -2196,6 +2369,18 @@ export type Database = {
         Args: { p_proposta_id: string }
         Returns: Json
       }
+      coordenador_co_validar_fase: {
+        Args: { p_fase_id: string }
+        Returns: Json
+      }
+      coordenador_emitir_parecer: {
+        Args: {
+          p_aprovado: boolean
+          p_comentario?: string
+          p_shortlist_id: string
+        }
+        Returns: Json
+      }
       create_notification: {
         Args: {
           p_mensagem: string
@@ -2209,6 +2394,10 @@ export type Database = {
       }
       empresa_aceitar_proposta: {
         Args: { p_proposta_id: string }
+        Returns: Json
+      }
+      empresa_indicar_coordenador: {
+        Args: { p_coordenador_user_id: string; p_projeto_id: string }
         Returns: Json
       }
       empresa_pre_aprovar_consultor: {
@@ -2262,11 +2451,19 @@ export type Database = {
         }[]
       }
       get_user_canal_id: { Args: { _user_id?: string }; Returns: string }
+      get_user_canal_operador_id: {
+        Args: { _user_id: string }
+        Returns: string
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
+        Returns: boolean
+      }
+      is_canal_operador: {
+        Args: { _canal_id: string; _user_id: string }
         Returns: boolean
       }
       is_canal_owner: {
@@ -2279,6 +2476,10 @@ export type Database = {
       }
       is_empresa_team_member: {
         Args: { _empresa_user_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_projeto_coordenador: {
+        Args: { _projeto_id: string; _user_id: string }
         Returns: boolean
       }
       is_projeto_party: {
@@ -2352,12 +2553,22 @@ export type Database = {
         Args: { p_aceitar: boolean; p_token: string }
         Returns: Json
       }
+      rmo_aprovacao_final: { Args: { p_shortlist_id: string }; Returns: Json }
+      rmo_montar_shortlist: {
+        Args: { p_projeto_id: string; p_proposta_ids: string[] }
+        Returns: Json
+      }
+      rmo_validar_fase: { Args: { p_fase_id: string }; Returns: Json }
     }
     Enums: {
       app_role: "admin" | "consultor" | "empresa" | "canal"
       modelo_contratacao: "presencial" | "hibrido" | "remoto"
       nivel_senioridade: "junior" | "pleno" | "senior" | "especialista"
-      papel_empresa_usuario: "responsavel" | "financeiro" | "operacional"
+      papel_empresa_usuario:
+        | "responsavel"
+        | "financeiro"
+        | "operacional"
+        | "coordenador"
       plano_assinatura: "standard" | "premium"
       status_agenda_consultor: "agendado" | "bloqueado" | "vago"
       status_alocacao_canal:
@@ -2397,6 +2608,12 @@ export type Database = {
         | "pre_aprovada"
         | "pendente_aprovacao_canal"
         | "contraproposta_consultor"
+      status_shortlist_item:
+        | "na_shortlist"
+        | "em_entrevista"
+        | "aprovada_coordenador"
+        | "reprovada_coordenador"
+        | "selecionada_rmo"
       tipo_fatura: "empresa" | "consultor" | "plataforma"
     }
     CompositeTypes: {
@@ -2528,7 +2745,12 @@ export const Constants = {
       app_role: ["admin", "consultor", "empresa", "canal"],
       modelo_contratacao: ["presencial", "hibrido", "remoto"],
       nivel_senioridade: ["junior", "pleno", "senior", "especialista"],
-      papel_empresa_usuario: ["responsavel", "financeiro", "operacional"],
+      papel_empresa_usuario: [
+        "responsavel",
+        "financeiro",
+        "operacional",
+        "coordenador",
+      ],
       plano_assinatura: ["standard", "premium"],
       status_agenda_consultor: ["agendado", "bloqueado", "vago"],
       status_alocacao_canal: [
@@ -2572,6 +2794,13 @@ export const Constants = {
         "pre_aprovada",
         "pendente_aprovacao_canal",
         "contraproposta_consultor",
+      ],
+      status_shortlist_item: [
+        "na_shortlist",
+        "em_entrevista",
+        "aprovada_coordenador",
+        "reprovada_coordenador",
+        "selecionada_rmo",
       ],
       tipo_fatura: ["empresa", "consultor", "plataforma"],
     },
