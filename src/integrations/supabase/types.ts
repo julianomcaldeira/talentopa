@@ -1463,6 +1463,7 @@ export type Database = {
           rmo_validada_por: string | null
           status: Database["public"]["Enums"]["status_fase"]
           updated_at: string
+          validacao_observacao: string | null
           valor: number | null
         }
         Insert: {
@@ -1485,6 +1486,7 @@ export type Database = {
           rmo_validada_por?: string | null
           status?: Database["public"]["Enums"]["status_fase"]
           updated_at?: string
+          validacao_observacao?: string | null
           valor?: number | null
         }
         Update: {
@@ -1507,6 +1509,7 @@ export type Database = {
           rmo_validada_por?: string | null
           status?: Database["public"]["Enums"]["status_fase"]
           updated_at?: string
+          validacao_observacao?: string | null
           valor?: number | null
         }
         Relationships: [
@@ -2381,6 +2384,14 @@ export type Database = {
         }
         Returns: Json
       }
+      coordenador_invalidar_fase: {
+        Args: { p_fase_id: string; p_motivo: string }
+        Returns: Json
+      }
+      coordenador_solicitar_ajustes_fase: {
+        Args: { p_fase_id: string; p_motivo: string }
+        Returns: Json
+      }
       create_notification: {
         Args: {
           p_mensagem: string
@@ -2554,8 +2565,16 @@ export type Database = {
         Returns: Json
       }
       rmo_aprovacao_final: { Args: { p_shortlist_id: string }; Returns: Json }
+      rmo_invalidar_fase: {
+        Args: { p_fase_id: string; p_motivo: string }
+        Returns: Json
+      }
       rmo_montar_shortlist: {
         Args: { p_projeto_id: string; p_proposta_ids: string[] }
+        Returns: Json
+      }
+      rmo_solicitar_ajustes_fase: {
+        Args: { p_fase_id: string; p_motivo: string }
         Returns: Json
       }
       rmo_validar_fase: { Args: { p_fase_id: string }; Returns: Json }
