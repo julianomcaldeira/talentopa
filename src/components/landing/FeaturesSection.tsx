@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Search, Shield, CreditCard, BarChart3, Clock, Star, ArrowUpRight } from "lucide-react";
+import { Users, ClipboardCheck, FileSignature, Calendar, Layers, ShieldCheck, ArrowUpRight } from "lucide-react";
 import { Section } from "@/components/ui/section";
 
 const features = [
