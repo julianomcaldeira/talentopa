@@ -1,52 +1,52 @@
 import { motion } from "framer-motion";
-import { Search, Shield, CreditCard, BarChart3, Clock, Star, ArrowUpRight } from "lucide-react";
+import { Users, ClipboardCheck, FileSignature, Calendar, Layers, ShieldCheck, ArrowUpRight } from "lucide-react";
 import { Section } from "@/components/ui/section";
 
 const features = [
   {
-    icon: Search,
-    title: "Matching Inteligente",
-    description: "Algoritmo que identifica automaticamente consultores com o perfil ideal para seu projeto ERP.",
+    icon: Users,
+    title: "RMO no Canal",
+    description: "O Canal atua como RMO — recebe a demanda da empresa, pré-seleciona candidatos e monta a shortlist técnica.",
     gradient: "from-primary/10 to-primary/5",
     iconBg: "bg-primary/10",
     iconColor: "text-primary",
   },
   {
-    icon: Shield,
-    title: "Pagamentos Seguros",
-    description: "Pagamento por fases com retenção garantida. Liberação somente após aprovação.",
+    icon: ClipboardCheck,
+    title: "Parecer do Coordenador",
+    description: "O Coordenador (indicado pela empresa) entrevista, avalia e emite parecer técnico antes da aprovação final.",
     gradient: "from-accent/10 to-accent/5",
     iconBg: "bg-accent/10",
     iconColor: "text-accent",
   },
   {
-    icon: BarChart3,
-    title: "Gestão de Projetos",
-    description: "Acompanhe fases, entregas e cronogramas em tempo real com dashboards completos.",
+    icon: Layers,
+    title: "Shortlist e Aprovação Final",
+    description: "Fluxo formal de shortlist com parecer por candidato e aprovação final feita pelo RMO no Canal.",
     gradient: "from-primary/10 to-accent/5",
     iconBg: "bg-primary/10",
     iconColor: "text-primary",
   },
   {
-    icon: Clock,
-    title: "Templates Prontos",
-    description: "Inicie projetos rapidamente com templates de implementação pré-configurados.",
+    icon: Calendar,
+    title: "Agenda do Consultor",
+    description: "Consultores mantêm agenda de dias disponíveis e bloqueados, considerada no matching e na alocação.",
     gradient: "from-accent/10 to-primary/5",
     iconBg: "bg-accent/10",
     iconColor: "text-accent",
   },
   {
-    icon: CreditCard,
-    title: "Faturamento Integrado",
-    description: "Sistema completo de cobrança, notas fiscais e comissionamento automático.",
+    icon: FileSignature,
+    title: "Encerramento por Fase",
+    description: "Cada fase termina com documento de encerramento anexado pelo consultor e co-validado por RMO e Coordenador.",
     gradient: "from-primary/10 to-primary/5",
     iconBg: "bg-primary/10",
     iconColor: "text-primary",
   },
   {
-    icon: Star,
-    title: "Sistema de Avaliação",
-    description: "Avaliações mútuas entre consultores e empresas garantem qualidade e transparência.",
+    icon: ShieldCheck,
+    title: "Governança e Rastreabilidade",
+    description: "Todos os papéis (Empresa, RMO, Coordenador, Consultor) com trilha de decisões, pareceres e validações.",
     gradient: "from-accent/10 to-accent/5",
     iconBg: "bg-accent/10",
     iconColor: "text-accent",
@@ -71,12 +71,12 @@ const FeaturesSection = () => {
             Funcionalidades
           </span>
           <h2 className="text-3xl md:text-5xl font-display font-bold text-foreground mt-3 mb-5 tracking-tight">
-            Tudo que você precisa
+            Um fluxo formal
             <br />
-            <span className="text-gradient-primary">em um só lugar</span>
+            <span className="text-gradient-primary">para cada papel</span>
           </h2>
           <p className="text-muted-foreground max-w-xl mx-auto text-lg">
-            Desde a publicação do projeto até a avaliação final, a Workz cuida de cada etapa.
+            Empresa, RMO, Coordenador e Consultor: cada etapa com responsável claro, parecer registrado e documento de encerramento.
           </p>
         </motion.div>
 
