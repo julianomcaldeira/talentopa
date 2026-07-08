@@ -142,6 +142,8 @@ const App = () => (
               <Route path="gestao" element={<GestaoProjetos />} />
               <Route path="estados-projeto" element={<ProjectStateReference />} />
               <Route path="projetos/:id/gestao" element={<ProjetoGestao />} />
+              <Route path="coordenadores" element={<EmpresaCoordenadores />} />
+              <Route path="coordenacao" element={<EmpresaCoordenadorPainel />} />
             </Route>
 
             {/* Canal */}
