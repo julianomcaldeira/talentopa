@@ -76,6 +76,21 @@ const ProjetoGestao = () => {
         const { data: profs } = await supabase.from("profiles").select("user_id, nome").in("user_id", uploaderIds);
         setUploaderProfiles(new Map((profs || []).map(p => [p.user_id, p.nome])));
       }
+
+      // Verifica se o usuário é RMO/admin do canal responsável pelo projeto
+      const canalId = projRes.data?.canal_id;
+      if (canalId && user?.id) {
+        const { data: mem } = await (supabase as any)
+          .from("canal_membros")
+          .select("role, status")
+          .eq("canal_id", canalId)
+          .eq("user_id", user.id)
+          .eq("status", "ativo")
+          .maybeSingle();
+        setIsRmoOfCanal(!!mem && (mem.role === "rmo" || mem.role === "admin"));
+      } else {
+        setIsRmoOfCanal(false);
+      }
     } catch (e: any) {
       toast({ title: "Erro ao carregar projeto", description: e?.message || String(e), variant: "destructive" });
     } finally {
