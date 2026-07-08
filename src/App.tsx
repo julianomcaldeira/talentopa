@@ -54,6 +54,10 @@ import EmpresaRelatorios from "./pages/empresa/EmpresaRelatorios";
 import ProjetoGestao from "./pages/projetos/ProjetoGestao";
 import GestaoProjetos from "./pages/projetos/GestaoProjetos";
 import ProjectStateReference from "./pages/projetos/ProjectStateReference";
+import CanalEquipe from "./pages/canal/CanalEquipe";
+import CanalShortlist from "./pages/canal/CanalShortlist";
+import EmpresaCoordenadores from "./pages/empresa/EmpresaCoordenadores";
+import EmpresaCoordenadorPainel from "./pages/empresa/EmpresaCoordenadorPainel";
 const queryClient = new QueryClient();
 
 const AuthRedirect = () => {
