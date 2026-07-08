@@ -211,6 +211,8 @@ export const ConsultorLayout = () => <DashboardLayout links={consultorLinks} tit
 const empresaLinks = [
   { to: "/empresa", icon: LayoutDashboard, label: "Dashboard" },
   { to: "/empresa/projetos", icon: FolderKanban, label: "Projetos" },
+  { to: "/empresa/coordenacao", icon: UserCog, label: "Coordenação Técnica" },
+  { to: "/empresa/coordenadores", icon: Users, label: "Equipe" },
   { to: "/empresa/gestao", icon: Briefcase, label: "Gestão de Projetos" },
   { to: "/empresa/estados-projeto", icon: Workflow, label: "Estados do Projeto" },
   { to: "/empresa/consultores", icon: Users, label: "Consultores" },
@@ -224,8 +226,10 @@ const canalLinks = [
   { to: "/canal", icon: LayoutDashboard, label: "Dashboard" },
   { to: "/canal/consultores", icon: Users, label: "Meus Consultores" },
   { to: "/canal/projetos", icon: FolderKanban, label: "Projetos" },
+  { to: "/canal/shortlist", icon: ListChecks, label: "Shortlists (RMO)" },
+  { to: "/canal/equipe", icon: Shield, label: "Equipe RMO" },
   { to: "/canal/aprovacoes", icon: ShieldAlert, label: "Aprovações" },
   { to: "/canal/configuracoes", icon: Settings, label: "Configurações" },
 ];
 
-export const CanalLayout = () => <DashboardLayout links={canalLinks} title="Canal" />;
+export const CanalLayout = () => <DashboardLayout links={canalLinks} title="Canal · RMO" />;
