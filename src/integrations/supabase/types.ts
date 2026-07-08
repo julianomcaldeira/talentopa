@@ -2514,6 +2514,17 @@ export type Database = {
         Args: { p_projeto_id: string }
         Returns: number
       }
+      notificar_envolvidos_fase: {
+        Args: {
+          p_excluir?: string
+          p_fase_nome: string
+          p_mensagem: string
+          p_projeto_id: string
+          p_tipo?: string
+          p_titulo: string
+        }
+        Returns: undefined
+      }
       notify_empresa_por_papel: {
         Args: {
           p_empresa_user_id: string
