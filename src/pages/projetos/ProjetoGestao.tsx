@@ -38,6 +38,7 @@ const ProjetoGestao = () => {
   const [entregaveis, setEntregaveis] = useState<any[]>([]);
   const [propostaAceita, setPropostaAceita] = useState<any>(null);
   const [uploaderProfiles, setUploaderProfiles] = useState<Map<string, string>>(new Map());
+  const [isRmoOfCanal, setIsRmoOfCanal] = useState(false);
 
   // Novo entregável
   const [novoNome, setNovoNome] = useState("");
