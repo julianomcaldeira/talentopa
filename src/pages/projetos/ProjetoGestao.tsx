@@ -100,6 +100,21 @@ const ProjetoGestao = () => {
 
   useEffect(() => { fetchAll(); /* eslint-disable-next-line */ }, [projetoId]);
 
+  // Realtime: recarrega fases quando houver mudanças no projeto
+  useEffect(() => {
+    if (!projetoId) return;
+    const channel = supabase
+      .channel(`projeto-fases-${projetoId}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "projeto_fases", filter: `projeto_id=eq.${projetoId}` },
+        () => { fetchAll(); },
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+    // eslint-disable-next-line
+  }, [projetoId]);
+
   const updateFase = async (faseId: string, patch: { status?: string; horas_executadas?: number }) => {
     const { error } = await (supabase as any).rpc("atualizar_fase", {
       p_fase_id: faseId,
