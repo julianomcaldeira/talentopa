@@ -15,6 +15,8 @@ import { ProjectCommunication } from "@/components/communication/ProjectCommunic
 import { TimelineFases } from "@/components/projetos/TimelineFases";
 import { ReunioesAtas } from "@/components/projetos/ReunioesAtas";
 import { Timesheet } from "@/components/projetos/Timesheet";
+import ValidarFaseActions from "@/components/projetos/ValidarFaseActions";
+import EncerrarFaseDialog from "@/components/projetos/EncerrarFaseDialog";
 
 const STATUS_FASE_OPTIONS = [
   { value: "pendente", label: "Pendente" },
