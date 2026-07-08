@@ -71,12 +71,12 @@ const FeaturesSection = () => {
             Funcionalidades
           </span>
           <h2 className="text-3xl md:text-5xl font-display font-bold text-foreground mt-3 mb-5 tracking-tight">
-            Tudo que você precisa
+            Um fluxo formal
             <br />
-            <span className="text-gradient-primary">em um só lugar</span>
+            <span className="text-gradient-primary">para cada papel</span>
           </h2>
           <p className="text-muted-foreground max-w-xl mx-auto text-lg">
-            Desde a publicação do projeto até a avaliação final, a Workz cuida de cada etapa.
+            Empresa, RMO, Coordenador e Consultor: cada etapa com responsável claro, parecer registrado e documento de encerramento.
           </p>
         </motion.div>
 
