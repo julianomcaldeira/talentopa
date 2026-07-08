@@ -270,6 +270,54 @@ const ProjetoGestao = () => {
                   <p className="text-sm h-9 flex items-center">{f.horas_estimadas || 0}h · {f.prazo ? new Date(f.prazo).toLocaleDateString("pt-BR") : "—"}</p>
                 </div>
               </div>
+
+              {/* Encerramento e validações */}
+              {(f.documento_encerramento_url || f.validacao_observacao || f.rmo_validada_em || f.co_validada_em) && (
+                <div className="mt-3 rounded-lg border border-border/60 bg-muted/30 p-3 space-y-1.5 text-xs">
+                  {f.documento_encerramento_url && (
+                    <p>
+                      <span className="text-muted-foreground">Documento de encerramento:</span>{" "}
+                      <a href={f.documento_encerramento_url} target="_blank" rel="noreferrer" className="text-primary underline">
+                        {f.documento_encerramento_nome || "abrir"}
+                      </a>
+                    </p>
+                  )}
+                  {f.rmo_validada_em && (
+                    <p className="text-muted-foreground">RMO validou em {new Date(f.rmo_validada_em).toLocaleString("pt-BR")}</p>
+                  )}
+                  {f.co_validada_em && (
+                    <p className="text-muted-foreground">Coordenador co-validou em {new Date(f.co_validada_em).toLocaleString("pt-BR")}</p>
+                  )}
+                  {f.validacao_observacao && (
+                    <p><span className="text-muted-foreground">Observação:</span> {f.validacao_observacao}</p>
+                  )}
+                </div>
+              )}
+
+              {/* Ações do consultor: encerrar fase */}
+              {isConsultor && isMyProject && f.status === "em_andamento" && (
+                <div className="mt-3 flex justify-end">
+                  <EncerrarFaseDialog faseId={f.id} faseNome={f.nome} projetoId={projeto.id} onDone={fetchAll} />
+                </div>
+              )}
+
+              {/* Validações RMO e Coordenador quando a fase aguarda aprovação */}
+              {f.status === "aguardando_aprovacao" && (isRmoOfCanal || projeto.coordenador_user_id === user?.id) && (
+                <div className="mt-3 pt-3 border-t border-border/60 space-y-2">
+                  {isRmoOfCanal && !f.rmo_validada_em && (
+                    <div>
+                      <p className="text-[11px] uppercase tracking-wider text-muted-foreground mb-1.5">Validação do RMO</p>
+                      <ValidarFaseActions role="rmo" faseId={f.id} faseNome={f.nome} onDone={fetchAll} />
+                    </div>
+                  )}
+                  {projeto.coordenador_user_id === user?.id && !f.co_validada_em && (
+                    <div>
+                      <p className="text-[11px] uppercase tracking-wider text-muted-foreground mb-1.5">Co-validação do Coordenador</p>
+                      <ValidarFaseActions role="coordenador" faseId={f.id} faseNome={f.nome} onDone={fetchAll} />
+                    </div>
+                  )}
+                </div>
+              )}
             </DataCard>
           ))}
         </TabsContent>
