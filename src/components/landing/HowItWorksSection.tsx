@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Section } from "@/components/ui/section";
-import { FileText, Bell, Handshake, CheckCircle2, ArrowRight, Building2, Briefcase } from "lucide-react";
+import { FileText, Users, Handshake, FileCheck2, ArrowRight, Building2, Briefcase, Network, UserCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 
@@ -8,38 +8,42 @@ const steps = [
   {
     icon: FileText,
     number: "01",
-    title: "Publique seu projeto",
-    description: "Defina escopo, escolha o ERP, módulos e funcionalidades. Use templates prontos ou personalize.",
+    phase: "Fase 1",
+    title: "Cadastro e publicação",
+    description: "Empresa lança a demanda, indica o Coordenador técnico. RMO publica na plataforma e notifica os consultores compatíveis.",
+    actors: ["Empresa", "RMO"],
     color: "text-primary",
     bg: "bg-primary/10",
-    glow: "shadow-primary/10",
   },
   {
-    icon: Bell,
+    icon: Users,
     number: "02",
-    title: "Receba propostas",
-    description: "Consultores qualificados são notificados e enviam suas propostas técnicas automaticamente.",
+    phase: "Fase 2",
+    title: "Candidatura e seleção",
+    description: "Consultores se candidatam. RMO monta a shortlist, Coordenador entrevista e emite parecer, RMO faz a aprovação final.",
+    actors: ["Consultor", "RMO", "Coordenador"],
     color: "text-accent",
     bg: "bg-accent/10",
-    glow: "shadow-accent/10",
   },
   {
     icon: Handshake,
     number: "03",
-    title: "Escolha e contrate",
-    description: "Compare perfis, avaliações e valores. Contrate com contrato digital e cronograma automático.",
+    phase: "Fase 3",
+    title: "Kickoff e execução",
+    description: "Reunião de kickoff define marcos por fase. Consultor executa e lança OS diárias. Empresa acompanha em tempo real.",
+    actors: ["Consultor", "RMO", "Coordenador"],
     color: "text-primary",
     bg: "bg-primary/10",
-    glow: "shadow-primary/10",
   },
   {
-    icon: CheckCircle2,
+    icon: FileCheck2,
     number: "04",
-    title: "Acompanhe e aprove",
-    description: "Gerencie fases, aprove entregas e libere pagamentos de forma segura pela plataforma.",
+    phase: "Encerramento",
+    title: "Fase entregue e validada",
+    description: "Consultor encerra a fase com documento. RMO valida e o Coordenador co-valida. Pagamento liberado por entrega aprovada.",
+    actors: ["Consultor", "RMO", "Coordenador"],
     color: "text-accent",
     bg: "bg-accent/10",
-    glow: "shadow-accent/10",
   },
 ];
 
@@ -60,12 +64,14 @@ const HowItWorksSection = () => {
             Como funciona
           </span>
           <h2 className="text-3xl md:text-5xl font-display font-bold text-foreground mt-3 tracking-tight">
-            Simples, rápido e <span className="text-gradient-primary">eficiente</span>
+            O ciclo completo, com <span className="text-gradient-primary">papéis definidos</span>
           </h2>
+          <p className="mt-4 text-muted-foreground max-w-2xl mx-auto">
+            Empresa lança, RMO orquestra, Coordenador valida, Consultor entrega. Cada etapa com responsáveis claros.
+          </p>
         </motion.div>
 
-        <div className="max-w-5xl mx-auto relative">
-          {/* Connection line */}
+        <div className="max-w-6xl mx-auto relative">
           <div className="hidden lg:block absolute top-[40px] left-[calc(12.5%+28px)] right-[calc(12.5%+28px)] h-[2px]">
             <div className="w-full h-full bg-gradient-to-r from-primary/20 via-accent/20 to-primary/20 rounded-full" />
           </div>
@@ -78,11 +84,10 @@ const HowItWorksSection = () => {
                 initial={{ opacity: 0, y: 24 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: i * 0.12 }}
+                transition={{ duration: 0.5, delay: i * 0.1 }}
               >
-                {/* Icon */}
                 <div className="relative inline-flex mb-6">
-                  <div className={`w-16 h-16 rounded-2xl ${step.bg} flex items-center justify-center relative z-10 shadow-lg ${step.glow}`}>
+                  <div className={`w-16 h-16 rounded-2xl ${step.bg} flex items-center justify-center relative z-10 shadow-lg`}>
                     <step.icon className={`h-7 w-7 ${step.color}`} />
                   </div>
                   <span className={`absolute -top-2 -right-2 w-7 h-7 rounded-full ${step.bg} ${step.color} text-[11px] font-bold flex items-center justify-center z-20 border-2 border-muted/30`}>
@@ -90,62 +95,33 @@ const HowItWorksSection = () => {
                   </span>
                 </div>
 
-                <h3 className="text-lg font-display font-semibold text-foreground mb-2">{step.title}</h3>
-                <p className="text-muted-foreground text-sm leading-relaxed">{step.description}</p>
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  {step.phase}
+                </span>
+                <h3 className="text-lg font-display font-semibold text-foreground mt-1 mb-2">{step.title}</h3>
+                <p className="text-muted-foreground text-sm leading-relaxed mb-3">{step.description}</p>
+                <div className="flex flex-wrap gap-1.5 justify-center lg:justify-start">
+                  {step.actors.map((a) => (
+                    <span key={a} className="inline-block px-2 py-0.5 rounded-full bg-muted text-[10px] font-semibold text-foreground/70 border border-border/60">
+                      {a}
+                    </span>
+                  ))}
+                </div>
               </motion.div>
             ))}
           </div>
 
-          {/* Tri-profile CTA strip */}
           <motion.div
-            className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-4 max-w-5xl mx-auto"
+            className="mt-20 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 max-w-6xl mx-auto"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <div className="flex items-center gap-4 p-5 rounded-2xl bg-card border border-border/70 shadow-card">
-              <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                <Building2 className="h-5 w-5 text-primary" />
-              </div>
-              <div className="flex-1">
-                <p className="text-sm font-semibold text-foreground">É da sua empresa?</p>
-                <p className="text-xs text-muted-foreground">Publique seu projeto em 2 minutos.</p>
-              </div>
-              <Button size="sm" asChild className="shrink-0">
-                <Link to="/register?type=empresa">
-                  Começar <ArrowRight className="ml-1 h-3.5 w-3.5" />
-                </Link>
-              </Button>
-            </div>
-            <div className="flex items-center gap-4 p-5 rounded-2xl bg-card border border-border/70 shadow-card">
-              <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                <Briefcase className="h-5 w-5 text-primary" />
-              </div>
-              <div className="flex-1">
-                <p className="text-sm font-semibold text-foreground">É consultor ERP?</p>
-                <p className="text-xs text-muted-foreground">Receba projetos compatíveis com seu perfil.</p>
-              </div>
-              <Button size="sm" variant="outline" asChild className="shrink-0">
-                <Link to="/register?type=consultor">
-                  Cadastrar <ArrowRight className="ml-1 h-3.5 w-3.5" />
-                </Link>
-              </Button>
-            </div>
-            <div className="flex items-center gap-4 p-5 rounded-2xl bg-card border border-border/70 shadow-card">
-              <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                <Building2 className="h-5 w-5 text-primary" />
-              </div>
-              <div className="flex-1">
-                <p className="text-sm font-semibold text-foreground">É um canal?</p>
-                <p className="text-xs text-muted-foreground">Gerencie consultores e aprove alocações.</p>
-              </div>
-              <Button size="sm" variant="outline" asChild className="shrink-0">
-                <Link to="/register?type=canal">
-                  Cadastrar <ArrowRight className="ml-1 h-3.5 w-3.5" />
-                </Link>
-              </Button>
-            </div>
+            <ProfileCTA icon={Building2} title="Sou Empresa" subtitle="Publicar demanda" to="/register?type=empresa" />
+            <ProfileCTA icon={Network} title="Sou Canal (RMO)" subtitle="Gerenciar demandas" to="/register?type=canal" />
+            <ProfileCTA icon={UserCheck} title="Sou Coordenador" subtitle="Acessar entrevistas" to="/login" />
+            <ProfileCTA icon={Briefcase} title="Sou Consultor" subtitle="Receber projetos" to="/register?type=consultor" />
           </motion.div>
         </div>
       </div>
@@ -154,5 +130,18 @@ const HowItWorksSection = () => {
     </Section>
   );
 };
+
+const ProfileCTA = ({ icon: Icon, title, subtitle, to }: { icon: any; title: string; subtitle: string; to: string }) => (
+  <Link to={to} className="flex items-center gap-3 p-4 rounded-2xl bg-card border border-border/70 shadow-card hover:shadow-card-hover hover:border-primary/40 transition-all">
+    <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+      <Icon className="h-5 w-5 text-primary" />
+    </div>
+    <div className="flex-1 min-w-0">
+      <p className="text-sm font-semibold text-foreground truncate">{title}</p>
+      <p className="text-xs text-muted-foreground truncate">{subtitle}</p>
+    </div>
+    <ArrowRight className="h-4 w-4 text-muted-foreground shrink-0" />
+  </Link>
+);
 
 export default HowItWorksSection;
