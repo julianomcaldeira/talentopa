@@ -71,6 +71,7 @@ const EmpresaProjetos = () => {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [prazoFilter, setPrazoFilter] = useState<string>("all");
+  const [sortBy, setSortBy] = useState<ProjetoSortKey>("recent");
   const [page, setPage] = useState(1);
   const [novoProjetoOpen, setNovoProjetoOpen] = useState(false);
   const [propostaStatusFilter, setPropostaStatusFilter] = useState("all");
