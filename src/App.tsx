@@ -54,8 +54,7 @@ import EmpresaRelatorios from "./pages/empresa/EmpresaRelatorios";
 import ProjetoGestao from "./pages/projetos/ProjetoGestao";
 import GestaoProjetos from "./pages/projetos/GestaoProjetos";
 import ProjectStateReference from "./pages/projetos/ProjectStateReference";
-import CanalEquipe from "./pages/canal/CanalEquipe";
-import CanalShortlist from "./pages/canal/CanalShortlist";
+import EmpresaShortlist from "./pages/empresa/EmpresaShortlist";
 import EmpresaCoordenadores from "./pages/empresa/EmpresaCoordenadores";
 import EmpresaCoordenadorPainel from "./pages/empresa/EmpresaCoordenadorPainel";
 const queryClient = new QueryClient();
@@ -144,6 +143,7 @@ const App = () => (
               <Route path="projetos/:id/gestao" element={<ProjetoGestao />} />
               <Route path="coordenadores" element={<EmpresaCoordenadores />} />
               <Route path="coordenacao" element={<EmpresaCoordenadorPainel />} />
+              <Route path="shortlist" element={<EmpresaShortlist />} />
             </Route>
 
             {/* Canal */}
@@ -151,8 +151,6 @@ const App = () => (
               <Route index element={<CanalDashboard />} />
               <Route path="consultores" element={<CanalConsultores />} />
               <Route path="projetos" element={<CanalProjetos />} />
-              <Route path="shortlist" element={<CanalShortlist />} />
-              <Route path="equipe" element={<CanalEquipe />} />
               <Route path="aprovacoes" element={<CanalAprovacoes />} />
               <Route path="configuracoes" element={<CanalConfiguracoes />} />
             </Route>

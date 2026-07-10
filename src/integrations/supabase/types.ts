@@ -382,57 +382,6 @@ export type Database = {
           },
         ]
       }
-      canal_membros: {
-        Row: {
-          canal_id: string
-          convidado_por: string | null
-          convite_email: string | null
-          created_at: string
-          id: string
-          role: string
-          status: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          canal_id: string
-          convidado_por?: string | null
-          convite_email?: string | null
-          created_at?: string
-          id?: string
-          role: string
-          status?: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          canal_id?: string
-          convidado_por?: string | null
-          convite_email?: string | null
-          created_at?: string
-          id?: string
-          role?: string
-          status?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "canal_membros_canal_id_fkey"
-            columns: ["canal_id"]
-            isOneToOne: false
-            referencedRelation: "canais"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "canal_membros_canal_id_fkey"
-            columns: ["canal_id"]
-            isOneToOne: false
-            referencedRelation: "canais_public"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       consultor_agenda: {
         Row: {
           consultor_user_id: string
@@ -2314,7 +2263,6 @@ export type Database = {
         Returns: boolean
       }
       canal_convidar_consultor: { Args: { p_email: string }; Returns: string }
-      canal_convidar_rmo: { Args: { p_email: string }; Returns: Json }
       concluir_projeto: { Args: { p_projeto_id: string }; Returns: Json }
       consultor_ajustar_proposta:
         | {
@@ -2462,19 +2410,11 @@ export type Database = {
         }[]
       }
       get_user_canal_id: { Args: { _user_id?: string }; Returns: string }
-      get_user_canal_operador_id: {
-        Args: { _user_id: string }
-        Returns: string
-      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
-        Returns: boolean
-      }
-      is_canal_operador: {
-        Args: { _canal_id: string; _user_id: string }
         Returns: boolean
       }
       is_canal_owner: {
@@ -2483,6 +2423,10 @@ export type Database = {
       }
       is_consultor_do_canal: {
         Args: { _canal_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_empresa_rmo: {
+        Args: { _empresa_user_id: string; _user_id: string }
         Returns: boolean
       }
       is_empresa_team_member: {
@@ -2599,6 +2543,7 @@ export type Database = {
         | "financeiro"
         | "operacional"
         | "coordenador"
+        | "rmo"
       plano_assinatura: "standard" | "premium"
       status_agenda_consultor: "agendado" | "bloqueado" | "vago"
       status_alocacao_canal:
@@ -2780,6 +2725,7 @@ export const Constants = {
         "financeiro",
         "operacional",
         "coordenador",
+        "rmo",
       ],
       plano_assinatura: ["standard", "premium"],
       status_agenda_consultor: ["agendado", "bloqueado", "vago"],
