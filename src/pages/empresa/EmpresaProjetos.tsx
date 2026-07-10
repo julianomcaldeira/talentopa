@@ -392,6 +392,14 @@ const EmpresaProjetos = () => {
               <SelectItem value="sem_prazo">Sem prazo definido</SelectItem>
             </SelectContent>
           </Select>
+          <Select value={sortBy} onValueChange={(v) => setSortBy(v as ProjetoSortKey)}>
+            <SelectTrigger className="md:w-52 h-9"><SelectValue placeholder="Ordenar por" /></SelectTrigger>
+            <SelectContent>
+              {PROJETO_SORT_OPTIONS.map(o => (
+                <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <ViewToggle value={view} onChange={setView} />
         </div>
         <div className="text-xs text-muted-foreground mt-3">
