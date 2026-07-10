@@ -38,7 +38,7 @@ const ProjetoGestao = () => {
   const [entregaveis, setEntregaveis] = useState<any[]>([]);
   const [propostaAceita, setPropostaAceita] = useState<any>(null);
   const [uploaderProfiles, setUploaderProfiles] = useState<Map<string, string>>(new Map());
-  const [isRmoOfCanal, setIsRmoOfCanal] = useState(false);
+  const [isRmoEmpresa, setIsRmoEmpresa] = useState(false);
 
   // Novo entregável
   const [novoNome, setNovoNome] = useState("");
@@ -77,19 +77,19 @@ const ProjetoGestao = () => {
         setUploaderProfiles(new Map((profs || []).map(p => [p.user_id, p.nome])));
       }
 
-      // Verifica se o usuário é RMO/admin do canal responsável pelo projeto
-      const canalId = projRes.data?.canal_id;
-      if (canalId && user?.id) {
-        const { data: mem } = await (supabase as any)
-          .from("canal_membros")
-          .select("role, status")
-          .eq("canal_id", canalId)
+      // Verifica se o usuário é RMO da empresa dona do projeto
+      const empresaUserId = projRes.data?.empresa_user_id;
+      if (empresaUserId && user?.id) {
+        const { data: eu } = await supabase
+          .from("empresa_usuarios")
+          .select("papel")
+          .eq("empresa_user_id", empresaUserId)
           .eq("user_id", user.id)
-          .eq("status", "ativo")
+          .eq("papel", "rmo" as any)
           .maybeSingle();
-        setIsRmoOfCanal(!!mem && (mem.role === "rmo" || mem.role === "admin"));
+        setIsRmoEmpresa(!!eu);
       } else {
-        setIsRmoOfCanal(false);
+        setIsRmoEmpresa(false);
       }
     } catch (e: any) {
       toast({ title: "Erro ao carregar projeto", description: e?.message || String(e), variant: "destructive" });
@@ -317,9 +317,9 @@ const ProjetoGestao = () => {
               )}
 
               {/* Validações RMO e Coordenador quando a fase aguarda aprovação */}
-              {f.status === "aguardando_aprovacao" && (isRmoOfCanal || projeto.coordenador_user_id === user?.id) && (
+              {f.status === "aguardando_aprovacao" && (isRmoEmpresa || projeto.coordenador_user_id === user?.id) && (
                 <div className="mt-3 pt-3 border-t border-border/60 space-y-2">
-                  {isRmoOfCanal && !f.rmo_validada_em && (
+                  {isRmoEmpresa && !f.rmo_validada_em && (
                     <div>
                       <p className="text-[11px] uppercase tracking-wider text-muted-foreground mb-1.5">Validação do RMO</p>
                       <ValidarFaseActions role="rmo" faseId={f.id} faseNome={f.nome} onDone={fetchAll} />

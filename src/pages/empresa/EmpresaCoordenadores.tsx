@@ -90,6 +90,7 @@ export default function EmpresaCoordenadores() {
     financeiro: "Financeiro",
     operacional: "Operacional",
     coordenador: "Coordenador",
+    rmo: "RMO",
   };
 
   return (
@@ -99,7 +100,7 @@ export default function EmpresaCoordenadores() {
           <UserCog size={22} /> Equipe da Empresa
         </h1>
         <p className="text-muted-foreground text-sm mt-1">
-          Adicione usuários à sua empresa. <b>Coordenadores</b> são responsáveis técnicos que entrevistam candidatos da shortlist e co-validam o encerramento das fases.
+          Adicione usuários à sua empresa. <b>RMO</b> orquestra o dia-a-dia dos projetos (publica demandas, monta shortlists e valida encerramento de fases). <b>Coordenador</b> é o responsável técnico que entrevista candidatos e co-valida entregas.
         </p>
       </div>
 
@@ -121,6 +122,7 @@ export default function EmpresaCoordenadores() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="rmo">RMO</SelectItem>
               <SelectItem value="coordenador">Coordenador</SelectItem>
               <SelectItem value="responsavel">Responsável</SelectItem>
               <SelectItem value="financeiro">Financeiro</SelectItem>
