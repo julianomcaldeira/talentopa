@@ -14,7 +14,7 @@ const cards = [
     title: "Lança a demanda e acompanha o projeto",
     bullets: [
       "Publica escopo, fases, prazos e premissas",
-      "Indica o Coordenador técnico da operação",
+      "Indica o RMO e o Coordenador técnico da operação",
       "Acompanha vínculos, candidaturas e contratos",
     ],
     cta: "Publicar demanda",
@@ -22,17 +22,17 @@ const cards = [
     accent: "primary" as const,
   },
   {
-    image: consultorImg,
-    badge: "Canal · RMO",
+    image: empresaImg,
+    badge: "RMO (Empresa)",
     icon: Network,
-    title: "Orquestra o ciclo do projeto ponta a ponta",
+    title: "Braço operacional interno da empresa",
     bullets: [
-      "Publica a demanda e define o Coordenador",
+      "Publica a demanda no marketplace",
       "Monta shortlist e conduz a aprovação final",
       "Valida o encerramento de cada fase entregue",
     ],
-    cta: "Cadastrar meu canal",
-    to: "/register?type=canal",
+    cta: "Sou RMO",
+    to: "/login",
     accent: "primary" as const,
   },
   {
@@ -79,9 +79,8 @@ const ForWhomSection = () => {
             Quatro papéis, um fluxo
           </span>
           <h2 className="text-3xl md:text-5xl font-display font-bold text-foreground tracking-tight">
-            <span className="text-gradient-primary">Empresa</span>,{" "}
-            <span className="text-gradient-primary">RMO</span>,{" "}
-            <span className="text-gradient-primary">Coordenador</span> e{" "}
+            <span className="text-gradient-primary">Empresa</span> (RMO + Coordenador),{" "}
+            <span className="text-gradient-primary">Canal</span> e{" "}
             <span className="text-gradient-primary">Consultor</span>
           </h2>
           <p className="mt-4 text-muted-foreground max-w-2xl mx-auto">
