@@ -13,6 +13,7 @@ import { PageHeader, DataCard, StatusBadge, EmptyState, LoadingState } from "@/c
 import { FolderKanban, Send, Calendar, Target, Star, MessageSquare, Eye, MapPin, Filter, X, Bookmark, BookmarkPlus, Trash2, Clock } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ProjectCommunication } from "@/components/communication/ProjectCommunication";
+import { PROJETO_SORT_OPTIONS, sortProjetos, ProjetoSortKey } from "@/lib/projetoSort";
 import { ProjetoDetalhesDialog, ModeloContratacaoBadge } from "@/components/projetos/ProjetoDetalhesDialog";
 import { CityCombobox, CityOption } from "@/components/projetos/CityCombobox";
 import { useScoreConfig } from "@/hooks/useScoreConfig";
