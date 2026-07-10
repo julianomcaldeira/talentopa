@@ -23,7 +23,7 @@ interface AuthContextType {
   profile: Profile | null;
   role: UserRole | null;
   empresaPapel: string | null;
-  canalRole: string | null;
+  
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, metadata: Record<string, string>) => Promise<void>;
@@ -39,7 +39,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [role, setRole] = useState<UserRole | null>(null);
   const [empresaPapel, setEmpresaPapel] = useState<string | null>(null);
-  const [canalRole, setCanalRole] = useState<string | null>(null);
+  
   const [loading, setLoading] = useState(true);
 
   const fetchProfile = async (userId: string) => {
@@ -67,14 +67,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       .maybeSingle();
     setEmpresaPapel((empUsr?.papel as string) || null);
 
-    // Role dentro do canal (admin, rmo)
-    const { data: canalMbr } = await supabase
-      .from("canal_membros" as any)
-      .select("role")
-      .eq("user_id", userId)
-      .eq("status", "ativo")
-      .maybeSingle();
-    setCanalRole(((canalMbr as any)?.role as string) || null);
   };
 
   useEffect(() => {
