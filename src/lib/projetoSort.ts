@@ -26,6 +26,13 @@ const getPrazo = (p: any) =>
 
 const getValor = (p: any): number => {
   if (typeof p?.valor_total === "number") return p.valor_total;
+  if (typeof p?.valor_estimado === "number") return Number(p.valor_estimado);
+  if (typeof p?.valor === "number") return p.valor;
+  if (typeof p?.orcamento === "number") return p.orcamento;
+  const numeric = ["valor_total", "valor_estimado", "valor", "orcamento"]
+    .map(k => p?.[k])
+    .find(v => v != null && !isNaN(Number(v)));
+  if (numeric != null) return Number(numeric);
   if (typeof p?.valor === "number") return p.valor;
   if (typeof p?.orcamento === "number") return p.orcamento;
   if (Array.isArray(p?.projeto_fases)) {
