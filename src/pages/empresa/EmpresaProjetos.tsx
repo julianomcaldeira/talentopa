@@ -19,6 +19,7 @@ import { ProjectCommunication } from "@/components/communication/ProjectCommunic
 import { ProjetoEditDialog } from "@/components/projetos/ProjetoEditDialog";
 import { cn } from "@/lib/utils";
 import EmpresaNovoProjeto from "./EmpresaNovoProjeto";
+import { PROJETO_SORT_OPTIONS, sortProjetos, ProjetoSortKey } from "@/lib/projetoSort";
 
 const PAGE_SIZE = 6;
 const PROPOSTAS_PAGE_SIZE = 5;
