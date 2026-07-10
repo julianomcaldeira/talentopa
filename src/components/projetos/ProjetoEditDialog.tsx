@@ -516,14 +516,10 @@ export const ProjetoEditDialog = ({ open, onOpenChange, projeto, onSaved }: Prop
                     )}
                   </div>
 
-                  <div className="flex items-center justify-between pt-2 border-t border-border">
+                  <div className="pt-2 border-t border-border">
                     <p className="text-xs text-muted-foreground">
                       {selectedModulos.size} módulo(s) · {selectedFuncs.size} funcionalidade(s)
                     </p>
-                    <Button onClick={handleSaveScope} disabled={savingScope}>
-                      {savingScope ? <Loader2 size={14} className="animate-spin" /> : null}
-                      Salvar escopo
-                    </Button>
                   </div>
                 </>
               )}
@@ -575,8 +571,18 @@ export const ProjetoEditDialog = ({ open, onOpenChange, projeto, onSaved }: Prop
                 );
               })}
             </TabsContent>
-          </ScrollArea>
+          </div>
         </Tabs>
+
+        <div className="px-6 py-3 border-t border-border flex items-center justify-end gap-2 shrink-0 bg-background">
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={saving || savingScope}>
+            Cancelar
+          </Button>
+          <Button onClick={handleSaveAll} disabled={saving || savingScope}>
+            {(saving || savingScope) ? <Loader2 size={14} className="animate-spin mr-1.5" /> : null}
+            Salvar alterações
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   );
