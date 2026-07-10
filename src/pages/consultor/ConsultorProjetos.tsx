@@ -199,7 +199,12 @@ const ConsultorProjetos = () => {
     });
   }, [projetos, filterCity, filterSoftware, filterModulo, filterSegmento, onlyCompatible, projetoScopes, mySkills]);
 
-  const sortedProjetos = useMemo(() => [...filteredProjetos].sort((a, b) => getMatchScore(b) - getMatchScore(a)), [filteredProjetos, mySkills, projetoScopes]);
+  const sortedProjetos = useMemo(() => {
+    if (sortBy === "match") {
+      return [...filteredProjetos].sort((a, b) => getMatchScore(b) - getMatchScore(a));
+    }
+    return sortProjetos(filteredProjetos, sortBy as ProjetoSortKey);
+  }, [filteredProjetos, mySkills, projetoScopes, sortBy]);
   const totalPages = Math.max(1, Math.ceil(sortedProjetos.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
   const pagedProjetos = sortedProjetos.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
