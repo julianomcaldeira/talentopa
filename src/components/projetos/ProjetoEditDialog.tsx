@@ -242,8 +242,7 @@ export const ProjetoEditDialog = ({ open, onOpenChange, projeto, onSaved }: Prop
 
   const handleSaveAll = async () => {
     await handleSaveInfo();
-    // Só tenta salvar escopo se não for projeto concluído e tiver software
-    if (!isCompleted && projeto?.software_id) {
+    if (projeto?.status !== "concluido" && projeto?.software_id) {
       await handleSaveScope();
     }
   };
