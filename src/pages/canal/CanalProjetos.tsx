@@ -425,6 +425,20 @@ const CanalProjetos = () => {
         </div>
       ) : (
         <Tabs defaultValue="canal" className="w-full">
+          <div className="flex items-center justify-between gap-3 flex-wrap mb-2">
+            <div />
+            <div className="flex items-center gap-2">
+              <Label className="text-xs text-muted-foreground">Ordenar por</Label>
+              <Select value={sortBy} onValueChange={(v) => setSortBy(v as ProjetoSortKey)}>
+                <SelectTrigger className="h-8 w-52 text-xs"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {PROJETO_SORT_OPTIONS.map(o => (
+                    <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
           <TabsList>
             <TabsTrigger value="canal">
               Criados pelo canal ({projetosCanal.length})
