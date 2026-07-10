@@ -159,6 +159,7 @@ const AdminProjetos = () => {
     switch (sortBy) {
       case "oldest": return arr.sort((a, b) => +new Date(a.created_at) - +new Date(b.created_at));
       case "name_asc": return arr.sort((a, b) => a.nome.localeCompare(b.nome));
+      case "name_desc": return arr.sort((a, b) => b.nome.localeCompare(a.nome));
       case "health_desc": return arr.sort((a, b) =>
         calculateHealthScore(b.fases || [], b.prazo_estimado, b.status).score -
         calculateHealthScore(a.fases || [], a.prazo_estimado, a.status).score);
@@ -171,6 +172,13 @@ const AdminProjetos = () => {
         if (!b.prazo_estimado) return -1;
         return +new Date(a.prazo_estimado) - +new Date(b.prazo_estimado);
       });
+      case "prazo_desc": return arr.sort((a, b) => {
+        if (!a.prazo_estimado) return 1;
+        if (!b.prazo_estimado) return -1;
+        return +new Date(b.prazo_estimado) - +new Date(a.prazo_estimado);
+      });
+      case "value_desc": return arr.sort((a, b) => (Number((b as any).valor_estimado) || 0) - (Number((a as any).valor_estimado) || 0));
+      case "value_asc": return arr.sort((a, b) => (Number((a as any).valor_estimado) || 0) - (Number((b as any).valor_estimado) || 0));
       default: return arr.sort((a, b) => +new Date(b.created_at) - +new Date(a.created_at));
     }
   }, [filtered, sortBy]);
