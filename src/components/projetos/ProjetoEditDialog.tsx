@@ -601,10 +601,16 @@ export const ProjetoEditDialog = ({ open, onOpenChange, projeto, onSaved }: Prop
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={saving || savingScope}>
             Cancelar
           </Button>
-          <Button onClick={handleSaveAll} disabled={saving || savingScope}>
-            {(saving || savingScope) ? <Loader2 size={14} className="animate-spin mr-1.5" /> : null}
-            Salvar alterações
+          <Button onClick={handleSaveAll} disabled={saving || savingScope} className="min-w-[180px]">
+            {saving ? (
+              <><Loader2 size={14} className="animate-spin mr-1.5" /> Salvando informações...</>
+            ) : savingScope ? (
+              <><Loader2 size={14} className="animate-spin mr-1.5" /> Salvando escopo técnico...</>
+            ) : (
+              "Salvar alterações"
+            )}
           </Button>
+
         </div>
       </DialogContent>
     </Dialog>
