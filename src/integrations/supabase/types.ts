@@ -2599,6 +2599,7 @@ export type Database = {
         | "financeiro"
         | "operacional"
         | "coordenador"
+        | "rmo"
       plano_assinatura: "standard" | "premium"
       status_agenda_consultor: "agendado" | "bloqueado" | "vago"
       status_alocacao_canal:
@@ -2780,6 +2781,7 @@ export const Constants = {
         "financeiro",
         "operacional",
         "coordenador",
+        "rmo",
       ],
       plano_assinatura: ["standard", "premium"],
       status_agenda_consultor: ["agendado", "bloqueado", "vago"],
