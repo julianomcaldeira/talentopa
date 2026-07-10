@@ -145,7 +145,7 @@ const EmpresaProjetos = () => {
     [filtered, currentPage]
   );
 
-  useEffect(() => { setPage(1); }, [search, statusFilter, prazoFilter, view]);
+  useEffect(() => { setPage(1); }, [search, statusFilter, prazoFilter, sortBy, view]);
 
   const propostasFiltradas = useMemo(() => {
     const start = propostaDataInicio ? new Date(propostaDataInicio) : null;
