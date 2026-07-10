@@ -81,6 +81,9 @@ const CanalProjetos = () => {
   const [projetosCanal, setProjetosCanal] = useState<Projeto[]>([]);
   const [projetosConsultores, setProjetosConsultores] = useState<Projeto[]>([]);
   const [loading, setLoading] = useState(true);
+  const [sortBy, setSortBy] = useState<ProjetoSortKey>("recent");
+  const sortedCanal = sortProjetos(projetosCanal, sortBy);
+  const sortedConsultores = sortProjetos(projetosConsultores, sortBy);
 
   const [open, setOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
