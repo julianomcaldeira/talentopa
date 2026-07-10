@@ -47,6 +47,7 @@ const ConsultorProjetos = () => {
   const [filterModulo, setFilterModulo] = useState<string>("all");
   const [filterSegmento, setFilterSegmento] = useState<string>("all");
   const [onlyCompatible, setOnlyCompatible] = useState(false);
+  const [sortBy, setSortBy] = useState<"match" | import("@/lib/projetoSort").ProjetoSortKey>("match");
 
   // Saved searches
   type SavedSearch = { id: string; nome: string; filtros: any };
