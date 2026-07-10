@@ -32,7 +32,7 @@ interface ProjetoRow {
   consultores_nomes?: string[];
 }
 
-type SortKey = "recent" | "oldest" | "name_asc" | "health_desc" | "health_asc" | "propostas_desc" | "prazo_asc";
+type SortKey = "recent" | "oldest" | "name_asc" | "name_desc" | "health_desc" | "health_asc" | "propostas_desc" | "prazo_asc" | "prazo_desc" | "value_desc" | "value_asc";
 
 const AdminProjetos = () => {
   const navigate = useNavigate();
@@ -159,6 +159,7 @@ const AdminProjetos = () => {
     switch (sortBy) {
       case "oldest": return arr.sort((a, b) => +new Date(a.created_at) - +new Date(b.created_at));
       case "name_asc": return arr.sort((a, b) => a.nome.localeCompare(b.nome));
+      case "name_desc": return arr.sort((a, b) => b.nome.localeCompare(a.nome));
       case "health_desc": return arr.sort((a, b) =>
         calculateHealthScore(b.fases || [], b.prazo_estimado, b.status).score -
         calculateHealthScore(a.fases || [], a.prazo_estimado, a.status).score);
@@ -171,6 +172,13 @@ const AdminProjetos = () => {
         if (!b.prazo_estimado) return -1;
         return +new Date(a.prazo_estimado) - +new Date(b.prazo_estimado);
       });
+      case "prazo_desc": return arr.sort((a, b) => {
+        if (!a.prazo_estimado) return 1;
+        if (!b.prazo_estimado) return -1;
+        return +new Date(b.prazo_estimado) - +new Date(a.prazo_estimado);
+      });
+      case "value_desc": return arr.sort((a, b) => (Number((b as any).valor_estimado) || 0) - (Number((a as any).valor_estimado) || 0));
+      case "value_asc": return arr.sort((a, b) => (Number((a as any).valor_estimado) || 0) - (Number((b as any).valor_estimado) || 0));
       default: return arr.sort((a, b) => +new Date(b.created_at) - +new Date(a.created_at));
     }
   }, [filtered, sortBy]);
@@ -237,10 +245,14 @@ const AdminProjetos = () => {
               <SelectItem value="recent">Mais recentes</SelectItem>
               <SelectItem value="oldest">Mais antigos</SelectItem>
               <SelectItem value="name_asc">Nome (A–Z)</SelectItem>
+              <SelectItem value="name_desc">Nome (Z–A)</SelectItem>
               <SelectItem value="health_desc">Health Score ↓</SelectItem>
               <SelectItem value="health_asc">Health Score ↑</SelectItem>
               <SelectItem value="propostas_desc">Mais propostas</SelectItem>
               <SelectItem value="prazo_asc">Prazo mais próximo</SelectItem>
+              <SelectItem value="prazo_desc">Prazo mais distante</SelectItem>
+              <SelectItem value="value_desc">Maior valor</SelectItem>
+              <SelectItem value="value_asc">Menor valor</SelectItem>
             </SelectContent>
           </Select>
         </div>

@@ -26,6 +26,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2, FolderKanban, Plus, User } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
+import { PROJETO_SORT_OPTIONS, sortProjetos, ProjetoSortKey } from "@/lib/projetoSort";
 
 interface Projeto {
   id: string;
@@ -80,6 +81,9 @@ const CanalProjetos = () => {
   const [projetosCanal, setProjetosCanal] = useState<Projeto[]>([]);
   const [projetosConsultores, setProjetosConsultores] = useState<Projeto[]>([]);
   const [loading, setLoading] = useState(true);
+  const [sortBy, setSortBy] = useState<ProjetoSortKey>("recent");
+  const sortedCanal = sortProjetos(projetosCanal, sortBy);
+  const sortedConsultores = sortProjetos(projetosConsultores, sortBy);
 
   const [open, setOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -421,6 +425,20 @@ const CanalProjetos = () => {
         </div>
       ) : (
         <Tabs defaultValue="canal" className="w-full">
+          <div className="flex items-center justify-between gap-3 flex-wrap mb-2">
+            <div />
+            <div className="flex items-center gap-2">
+              <Label className="text-xs text-muted-foreground">Ordenar por</Label>
+              <Select value={sortBy} onValueChange={(v) => setSortBy(v as ProjetoSortKey)}>
+                <SelectTrigger className="h-8 w-52 text-xs"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {PROJETO_SORT_OPTIONS.map(o => (
+                    <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
           <TabsList>
             <TabsTrigger value="canal">
               Criados pelo canal ({projetosCanal.length})
@@ -441,7 +459,7 @@ const CanalProjetos = () => {
               </Card>
             ) : (
               <Card className="divide-y divide-border">
-                {projetosCanal.map((p) => (
+                {sortedCanal.map((p) => (
                   <ProjetoItem key={p.id} p={p} />
                 ))}
               </Card>
@@ -462,7 +480,7 @@ const CanalProjetos = () => {
               </Card>
             ) : (
               <Card className="divide-y divide-border">
-                {projetosConsultores.map((p) => (
+                {sortedConsultores.map((p) => (
                   <ProjetoItem key={p.id} p={p} showConsultor />
                 ))}
               </Card>

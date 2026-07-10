@@ -19,6 +19,7 @@ import { ProjectCommunication } from "@/components/communication/ProjectCommunic
 import { ProjetoEditDialog } from "@/components/projetos/ProjetoEditDialog";
 import { cn } from "@/lib/utils";
 import EmpresaNovoProjeto from "./EmpresaNovoProjeto";
+import { PROJETO_SORT_OPTIONS, sortProjetos, ProjetoSortKey } from "@/lib/projetoSort";
 
 const PAGE_SIZE = 6;
 const PROPOSTAS_PAGE_SIZE = 5;
@@ -70,6 +71,7 @@ const EmpresaProjetos = () => {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [prazoFilter, setPrazoFilter] = useState<string>("all");
+  const [sortBy, setSortBy] = useState<ProjetoSortKey>("recent");
   const [page, setPage] = useState(1);
   const [novoProjetoOpen, setNovoProjetoOpen] = useState(false);
   const [propostaStatusFilter, setPropostaStatusFilter] = useState("all");
@@ -113,7 +115,7 @@ const EmpresaProjetos = () => {
     const q = search.trim().toLowerCase();
     const today = new Date(); today.setHours(0, 0, 0, 0);
     const in7 = new Date(today); in7.setDate(in7.getDate() + 7);
-    return projetos.filter((p) => {
+    const result = projetos.filter((p) => {
       if (statusFilter !== "all" && p.status !== statusFilter) return false;
       if (prazoFilter !== "all") {
         const prazo = p.prazo_propostas ? new Date(p.prazo_propostas + "T00:00:00") : null;
@@ -133,7 +135,8 @@ const EmpresaProjetos = () => {
         p.softwares?.nome?.toLowerCase().includes(q)
       );
     });
-  }, [projetos, search, statusFilter, prazoFilter]);
+    return sortProjetos(result, sortBy);
+  }, [projetos, search, statusFilter, prazoFilter, sortBy]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
@@ -142,7 +145,7 @@ const EmpresaProjetos = () => {
     [filtered, currentPage]
   );
 
-  useEffect(() => { setPage(1); }, [search, statusFilter, prazoFilter, view]);
+  useEffect(() => { setPage(1); }, [search, statusFilter, prazoFilter, sortBy, view]);
 
   const propostasFiltradas = useMemo(() => {
     const start = propostaDataInicio ? new Date(propostaDataInicio) : null;
@@ -387,6 +390,14 @@ const EmpresaProjetos = () => {
               <SelectItem value="proximo">Próximos (≤ 7 dias)</SelectItem>
               <SelectItem value="dentro">Dentro do prazo (&gt; 7 dias)</SelectItem>
               <SelectItem value="sem_prazo">Sem prazo definido</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={sortBy} onValueChange={(v) => setSortBy(v as ProjetoSortKey)}>
+            <SelectTrigger className="md:w-52 h-9"><SelectValue placeholder="Ordenar por" /></SelectTrigger>
+            <SelectContent>
+              {PROJETO_SORT_OPTIONS.map(o => (
+                <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
           <ViewToggle value={view} onChange={setView} />

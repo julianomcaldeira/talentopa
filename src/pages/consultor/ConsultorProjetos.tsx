@@ -13,6 +13,7 @@ import { PageHeader, DataCard, StatusBadge, EmptyState, LoadingState } from "@/c
 import { FolderKanban, Send, Calendar, Target, Star, MessageSquare, Eye, MapPin, Filter, X, Bookmark, BookmarkPlus, Trash2, Clock } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ProjectCommunication } from "@/components/communication/ProjectCommunication";
+import { PROJETO_SORT_OPTIONS, sortProjetos, ProjetoSortKey } from "@/lib/projetoSort";
 import { ProjetoDetalhesDialog, ModeloContratacaoBadge } from "@/components/projetos/ProjetoDetalhesDialog";
 import { CityCombobox, CityOption } from "@/components/projetos/CityCombobox";
 import { useScoreConfig } from "@/hooks/useScoreConfig";
@@ -47,6 +48,7 @@ const ConsultorProjetos = () => {
   const [filterModulo, setFilterModulo] = useState<string>("all");
   const [filterSegmento, setFilterSegmento] = useState<string>("all");
   const [onlyCompatible, setOnlyCompatible] = useState(false);
+  const [sortBy, setSortBy] = useState<"match" | import("@/lib/projetoSort").ProjetoSortKey>("match");
 
   // Saved searches
   type SavedSearch = { id: string; nome: string; filtros: any };
@@ -197,7 +199,12 @@ const ConsultorProjetos = () => {
     });
   }, [projetos, filterCity, filterSoftware, filterModulo, filterSegmento, onlyCompatible, projetoScopes, mySkills]);
 
-  const sortedProjetos = useMemo(() => [...filteredProjetos].sort((a, b) => getMatchScore(b) - getMatchScore(a)), [filteredProjetos, mySkills, projetoScopes]);
+  const sortedProjetos = useMemo(() => {
+    if (sortBy === "match") {
+      return [...filteredProjetos].sort((a, b) => getMatchScore(b) - getMatchScore(a));
+    }
+    return sortProjetos(filteredProjetos, sortBy as ProjetoSortKey);
+  }, [filteredProjetos, mySkills, projetoScopes, sortBy]);
   const totalPages = Math.max(1, Math.ceil(sortedProjetos.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
   const pagedProjetos = sortedProjetos.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
@@ -412,13 +419,25 @@ const ConsultorProjetos = () => {
             </Select>
           </div>
         </div>
-        <div className="mt-4 pt-3 border-t border-border/60 flex items-center gap-3">
+        <div className="mt-4 pt-3 border-t border-border/60 flex items-center gap-3 flex-wrap">
           <Switch id="only-compatible" checked={onlyCompatible} onCheckedChange={setOnlyCompatible} />
           <Label htmlFor="only-compatible" className="text-xs font-semibold text-foreground cursor-pointer flex items-center gap-1.5">
             <Star size={12} className="text-success" />
             Apenas projetos compatíveis com minhas habilidades
             <span className="text-muted-foreground font-normal">(match &gt; 50%)</span>
           </Label>
+          <div className="ml-auto flex items-center gap-2">
+            <Label className="text-xs text-muted-foreground">Ordenar por</Label>
+            <Select value={sortBy} onValueChange={(v) => setSortBy(v as any)}>
+              <SelectTrigger className="h-8 w-52 text-xs"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="match">Maior compatibilidade</SelectItem>
+                {PROJETO_SORT_OPTIONS.map(o => (
+                  <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </DataCard>
 
