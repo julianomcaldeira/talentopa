@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
+
 import { FileText, CalendarDays, Layers, Loader2, Plus, X, Bell, History, Users, Lock, AlertTriangle } from "lucide-react";
 
 interface Props {
@@ -289,7 +289,7 @@ export const ProjetoEditDialog = ({ open, onOpenChange, projeto, onSaved }: Prop
             <TabsTrigger value="historico" className="text-xs"><History size={13} className="mr-1.5" />Histórico</TabsTrigger>
           </TabsList>
 
-          <ScrollArea className="flex-1 px-6 py-4">
+          <div className="flex-1 overflow-y-auto px-6 py-4 min-h-0">
             <TabsContent value="info" className="mt-0 space-y-4">
               {isCompleted && (
                 <div className="rounded-xl border border-warning/30 bg-warning/5 p-3 flex items-start gap-2 text-xs">
@@ -411,13 +411,8 @@ export const ProjetoEditDialog = ({ open, onOpenChange, projeto, onSaved }: Prop
                 )}
               </div>
 
-              <div className="flex justify-end pt-2 border-t border-border">
-                <Button onClick={handleSaveInfo} disabled={saving}>
-                  {saving ? <Loader2 size={14} className="animate-spin" /> : null}
-                  Salvar informações
-                </Button>
-              </div>
             </TabsContent>
+
 
             <TabsContent value="escopo" className="mt-0 space-y-4">
               {isCompleted ? (
