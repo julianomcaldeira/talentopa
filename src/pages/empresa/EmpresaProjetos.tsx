@@ -115,7 +115,7 @@ const EmpresaProjetos = () => {
     const q = search.trim().toLowerCase();
     const today = new Date(); today.setHours(0, 0, 0, 0);
     const in7 = new Date(today); in7.setDate(in7.getDate() + 7);
-    return projetos.filter((p) => {
+    const result = projetos.filter((p) => {
       if (statusFilter !== "all" && p.status !== statusFilter) return false;
       if (prazoFilter !== "all") {
         const prazo = p.prazo_propostas ? new Date(p.prazo_propostas + "T00:00:00") : null;
@@ -135,7 +135,8 @@ const EmpresaProjetos = () => {
         p.softwares?.nome?.toLowerCase().includes(q)
       );
     });
-  }, [projetos, search, statusFilter, prazoFilter]);
+    return sortProjetos(result, sortBy);
+  }, [projetos, search, statusFilter, prazoFilter, sortBy]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
