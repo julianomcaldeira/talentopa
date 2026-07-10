@@ -81,7 +81,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           setProfile(null);
           setRole(null);
           setEmpresaPapel(null);
-          setCanalRole(null);
         }
         setLoading(false);
       }
@@ -123,7 +122,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setProfile(null);
     setRole(null);
     setEmpresaPapel(null);
-    setCanalRole(null);
+    
   };
 
   const resetPassword = async (email: string) => {
@@ -134,7 +133,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ session, user, profile, role, empresaPapel, canalRole, loading, signIn, signUp, signOut, resetPassword }}>
+    <AuthContext.Provider value={{ session, user, profile, role, empresaPapel, loading, signIn, signUp, signOut, resetPassword }}>
       {children}
     </AuthContext.Provider>
   );
