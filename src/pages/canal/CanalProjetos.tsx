@@ -466,7 +466,7 @@ const CanalProjetos = () => {
               </Card>
             ) : (
               <Card className="divide-y divide-border">
-                {projetosConsultores.map((p) => (
+                {sortedConsultores.map((p) => (
                   <ProjetoItem key={p.id} p={p} showConsultor />
                 ))}
               </Card>
