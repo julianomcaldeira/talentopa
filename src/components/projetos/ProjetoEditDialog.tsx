@@ -240,6 +240,14 @@ export const ProjetoEditDialog = ({ open, onOpenChange, projeto, onSaved }: Prop
     }
   };
 
+  const handleSaveAll = async () => {
+    await handleSaveInfo();
+    // Só tenta salvar escopo se não for projeto concluído e tiver software
+    if (!isCompleted && projeto?.software_id) {
+      await handleSaveScope();
+    }
+  };
+
   const toggleModulo = (id: string) => {
     setSelectedModulos(prev => {
       const next = new Set(prev);
