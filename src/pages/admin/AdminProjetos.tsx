@@ -32,7 +32,7 @@ interface ProjetoRow {
   consultores_nomes?: string[];
 }
 
-type SortKey = "recent" | "oldest" | "name_asc" | "health_desc" | "health_asc" | "propostas_desc" | "prazo_asc";
+type SortKey = "recent" | "oldest" | "name_asc" | "name_desc" | "health_desc" | "health_asc" | "propostas_desc" | "prazo_asc" | "prazo_desc" | "value_desc" | "value_asc";
 
 const AdminProjetos = () => {
   const navigate = useNavigate();
