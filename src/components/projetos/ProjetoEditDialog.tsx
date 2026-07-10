@@ -136,7 +136,7 @@ export const ProjetoEditDialog = ({ open, onOpenChange, projeto, onSaved }: Prop
     setLoadingScope(false);
   };
 
-  const handleSaveInfo = async () => {
+  const handleSaveInfo = async (): Promise<boolean> => {
     setErrors({});
     const parsed = editSchema.safeParse({
       descricao: form.descricao || null,
@@ -151,7 +151,8 @@ export const ProjetoEditDialog = ({ open, onOpenChange, projeto, onSaved }: Prop
       const errs: Record<string, string> = {};
       parsed.error.issues.forEach(i => { if (i.path[0]) errs[String(i.path[0])] = i.message; });
       setErrors(errs);
-      return;
+      toast({ title: "Revise os campos", description: "Há campos inválidos na aba Informações.", variant: "destructive" });
+      return false;
     }
     setSaving(true);
     const { error } = await supabase
@@ -191,17 +192,17 @@ export const ProjetoEditDialog = ({ open, onOpenChange, projeto, onSaved }: Prop
       if (campos.length > 0 || notifyConsultants) {
         await registerChangeHistory({ tipo: "informacoes", descricao: "Informações do projeto atualizadas", campos, antigos, novos });
       }
-      toast({ title: "Projeto atualizado", description: notifyConsultants ? "As informações foram salvas e os consultores vinculados foram notificados." : "As informações foram salvas com sucesso." });
       onSaved?.();
+      return true;
     } catch (err: any) {
       toast({ title: "Erro ao salvar", description: err.message, variant: "destructive" });
+      return false;
     }
   };
 
-  const handleSaveScope = async () => {
+  const handleSaveScope = async (): Promise<boolean> => {
     if (projeto?.status === "concluido") {
-      toast({ title: "Escopo bloqueado", description: "Projeto concluído: módulos, funcionalidades e fases não podem mais ser alterados.", variant: "destructive" });
-      return;
+      return true; // silently skip; handled by handleSaveAll gate
     }
     setSavingScope(true);
     try {
@@ -231,21 +232,36 @@ export const ProjetoEditDialog = ({ open, onOpenChange, projeto, onSaved }: Prop
       if (campos.length > 0 || notifyConsultants) {
         await registerChangeHistory({ tipo: "escopo_tecnico", descricao: "Escopo técnico do projeto atualizado", campos, antigos, novos });
       }
-      toast({ title: "Escopo atualizado", description: notifyConsultants ? "Módulos, funcionalidades e notificação foram atualizados." : "Módulos e funcionalidades foram atualizados." });
+      setInitialModulos(new Set(selectedModulos));
+      setInitialFuncs(new Set(validFuncIds));
       onSaved?.();
+      return true;
     } catch (err: any) {
       toast({ title: "Erro ao salvar escopo", description: err.message, variant: "destructive" });
+      return false;
     } finally {
       setSavingScope(false);
     }
   };
 
   const handleSaveAll = async () => {
-    await handleSaveInfo();
+    const infoOk = await handleSaveInfo();
+    if (!infoOk) return;
+    let scopeOk = true;
     if (projeto?.status !== "concluido" && projeto?.software_id) {
-      await handleSaveScope();
+      scopeOk = await handleSaveScope();
+    }
+    if (scopeOk) {
+      toast({
+        title: "Alterações salvas",
+        description: notifyConsultants
+          ? "Informações e escopo foram atualizados. Consultores vinculados foram notificados."
+          : "Informações e escopo foram atualizados com sucesso.",
+      });
+      onOpenChange(false);
     }
   };
+
 
   const toggleModulo = (id: string) => {
     setSelectedModulos(prev => {
