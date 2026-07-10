@@ -245,10 +245,14 @@ const AdminProjetos = () => {
               <SelectItem value="recent">Mais recentes</SelectItem>
               <SelectItem value="oldest">Mais antigos</SelectItem>
               <SelectItem value="name_asc">Nome (A–Z)</SelectItem>
+              <SelectItem value="name_desc">Nome (Z–A)</SelectItem>
               <SelectItem value="health_desc">Health Score ↓</SelectItem>
               <SelectItem value="health_asc">Health Score ↑</SelectItem>
               <SelectItem value="propostas_desc">Mais propostas</SelectItem>
               <SelectItem value="prazo_asc">Prazo mais próximo</SelectItem>
+              <SelectItem value="prazo_desc">Prazo mais distante</SelectItem>
+              <SelectItem value="value_desc">Maior valor</SelectItem>
+              <SelectItem value="value_asc">Menor valor</SelectItem>
             </SelectContent>
           </Select>
         </div>
