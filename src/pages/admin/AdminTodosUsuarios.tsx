@@ -268,12 +268,22 @@ const AdminTodosUsuarios = () => {
                   <span className="text-xs text-muted-foreground whitespace-nowrap hidden md:block">
                     Desde {new Date(u.created_at).toLocaleDateString("pt-BR")}
                   </span>
+                  <Button size="sm" variant="ghost" onClick={() => setEditingId(u.user_id)} className="gap-1">
+                    <Pencil size={14} /> Editar
+                  </Button>
                 </div>
               );
             })}
           </div>
         )}
       </DataCard>
+
+      <UsuarioEditDialog
+        open={!!editingId}
+        onOpenChange={(o) => !o && setEditingId(null)}
+        userId={editingId}
+        onSaved={load}
+      />
     </div>
   );
 };
