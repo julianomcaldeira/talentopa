@@ -103,12 +103,14 @@ export default function UsuarioEditDialog({ open, onOpenChange, userId, onSaved 
     if (!data || !userId) return;
     setSaving(true);
     try {
+      let roleChanged = false;
       // 1) role (admin only)
       if (isAdmin && data.role) {
         const { data: curRole } = await supabase.from("user_roles").select("role").eq("user_id", userId).maybeSingle();
         if ((curRole?.role as string) !== data.role) {
           const { error } = await supabase.rpc("manage_user_set_role", { _target: userId, _new_role: data.role });
           if (error) throw error;
+          roleChanged = true;
         }
       }
       // 2) profile + sub-papel
@@ -127,7 +129,21 @@ export default function UsuarioEditDialog({ open, onOpenChange, userId, onSaved 
         _empresa_user_id: data.empresa_papel && data.empresa_papel !== "" ? data.empresa_user_id || null : null,
       });
       if (error) throw error;
-      toast.success("Alterações salvas");
+
+      // 3) Se o papel principal mudou, força logout global do usuário-alvo
+      // para que, ao entrar novamente, ele já veja o dashboard do novo perfil.
+      if (roleChanged) {
+        try {
+          await supabase.functions.invoke("admin-manage-user", {
+            body: { action: "force_signout", target_user_id: userId },
+          });
+        } catch {
+          /* falha silenciosa — o usuário verá a nova visão no próximo login */
+        }
+        toast.success("Perfil de acesso alterado. O usuário verá a nova visão no próximo acesso.");
+      } else {
+        toast.success("Alterações salvas");
+      }
       onSaved?.();
       onOpenChange(false);
     } catch (e: any) {

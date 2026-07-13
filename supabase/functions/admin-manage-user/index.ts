@@ -61,6 +61,11 @@ Deno.serve(async (req) => {
       });
       if (error) throw error;
       await admin.from("profiles").update({ email: new_email }).eq("user_id", target_user_id);
+    } else if (action === "force_signout") {
+      // Invalida todas as sessões do usuário — na próxima requisição ele será deslogado
+      // e ao entrar novamente já enxergará o novo papel/dashboard.
+      const { error } = await admin.auth.admin.signOut(target_user_id, "global" as any);
+      if (error) throw error;
     } else {
       throw new Error(`Ação não suportada: ${action}`);
     }

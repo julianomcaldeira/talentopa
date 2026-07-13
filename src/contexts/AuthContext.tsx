@@ -98,6 +98,39 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => subscription.unsubscribe();
   }, []);
 
+  // Reage a alterações do perfil de acesso feitas pelo admin em tempo real:
+  // ao detectar mudança em user_roles do usuário logado, recarrega e redireciona
+  // para o dashboard do novo papel.
+  useEffect(() => {
+    if (!user?.id) return;
+    const channel = supabase
+      .channel(`user-role-${user.id}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "user_roles", filter: `user_id=eq.${user.id}` },
+        async (payload: any) => {
+          const newRole = (payload.new?.role as UserRole) || null;
+          const oldRole = role;
+          if (newRole && newRole !== oldRole) {
+            setRole(newRole);
+            const map: Record<UserRole, string> = {
+              admin: "/admin",
+              consultor: "/consultor",
+              empresa: "/empresa",
+              canal: "/canal",
+            };
+            // hard reload garante que menus, permissões e caches sejam refeitos
+            window.location.replace(map[newRole] || "/");
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id, role]);
+
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) throw error;
