@@ -47,6 +47,7 @@ const AdminTodosUsuarios = () => {
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("all");
   const [subFilter, setSubFilter] = useState<string>("all");
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   const load = async () => {
     setLoading(true);
