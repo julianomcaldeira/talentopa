@@ -10,7 +10,7 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { EstadoSelect } from "@/components/forms/EstadoSelect";
 import { toast } from "sonner";
-import { Loader2, Lock, ShieldAlert, Power } from "lucide-react";
+import { Loader2, Lock, ShieldAlert, Power, History } from "lucide-react";
 
 type UserRole = "admin" | "consultor" | "empresa" | "canal";
 
