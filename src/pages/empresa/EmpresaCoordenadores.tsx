@@ -155,7 +155,10 @@ export default function EmpresaCoordenadores() {
                     <Badge variant={m.papel === "coordenador" ? "default" : "secondary"}>
                       {papelLabel[m.papel] || m.papel}
                     </Badge>
-                    <Button size="icon" variant="ghost" onClick={() => remover(m.id)}>
+                    <Button size="icon" variant="ghost" onClick={() => setEditingId(m.user_id)} title="Editar">
+                      <Pencil size={14} />
+                    </Button>
+                    <Button size="icon" variant="ghost" onClick={() => remover(m.id)} title="Remover">
                       <Trash2 size={14} className="text-destructive" />
                     </Button>
                   </div>
@@ -165,6 +168,13 @@ export default function EmpresaCoordenadores() {
           )}
         </CardContent>
       </Card>
+
+      <UsuarioEditDialog
+        open={!!editingId}
+        onOpenChange={(o) => !o && setEditingId(null)}
+        userId={editingId}
+        onSaved={fetchEquipe}
+      />
     </div>
   );
 }
