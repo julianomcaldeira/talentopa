@@ -5,7 +5,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import {
   PageHeader, DataCard, EmptyState, LoadingState,
 } from "@/components/dashboard/DashboardComponents";
-import { Users, Search, Mail, Phone } from "lucide-react";
+import { Users, Search, Mail, Phone, Pencil } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import UsuarioEditDialog from "@/components/usuarios/UsuarioEditDialog";
 
 type UserRole = "admin" | "consultor" | "empresa" | "canal";
 
