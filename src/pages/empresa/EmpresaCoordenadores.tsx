@@ -13,7 +13,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { UserCog, UserPlus, Trash2 } from "lucide-react";
+import { UserCog, UserPlus, Trash2, Pencil } from "lucide-react";
+import UsuarioEditDialog from "@/components/usuarios/UsuarioEditDialog";
 
 type EmpUsr = {
   id: string;
@@ -28,6 +29,7 @@ export default function EmpresaCoordenadores() {
   const [email, setEmail] = useState("");
   const [papel, setPapel] = useState("coordenador");
   const [loading, setLoading] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   const fetchEquipe = async () => {
     if (!user) return;
@@ -153,7 +155,10 @@ export default function EmpresaCoordenadores() {
                     <Badge variant={m.papel === "coordenador" ? "default" : "secondary"}>
                       {papelLabel[m.papel] || m.papel}
                     </Badge>
-                    <Button size="icon" variant="ghost" onClick={() => remover(m.id)}>
+                    <Button size="icon" variant="ghost" onClick={() => setEditingId(m.user_id)} title="Editar">
+                      <Pencil size={14} />
+                    </Button>
+                    <Button size="icon" variant="ghost" onClick={() => remover(m.id)} title="Remover">
                       <Trash2 size={14} className="text-destructive" />
                     </Button>
                   </div>
@@ -163,6 +168,13 @@ export default function EmpresaCoordenadores() {
           )}
         </CardContent>
       </Card>
+
+      <UsuarioEditDialog
+        open={!!editingId}
+        onOpenChange={(o) => !o && setEditingId(null)}
+        userId={editingId}
+        onSaved={fetchEquipe}
+      />
     </div>
   );
 }

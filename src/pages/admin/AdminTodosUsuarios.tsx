@@ -5,7 +5,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import {
   PageHeader, DataCard, EmptyState, LoadingState,
 } from "@/components/dashboard/DashboardComponents";
-import { Users, Search, Mail, Phone } from "lucide-react";
+import { Users, Search, Mail, Phone, Pencil } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import UsuarioEditDialog from "@/components/usuarios/UsuarioEditDialog";
 
 type UserRole = "admin" | "consultor" | "empresa" | "canal";
 
@@ -45,6 +47,7 @@ const AdminTodosUsuarios = () => {
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("all");
   const [subFilter, setSubFilter] = useState<string>("all");
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -265,12 +268,22 @@ const AdminTodosUsuarios = () => {
                   <span className="text-xs text-muted-foreground whitespace-nowrap hidden md:block">
                     Desde {new Date(u.created_at).toLocaleDateString("pt-BR")}
                   </span>
+                  <Button size="sm" variant="ghost" onClick={() => setEditingId(u.user_id)} className="gap-1">
+                    <Pencil size={14} /> Editar
+                  </Button>
                 </div>
               );
             })}
           </div>
         )}
       </DataCard>
+
+      <UsuarioEditDialog
+        open={!!editingId}
+        onOpenChange={(o) => !o && setEditingId(null)}
+        userId={editingId}
+        onSaved={load}
+      />
     </div>
   );
 };

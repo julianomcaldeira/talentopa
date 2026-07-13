@@ -1048,6 +1048,7 @@ export type Database = {
           avatar_url: string | null
           cidade: string | null
           created_at: string
+          created_by: string | null
           email: string
           estado: string | null
           id: string
@@ -1061,6 +1062,7 @@ export type Database = {
           avatar_url?: string | null
           cidade?: string | null
           created_at?: string
+          created_by?: string | null
           email: string
           estado?: string | null
           id?: string
@@ -1074,6 +1076,7 @@ export type Database = {
           avatar_url?: string | null
           cidade?: string | null
           created_at?: string
+          created_by?: string | null
           email?: string
           estado?: string | null
           id?: string
@@ -2245,6 +2248,10 @@ export type Database = {
         }
         Returns: Json
       }
+      can_manage_user: {
+        Args: { _actor?: string; _target: string }
+        Returns: boolean
+      }
       can_user_message_project: {
         Args: { p_escopo?: string; p_projeto_id: string; p_user_id?: string }
         Returns: boolean
@@ -2454,6 +2461,26 @@ export type Database = {
           p_severidade?: string
         }
         Returns: undefined
+      }
+      manage_user_set_role: {
+        Args: {
+          _new_role: Database["public"]["Enums"]["app_role"]
+          _target: string
+        }
+        Returns: Json
+      }
+      manage_user_update: {
+        Args: {
+          _cidade?: string
+          _empresa_papel?: string
+          _empresa_user_id?: string
+          _estado?: string
+          _nome?: string
+          _status?: string
+          _target: string
+          _telefone?: string
+        }
+        Returns: Json
       }
       marcar_propostas_visualizadas_empresa: {
         Args: { p_projeto_id: string }
