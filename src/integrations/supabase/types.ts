@@ -2417,6 +2417,22 @@ export type Database = {
           valor_total: number
         }[]
       }
+      get_user_audit_logs: {
+        Args: { _target: string }
+        Returns: {
+          acao: string
+          actor_nome: string
+          actor_role: string
+          actor_user_id: string
+          categoria: string
+          created_at: string
+          dados_novos: Json
+          descricao: string
+          entidade: string
+          id: string
+          severidade: string
+        }[]
+      }
       get_user_canal_id: { Args: { _user_id?: string }; Returns: string }
       has_role: {
         Args: {
