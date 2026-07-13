@@ -99,7 +99,16 @@ export default function UsuarioEditDialog({ open, onOpenChange, userId, onSaved 
       setNewEmail(p.email || "");
       setLoading(false);
     })();
+    carregarHistorico();
   }, [open, userId]);
+
+  const carregarHistorico = async () => {
+    if (!userId) return;
+    setLoadingHist(true);
+    const { data: h } = await supabase.rpc("get_user_audit_logs", { _target: userId });
+    setHistorico((h as any[]) || []);
+    setLoadingHist(false);
+  };
 
   const salvar = async () => {
     if (!data || !userId) return;
