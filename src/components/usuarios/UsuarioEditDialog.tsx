@@ -172,6 +172,7 @@ export default function UsuarioEditDialog({ open, onOpenChange, userId, onSaved 
       if ((res as any)?.error) throw new Error((res as any).error);
       toast.success("Operação concluída");
       onSaved?.();
+      carregarHistorico();
     } catch (e: any) {
       toast.error(e.message || "Falha na operação");
     } finally {
