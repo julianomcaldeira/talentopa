@@ -139,9 +139,21 @@ const AdminTodosUsuarios = () => {
   useEffect(() => { load(); }, []);
 
   const subOptions = useMemo(() => {
-    const s = new Set<string>();
+    const fixos = [
+      "Administrador central",
+      "Empresa (titular)",
+      "Coordenador",
+      "RMO",
+      "Responsável",
+      "Financeiro",
+      "Operacional",
+      "Canal (titular)",
+      "Consultor de canal",
+      "Consultor autônomo",
+    ];
+    const s = new Set<string>(fixos);
     rows.forEach((r) => r.sub_papel && s.add(r.sub_papel));
-    return Array.from(s).sort();
+    return Array.from(s);
   }, [rows]);
 
   const filtered = useMemo(() => {
