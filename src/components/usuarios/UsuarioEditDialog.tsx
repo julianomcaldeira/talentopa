@@ -10,7 +10,7 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { EstadoSelect } from "@/components/forms/EstadoSelect";
 import { toast } from "sonner";
-import { Loader2, Lock, ShieldAlert, Power } from "lucide-react";
+import { Loader2, Lock, ShieldAlert, Power, History } from "lucide-react";
 
 type UserRole = "admin" | "consultor" | "empresa" | "canal";
 
@@ -51,6 +51,8 @@ export default function UsuarioEditDialog({ open, onOpenChange, userId, onSaved 
   const [newPassword, setNewPassword] = useState("");
   const [newEmail, setNewEmail] = useState("");
   const [busyAction, setBusyAction] = useState<string | null>(null);
+  const [historico, setHistorico] = useState<any[]>([]);
+  const [loadingHist, setLoadingHist] = useState(false);
 
   const isAdmin = myRole === "admin";
   const canManage = useMemo(() => {
@@ -97,7 +99,16 @@ export default function UsuarioEditDialog({ open, onOpenChange, userId, onSaved 
       setNewEmail(p.email || "");
       setLoading(false);
     })();
+    carregarHistorico();
   }, [open, userId]);
+
+  const carregarHistorico = async () => {
+    if (!userId) return;
+    setLoadingHist(true);
+    const { data: h } = await supabase.rpc("get_user_audit_logs", { _target: userId });
+    setHistorico((h as any[]) || []);
+    setLoadingHist(false);
+  };
 
   const salvar = async () => {
     if (!data || !userId) return;
@@ -161,6 +172,7 @@ export default function UsuarioEditDialog({ open, onOpenChange, userId, onSaved 
       if ((res as any)?.error) throw new Error((res as any).error);
       toast.success("Operação concluída");
       onSaved?.();
+      carregarHistorico();
     } catch (e: any) {
       toast.error(e.message || "Falha na operação");
     } finally {
@@ -339,6 +351,44 @@ export default function UsuarioEditDialog({ open, onOpenChange, userId, onSaved 
                 </div>
               </>
             )}
+
+            {/* Histórico de alterações */}
+            <div className="rounded-lg border border-border p-4 space-y-3">
+              <p className="text-xs font-semibold uppercase text-muted-foreground flex items-center gap-1.5">
+                <History size={12} /> Histórico de alterações
+              </p>
+              {loadingHist ? (
+                <div className="text-xs text-muted-foreground flex items-center gap-2">
+                  <Loader2 size={12} className="animate-spin" /> Carregando...
+                </div>
+              ) : historico.length === 0 ? (
+                <p className="text-xs text-muted-foreground">Nenhuma alteração registrada ainda.</p>
+              ) : (
+                <ul className="space-y-2 max-h-64 overflow-y-auto pr-1">
+                  {historico.map((h) => (
+                    <li key={h.id} className="text-xs border-l-2 pl-3 py-1"
+                      style={{ borderColor: h.severidade === "warning" ? "hsl(var(--destructive))" : "hsl(var(--primary))" }}
+                    >
+                      <div className="flex items-center justify-between gap-2 flex-wrap">
+                        <span className="font-medium">{h.descricao || h.acao}</span>
+                        <span className="text-muted-foreground whitespace-nowrap">
+                          {new Date(h.created_at).toLocaleString("pt-BR")}
+                        </span>
+                      </div>
+                      <div className="text-muted-foreground mt-0.5">
+                        Por <span className="font-medium">{h.actor_nome || "Sistema"}</span>
+                        {h.actor_role ? ` (${h.actor_role})` : ""} — ação: <code className="text-[10px]">{h.acao}</code>
+                      </div>
+                      {h.dados_novos && Object.keys(h.dados_novos).length > 0 && (
+                        <pre className="mt-1 text-[10px] bg-muted/50 rounded px-2 py-1 overflow-x-auto">
+                          {JSON.stringify(h.dados_novos, null, 0)}
+                        </pre>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           </div>
         )}
 

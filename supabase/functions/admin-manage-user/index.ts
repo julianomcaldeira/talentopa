@@ -36,6 +36,19 @@ Deno.serve(async (req) => {
     if (permErr) throw permErr;
     if (!canManage) throw new Error("Sem permissão para gerenciar este usuário");
 
+    // Dados do ator para auditoria
+    const [{ data: actorProfile }, { data: actorRoleRow }] = await Promise.all([
+      admin.from("profiles").select("nome").eq("user_id", caller.id).maybeSingle(),
+      admin.from("user_roles").select("role").eq("user_id", caller.id).maybeSingle(),
+    ]);
+    const actorNome = (actorProfile as any)?.nome || caller.email || "Usuário";
+    const actorRole = (actorRoleRow as any)?.role || "desconhecido";
+
+    let acao = "";
+    let descricao = "";
+    let dadosNovos: Record<string, unknown> = {};
+    let severidade: "info" | "warning" = "info";
+
     if (action === "reset_password") {
       const { new_password } = body;
       if (!new_password || String(new_password).length < 6) {
@@ -43,15 +56,20 @@ Deno.serve(async (req) => {
       }
       const { error } = await admin.auth.admin.updateUserById(target_user_id, { password: new_password });
       if (error) throw error;
+      acao = "reset_senha";
+      descricao = `Senha redefinida por ${actorNome}`;
+      severidade = "warning";
     } else if (action === "set_status") {
-      const { status } = body; // 'ativo' | 'inativo'
+      const { status } = body;
       if (!["ativo", "inativo"].includes(status)) throw new Error("Status inválido");
-      // Update profile status
       await admin.from("profiles").update({ status }).eq("user_id", target_user_id);
-      // Ban/unban in auth
       const banDuration = status === "inativo" ? "876000h" : "none";
       const { error } = await admin.auth.admin.updateUserById(target_user_id, { ban_duration: banDuration } as any);
       if (error) throw error;
+      acao = status === "inativo" ? "desativacao" : "reativacao";
+      descricao = `Usuário ${status === "inativo" ? "desativado" : "reativado"} por ${actorNome}`;
+      dadosNovos = { status };
+      severidade = status === "inativo" ? "warning" : "info";
     } else if (action === "change_email") {
       const { new_email } = body;
       if (!new_email) throw new Error("Novo e-mail é obrigatório");
@@ -61,14 +79,32 @@ Deno.serve(async (req) => {
       });
       if (error) throw error;
       await admin.from("profiles").update({ email: new_email }).eq("user_id", target_user_id);
+      acao = "mudanca_email";
+      descricao = `E-mail alterado para ${new_email} por ${actorNome}`;
+      dadosNovos = { email: new_email };
+      severidade = "warning";
     } else if (action === "force_signout") {
-      // Invalida todas as sessões do usuário — na próxima requisição ele será deslogado
-      // e ao entrar novamente já enxergará o novo papel/dashboard.
       const { error } = await admin.auth.admin.signOut(target_user_id, "global" as any);
       if (error) throw error;
+      acao = "logout_forcado";
+      descricao = `Sessões encerradas por ${actorNome}`;
     } else {
       throw new Error(`Ação não suportada: ${action}`);
     }
+
+    // Grava auditoria diretamente (service role) — auth.uid() não existe aqui
+    await admin.from("audit_logs").insert({
+      actor_user_id: caller.id,
+      actor_role: actorRole,
+      actor_nome: actorNome,
+      categoria: "usuario",
+      acao,
+      entidade: "profiles",
+      entidade_id: target_user_id,
+      descricao,
+      dados_novos: dadosNovos,
+      severidade,
+    });
 
     return new Response(JSON.stringify({ success: true }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
