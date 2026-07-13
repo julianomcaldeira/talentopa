@@ -46,6 +46,7 @@ import AdminRelatorios from "./pages/admin/AdminRelatorios";
 import AdminScoreConfig from "./pages/admin/AdminScoreConfig";
 import AdminAIContext from "./pages/admin/AdminAIContext";
 import AdminUsuarios from "./pages/admin/AdminUsuarios";
+import AdminTodosUsuarios from "./pages/admin/AdminTodosUsuarios";
 import AdminPerfil from "./pages/admin/AdminPerfil";
 import ConsultorRelatorios from "./pages/consultor/ConsultorRelatorios";
 import ConsultorConvitesCanal from "./pages/consultor/ConsultorConvitesCanal";
