@@ -29,6 +29,7 @@ export default function EmpresaCoordenadores() {
   const [email, setEmail] = useState("");
   const [papel, setPapel] = useState("coordenador");
   const [loading, setLoading] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   const fetchEquipe = async () => {
     if (!user) return;
