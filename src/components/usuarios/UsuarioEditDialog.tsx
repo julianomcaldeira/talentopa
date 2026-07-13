@@ -351,6 +351,44 @@ export default function UsuarioEditDialog({ open, onOpenChange, userId, onSaved 
                 </div>
               </>
             )}
+
+            {/* Histórico de alterações */}
+            <div className="rounded-lg border border-border p-4 space-y-3">
+              <p className="text-xs font-semibold uppercase text-muted-foreground flex items-center gap-1.5">
+                <History size={12} /> Histórico de alterações
+              </p>
+              {loadingHist ? (
+                <div className="text-xs text-muted-foreground flex items-center gap-2">
+                  <Loader2 size={12} className="animate-spin" /> Carregando...
+                </div>
+              ) : historico.length === 0 ? (
+                <p className="text-xs text-muted-foreground">Nenhuma alteração registrada ainda.</p>
+              ) : (
+                <ul className="space-y-2 max-h-64 overflow-y-auto pr-1">
+                  {historico.map((h) => (
+                    <li key={h.id} className="text-xs border-l-2 pl-3 py-1"
+                      style={{ borderColor: h.severidade === "warning" ? "hsl(var(--destructive))" : "hsl(var(--primary))" }}
+                    >
+                      <div className="flex items-center justify-between gap-2 flex-wrap">
+                        <span className="font-medium">{h.descricao || h.acao}</span>
+                        <span className="text-muted-foreground whitespace-nowrap">
+                          {new Date(h.created_at).toLocaleString("pt-BR")}
+                        </span>
+                      </div>
+                      <div className="text-muted-foreground mt-0.5">
+                        Por <span className="font-medium">{h.actor_nome || "Sistema"}</span>
+                        {h.actor_role ? ` (${h.actor_role})` : ""} — ação: <code className="text-[10px]">{h.acao}</code>
+                      </div>
+                      {h.dados_novos && Object.keys(h.dados_novos).length > 0 && (
+                        <pre className="mt-1 text-[10px] bg-muted/50 rounded px-2 py-1 overflow-x-auto">
+                          {JSON.stringify(h.dados_novos, null, 0)}
+                        </pre>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           </div>
         )}
 
