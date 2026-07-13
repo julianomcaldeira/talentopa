@@ -51,6 +51,8 @@ export default function UsuarioEditDialog({ open, onOpenChange, userId, onSaved 
   const [newPassword, setNewPassword] = useState("");
   const [newEmail, setNewEmail] = useState("");
   const [busyAction, setBusyAction] = useState<string | null>(null);
+  const [historico, setHistorico] = useState<any[]>([]);
+  const [loadingHist, setLoadingHist] = useState(false);
 
   const isAdmin = myRole === "admin";
   const canManage = useMemo(() => {
