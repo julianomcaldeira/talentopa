@@ -1,0 +1,16 @@
+
+CREATE OR REPLACE FUNCTION public.find_user_id_by_email(_email text)
+RETURNS uuid
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT user_id
+  FROM public.profiles
+  WHERE lower(email) = lower(trim(_email))
+  LIMIT 1;
+$$;
+
+REVOKE ALL ON FUNCTION public.find_user_id_by_email(text) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.find_user_id_by_email(text) TO authenticated, service_role;

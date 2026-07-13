@@ -53,15 +53,14 @@ export default function EmpresaCoordenadores() {
     if (!user || !email.trim()) return;
     setLoading(true);
     try {
-      const { data: prof } = await supabase
-        .from("profiles")
-        .select("user_id")
-        .ilike("email", email.trim())
-        .maybeSingle();
-      if (!prof) throw new Error("Usuário com este e-mail não foi encontrado. Peça para se cadastrar primeiro.");
+      const { data: uid, error: rpcErr } = await supabase.rpc("find_user_id_by_email", {
+        _email: email.trim(),
+      });
+      if (rpcErr) throw rpcErr;
+      if (!uid) throw new Error("Usuário com este e-mail não foi encontrado. Peça para se cadastrar primeiro.");
       const { error } = await supabase.from("empresa_usuarios").insert({
         empresa_user_id: user.id,
-        user_id: prof.user_id,
+        user_id: uid as string,
         papel: papel as any,
       });
       if (error) throw error;
