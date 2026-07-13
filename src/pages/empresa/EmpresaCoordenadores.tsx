@@ -13,7 +13,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { UserCog, UserPlus, Trash2 } from "lucide-react";
+import { UserCog, UserPlus, Trash2, Pencil } from "lucide-react";
+import UsuarioEditDialog from "@/components/usuarios/UsuarioEditDialog";
 
 type EmpUsr = {
   id: string;
