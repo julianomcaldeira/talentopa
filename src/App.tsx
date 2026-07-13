@@ -109,7 +109,8 @@ const App = () => (
               <Route path="estados-projeto" element={<ProjectStateReference />} />
               <Route path="score-config" element={<AdminScoreConfig />} />
               <Route path="ai-context" element={<AdminAIContext />} />
-              <Route path="usuarios" element={<AdminUsuarios />} />
+              <Route path="usuarios" element={<AdminTodosUsuarios />} />
+              <Route path="administradores" element={<AdminUsuarios />} />
               <Route path="perfil" element={<AdminPerfil />} />
             </Route>
 
