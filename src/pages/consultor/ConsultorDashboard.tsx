@@ -82,6 +82,8 @@ const ConsultorDashboard = () => {
   const [agenda, setAgenda] = useState<any[]>([]);
   const [valorHora, setValorHora] = useState<number>(60);
   const [loading, setLoading] = useState(true);
+  const [canalVinculo, setCanalVinculo] = useState<{ id: string; nome: string } | null>(null);
+  const [indicacoesAtivas, setIndicacoesAtivas] = useState<number>(0);
 
   useEffect(() => {
     if (!user) return;
