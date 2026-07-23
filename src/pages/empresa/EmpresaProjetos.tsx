@@ -109,9 +109,15 @@ const EmpresaProjetos = () => {
     const channel = supabase
       .channel(`empresa-propostas-${user.id}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "propostas" }, () => refetch())
+      .on("postgres_changes", { event: "*", schema: "public", table: "parceiro_respostas" }, () => {
+        if (selectedProjeto) void viewPropostas(selectedProjeto);
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "parceiro_indicacoes" }, () => {
+        if (selectedProjeto) void viewPropostas(selectedProjeto);
+      })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
-  }, [user?.id]);
+  }, [user?.id, selectedProjeto?.id]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
