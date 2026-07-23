@@ -437,7 +437,7 @@ const CanalProjetos = () => {
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>
       ) : (
-        <Tabs defaultValue="canal" className="w-full">
+        <Tabs defaultValue="plataforma" className="w-full">
           <div className="flex items-center justify-between gap-3 flex-wrap mb-2">
             <div />
             <div className="flex items-center gap-2">
@@ -453,6 +453,9 @@ const CanalProjetos = () => {
             </div>
           </div>
           <TabsList>
+            <TabsTrigger value="plataforma">
+              Demandas da plataforma ({demandasPlataforma.length})
+            </TabsTrigger>
             <TabsTrigger value="canal">
               Criados pelo canal ({projetosCanal.length})
             </TabsTrigger>
@@ -460,6 +463,46 @@ const CanalProjetos = () => {
               Realizados pelos consultores ({projetosConsultores.length})
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="plataforma" className="mt-4">
+            {demandasPlataforma.length === 0 ? (
+              <Card className="p-10 text-center">
+                <FolderKanban className="h-8 w-8 mx-auto text-muted-foreground mb-3" />
+                <p className="font-medium text-foreground">Nenhuma demanda aberta no momento</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Quando uma empresa publicar uma nova demanda, ela aparecerá aqui para você indicar consultores.
+                </p>
+              </Card>
+            ) : (
+              <Card className="divide-y divide-border">
+                {sortedDemandas.map((p) => (
+                  <div key={p.id} className="flex items-center justify-between gap-4 p-4">
+                    <div className="min-w-0">
+                      <p className="font-medium text-foreground truncate">{p.nome}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {p.empresa_nome ? `${p.empresa_nome} · ` : ""}
+                        {p.prazo_estimado
+                          ? `Prazo: ${new Date(p.prazo_estimado).toLocaleDateString("pt-BR")}`
+                          : "Sem prazo"}{" "}
+                        ·{" "}
+                        {p.valor_estimado
+                          ? `R$ ${Number(p.valor_estimado).toLocaleString("pt-BR")}`
+                          : "Sem valor"}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <Badge variant="outline" className="capitalize">
+                        {p.status?.replace(/_/g, " ")}
+                      </Badge>
+                      <Button size="sm" onClick={() => setIndicarProjeto(p)}>
+                        Ver e indicar consultores
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </Card>
+            )}
+          </TabsContent>
 
           <TabsContent value="canal" className="mt-4">
             {projetosCanal.length === 0 ? (
@@ -501,6 +544,23 @@ const CanalProjetos = () => {
           </TabsContent>
         </Tabs>
       )}
+
+      <Dialog open={!!indicarProjeto} onOpenChange={(v) => !v && setIndicarProjeto(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Indicar consultores</DialogTitle>
+            <DialogDescription>
+              {indicarProjeto?.nome}
+            </DialogDescription>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            A tela de indicação de consultores para esta demanda será disponibilizada em breve.
+          </p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIndicarProjeto(null)}>Fechar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
