@@ -128,6 +128,31 @@ const ConsultorAgenda = () => {
     } else {
       setProjetos([]);
     }
+
+    // Vínculo ativo com canal (overlay somente leitura)
+    const { data: canalId } = await (supabase as any).rpc("consultor_tem_vinculo_ativo", { p_consultor: user.id });
+    if (canalId) {
+      const { data: canal } = await supabase.from("canais").select("id, nome").eq("id", canalId).maybeSingle();
+      if (canal) {
+        setParceiroCanal({ id: canal.id, nome: canal.nome });
+        const { data: dias } = await supabase
+          .from("consultor_agenda_dias")
+          .select("dia, estado, projeto_id")
+          .eq("consultor_user_id", user.id)
+          .eq("canal_id", canal.id);
+        const pids2 = Array.from(new Set((dias || []).map((d: any) => d.projeto_id).filter(Boolean)));
+        let nomes: Record<string, string> = {};
+        if (pids2.length) {
+          const { data: prjs2 } = await supabase.from("projetos").select("id, nome").in("id", pids2);
+          (prjs2 || []).forEach((p: any) => { nomes[p.id] = p.nome; });
+        }
+        setParceiroDias(((dias || []) as any[]).map((d) => ({ ...d, projeto_nome: d.projeto_id ? nomes[d.projeto_id] : undefined })));
+      }
+    } else {
+      setParceiroCanal(null);
+      setParceiroDias([]);
+    }
+
     setLoading(false);
   };
 
