@@ -63,6 +63,8 @@ const ConsultorAgenda = () => {
   const [diaSelecionado, setDiaSelecionado] = useState<Date | undefined>(new Date());
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [dropTargetKey, setDropTargetKey] = useState<string | null>(null);
+  const [parceiroCanal, setParceiroCanal] = useState<{ id: string; nome: string } | null>(null);
+  const [parceiroDias, setParceiroDias] = useState<{ dia: string; estado: string; projeto_nome?: string }[]>([]);
 
   // Detecta conflito (sobreposição) com eventos existentes que reservam o horário.
   // Eventos com status "vago" representam disponibilidade e não conflitam.
