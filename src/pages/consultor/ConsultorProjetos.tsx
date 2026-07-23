@@ -342,6 +342,15 @@ const ConsultorProjetos = () => {
     <div>
       <PageHeader title="Projetos Disponíveis" description="Encontre projetos compatíveis com seu perfil técnico" />
 
+      {canalVinculado && (
+        <DataCard className="mb-4 border-primary/30 bg-primary/5">
+          <p className="text-sm text-foreground">
+            Você está vinculado ao parceiro <strong>{canalVinculado.nome}</strong>. As demandas da plataforma são recebidas e respondidas por ele. Acompanhe suas indicações em <strong>Minhas Indicações</strong>.
+          </p>
+        </DataCard>
+      )}
+
+
       {/* Filters */}
       <DataCard className="mb-4">
         <div className="flex items-center gap-2 mb-3 flex-wrap">
