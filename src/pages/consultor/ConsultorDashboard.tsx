@@ -260,6 +260,34 @@ const ConsultorDashboard = () => {
         </div>
       </motion.div>
 
+      {/* ===== INDICAÇÕES DO PARCEIRO ===== */}
+      {canalVinculo && (
+        <motion.div custom={0.5} variants={fadeUp} initial="hidden" animate="visible">
+          <Link
+            to="/consultor/minhas-indicacoes"
+            className="group flex items-center justify-between gap-4 rounded-2xl border border-border/60 bg-card p-5 shadow-card hover:border-primary/40 hover:shadow-md transition"
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                <Briefcase size={20} className="text-primary" />
+              </div>
+              <div>
+                <p className="text-[11px] uppercase tracking-[0.12em] text-muted-foreground font-semibold">
+                  Indicações do parceiro
+                </p>
+                <p className="text-sm text-foreground mt-0.5">
+                  <span className="text-2xl font-display font-bold tracking-tight text-primary mr-2">
+                    {indicacoesAtivas}
+                  </span>
+                  indicação(ões) ativa(s) via <span className="font-medium">{canalVinculo.nome}</span>
+                </p>
+              </div>
+            </div>
+            <ChevronRight size={18} className="text-muted-foreground group-hover:text-primary transition" />
+          </Link>
+        </motion.div>
+      )}
+
       {/* ===== DISPONIBILIDADE — MÊS VIGENTE ===== */}
       <motion.section custom={1} variants={fadeUp} initial="hidden" animate="visible" className="space-y-3">
         <div className="flex items-center justify-between px-1">
