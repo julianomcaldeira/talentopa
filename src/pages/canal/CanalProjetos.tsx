@@ -36,8 +36,11 @@ interface Projeto {
   valor_estimado: number | null;
   prazo_estimado: string | null;
   created_at: string;
+  software_id?: string | null;
   consultor_nome?: string | null;
   empresa_nome?: string | null;
+  elegiveis_count?: number;
+  elegiveis_nomes?: string[];
 }
 
 interface EmpresaOption {
