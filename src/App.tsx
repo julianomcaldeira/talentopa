@@ -158,6 +158,7 @@ const App = () => (
               <Route path="demandas/:id" element={<CanalDemandaDetalhe />} />
               <Route path="aprovacoes" element={<CanalAprovacoes />} />
               <Route path="configuracoes" element={<CanalConfiguracoes />} />
+              <Route path="agenda" element={<CanalAgenda />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />
