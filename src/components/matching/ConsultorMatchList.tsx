@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { DataCard, LoadingState, EmptyState } from "@/components/dashboard/DashboardComponents";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -8,24 +7,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import { useScoreConfig } from "@/hooks/useScoreConfig";
 import { ConsultorDetailDialog } from "./ConsultorDetailDialog";
-
-interface ConsultorMatch {
-  user_id: string;
-  nome: string;
-  cidade: string | null;
-  estado: string | null;
-  avatar_url: string | null;
-  bio_profissional: string | null;
-  linkedin: string | null;
-  score: number;
-  matchDetails: {
-    softwareMatch: boolean;
-    modulosMatch: number;
-    funcsMatch: number;
-    nivel: string;
-    valor_hora: number | null;
-  };
-}
+import {
+  computeConsultorMatches,
+  fetchConsultoresComVinculoAtivo,
+  NIVEL_LABEL,
+  type ConsultorMatch,
+} from "@/lib/matchScore";
 
 interface Props {
   projetoId: string;
@@ -49,112 +36,19 @@ export const ConsultorMatchList = ({ projetoId, projetoNome, softwareId, onInvit
 
   const computeMatches = async () => {
     setLoading(true);
-
-    // Fetch project scope
-    const [modulosRes, funcsRes] = await Promise.all([
-      supabase.from("projeto_modulos").select("modulo_id").eq("projeto_id", projetoId),
-      supabase.from("projeto_funcionalidades").select("funcionalidade_id").eq("projeto_id", projetoId),
-    ]);
-
-    const projetoModulos = modulosRes.data?.map(m => m.modulo_id) || [];
-    const projetoFuncs = funcsRes.data?.map(f => f.funcionalidade_id) || [];
-
-    // Fetch all consultants with skills for this software
-    const { data: habilidades } = await supabase
-      .from("consultor_habilidades")
-      .select("user_id, software_id, modulo_id, funcionalidade_id, nivel, valor_hora")
-      .eq("software_id", softwareId!);
-
-    if (!habilidades || habilidades.length === 0) {
-      setMatches([]);
-      setLoading(false);
-      return;
-    }
-
-    // Group by consultant
-    const consultorMap = new Map<string, typeof habilidades>();
-    habilidades.forEach(h => {
-      const existing = consultorMap.get(h.user_id) || [];
-      existing.push(h);
-      consultorMap.set(h.user_id, existing);
+    const raw = await computeConsultorMatches({
+      projetoId,
+      softwareId: softwareId!,
+      scoreCfg,
+      excludeExistingPropostas: true,
     });
 
-    // Calculate score per consultant
-    const nivelWeight: Record<string, number> = { junior: 1, pleno: 2, senior: 3, especialista: 4 };
-    const scored: { user_id: string; score: number; details: ConsultorMatch["matchDetails"] }[] = [];
+    // RN-03 / CA-00: RMO/empresa só enxerga consultores AVULSOS na sugestão.
+    // Consultores com vínculo ativo em canal_consultores são indicados pelo parceiro.
+    const vinculados = await fetchConsultoresComVinculoAtivo(raw.map((r) => r.user_id));
+    const filtered = raw.filter((r) => !vinculados.has(r.user_id));
 
-    consultorMap.forEach((skills, userId) => {
-      let score = scoreCfg.match_software; // base: knows the software
-
-      const matchedModulos = skills.filter(s => s.modulo_id && projetoModulos.includes(s.modulo_id));
-      const matchedFuncs = skills.filter(s => s.funcionalidade_id && projetoFuncs.includes(s.funcionalidade_id));
-
-      // Module match (peso configurável)
-      if (projetoModulos.length > 0) {
-        score += Math.round((matchedModulos.length / projetoModulos.length) * scoreCfg.match_modulos);
-      }
-
-      // Feature match (peso configurável)
-      if (projetoFuncs.length > 0) {
-        score += Math.round((matchedFuncs.length / projetoFuncs.length) * scoreCfg.match_funcionalidades);
-      }
-
-      // Seniority bonus (peso configurável)
-      const maxNivel = Math.max(...skills.map(s => nivelWeight[s.nivel] || 1));
-      score += Math.round((maxNivel / 4) * scoreCfg.match_senioridade);
-
-      scored.push({
-        user_id: userId,
-        score: Math.min(score, 100),
-        details: {
-          softwareMatch: true,
-          modulosMatch: matchedModulos.length,
-          funcsMatch: matchedFuncs.length,
-          nivel: Object.entries(nivelWeight).find(([, v]) => v === maxNivel)?.[0] || "pleno",
-          valor_hora: skills[0]?.valor_hora ?? null,
-        },
-      });
-    });
-
-    // Sort by score desc
-    scored.sort((a, b) => b.score - a.score);
-
-    // Fetch profiles
-    const userIds = scored.map(s => s.user_id);
-    const [profilesRes, perfilRes] = await Promise.all([
-      supabase.from("profiles_public" as any).select("user_id, nome, cidade, estado, avatar_url").in("user_id", userIds),
-      supabase.from("consultor_perfil").select("user_id, bio_profissional, linkedin").in("user_id", userIds),
-    ]);
-
-    const profileMap = new Map(((profilesRes.data as any[]) || []).map((p: any) => [p.user_id, p]));
-    const perfilMap = new Map((perfilRes.data || []).map(p => [p.user_id, p]));
-
-    // Check existing proposals
-    const { data: existingPropostas } = await supabase
-      .from("propostas")
-      .select("consultor_user_id")
-      .eq("projeto_id", projetoId);
-    const alreadyProposed = new Set((existingPropostas || []).map(p => p.consultor_user_id));
-
-    const result: ConsultorMatch[] = scored
-      .filter(s => !alreadyProposed.has(s.user_id))
-      .map(s => {
-        const profile: any = profileMap.get(s.user_id);
-        const perfil = perfilMap.get(s.user_id);
-        return {
-          user_id: s.user_id,
-          nome: profile?.nome || "Consultor",
-          cidade: profile?.cidade || null,
-          estado: profile?.estado || null,
-          avatar_url: profile?.avatar_url || null,
-          bio_profissional: perfil?.bio_profissional || null,
-          linkedin: perfil?.linkedin || null,
-          score: s.score,
-          matchDetails: s.details,
-        };
-      });
-
-    setMatches(result);
+    setMatches(filtered);
     setLoading(false);
   };
 
@@ -180,9 +74,7 @@ export const ConsultorMatchList = ({ projetoId, projetoNome, softwareId, onInvit
     setMatches(prev => prev.filter(item => item.user_id !== match.user_id));
   };
 
-  const nivelLabel: Record<string, string> = {
-    junior: "Júnior", pleno: "Pleno", senior: "Sênior", especialista: "Especialista"
-  };
+  const nivelLabel = NIVEL_LABEL;
 
   if (!softwareId) return null;
 
@@ -317,6 +209,14 @@ export const ConsultorMatchList = ({ projetoId, projetoNome, softwareId, onInvit
           </motion.div>
         )}
       </AnimatePresence>
+
+      {!loading && expanded && (
+        <p className="mt-3 text-[11px] text-muted-foreground italic">
+          Consultores vinculados a parceiros são avaliados e indicados diretamente pelos respectivos parceiros.
+        </p>
+      )}
+
+
 
       <ConsultorDetailDialog
         open={detailOpen}
