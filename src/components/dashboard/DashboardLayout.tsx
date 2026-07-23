@@ -7,7 +7,6 @@ import {
   FolderKanban, DollarSign, LogOut, Menu, X, ChevronRight, Search, 
   Star, Settings, BarChart3, BookOpen, Brain, Sparkles, MessageSquare, Trophy, Bot, FileSpreadsheet, SlidersHorizontal, Activity, ScrollText, Briefcase, Workflow, ShieldAlert, ShieldCheck, UserCog, Mail, CalendarDays, Network, ListChecks, Shield
 } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
 import NotificationBell from "@/components/notifications/NotificationBell";
 import workzLogoWhite from "@/assets/workz-logo-white.png";
