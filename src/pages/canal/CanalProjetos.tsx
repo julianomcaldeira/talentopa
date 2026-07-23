@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2, FolderKanban, Plus, User } from "lucide-react";
+import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import { PROJETO_SORT_OPTIONS, sortProjetos, ProjetoSortKey } from "@/lib/projetoSort";
@@ -86,7 +87,7 @@ const CanalProjetos = () => {
   const sortedCanal = sortProjetos(projetosCanal, sortBy);
   const sortedConsultores = sortProjetos(projetosConsultores, sortBy);
   const sortedDemandas = sortProjetos(demandasPlataforma, sortBy);
-  const [indicarProjeto, setIndicarProjeto] = useState<Projeto | null>(null);
+  
 
   const [open, setOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -495,8 +496,8 @@ const CanalProjetos = () => {
                       <Badge variant="outline" className="capitalize">
                         {p.status?.replace(/_/g, " ")}
                       </Badge>
-                      <Button size="sm" onClick={() => setIndicarProjeto(p)}>
-                        Ver e indicar consultores
+                      <Button size="sm" asChild>
+                        <Link to={`/canal/demandas/${p.id}`}>Ver e indicar consultores</Link>
                       </Button>
                     </div>
                   </div>
@@ -546,22 +547,6 @@ const CanalProjetos = () => {
         </Tabs>
       )}
 
-      <Dialog open={!!indicarProjeto} onOpenChange={(v) => !v && setIndicarProjeto(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Indicar consultores</DialogTitle>
-            <DialogDescription>
-              {indicarProjeto?.nome}
-            </DialogDescription>
-          </DialogHeader>
-          <p className="text-sm text-muted-foreground">
-            A tela de indicação de consultores para esta demanda será disponibilizada em breve.
-          </p>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIndicarProjeto(null)}>Fechar</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
