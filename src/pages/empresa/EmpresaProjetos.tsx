@@ -803,7 +803,10 @@ const EmpresaProjetos = () => {
                   </div>
                 </div>
               )}
+                </>
+              )}
               <div className="border-t border-border pt-3 mt-4">
+
                 <h4 className="text-sm font-semibold text-foreground mb-2">Histórico de visualização</h4>
                 {visualizacoesHistorico.length === 0 ? (
                   <p className="text-xs text-muted-foreground">Nenhuma visualização auditada ainda.</p>
