@@ -213,6 +213,39 @@ const EmpresaProjetos = () => {
       .select("*")
       .eq("projeto_id", projeto.id)
       .order("visualizado_em", { ascending: false });
+
+    // === Respostas de Parceiros ===
+    const { data: respostasData } = await (supabase as any)
+      .from("parceiro_respostas")
+      .select("*")
+      .eq("projeto_id", projeto.id)
+      .order("created_at", { ascending: false });
+
+    let respostasEnriched: any[] = [];
+    if (respostasData && respostasData.length > 0) {
+      const respostaIds = respostasData.map((r: any) => r.id);
+      const canalIds = [...new Set(respostasData.map((r: any) => r.canal_id))];
+      const [{ data: indicacoesData }, { data: canaisData }] = await Promise.all([
+        (supabase as any).from("parceiro_indicacoes").select("*").in("resposta_id", respostaIds),
+        supabase.from("canais").select("id, nome, user_id").in("id", canalIds as string[]),
+      ]);
+      const consIds = [...new Set((indicacoesData || []).map((i: any) => i.consultor_user_id))];
+      const { data: consProfiles } = consIds.length
+        ? await supabase.from("profiles").select("user_id, nome, cidade, estado, avatar_url").in("user_id", consIds as string[])
+        : { data: [] as any[] };
+      const consMap = new Map((consProfiles || []).map((p: any) => [p.user_id, p]));
+      const canalMap = new Map((canaisData || []).map((c: any) => [c.id, c]));
+
+      respostasEnriched = respostasData.map((r: any) => ({
+        ...r,
+        canal: canalMap.get(r.canal_id) || null,
+        indicacoes: (indicacoesData || [])
+          .filter((i: any) => i.resposta_id === r.id)
+          .map((i: any) => ({ ...i, consultor: consMap.get(i.consultor_user_id) || null })),
+      }));
+    }
+    setRespostasParceiros(respostasEnriched);
+    setExpandedRespostas(Object.fromEntries(respostasEnriched.map((r) => [r.id, true])));
     const viewerIds: string[] = Array.from(new Set((historicoData || []).map((h: any) => String(h.visualizado_por))));
     const { data: viewerProfiles } = viewerIds.length
       ? await supabase.from("profiles").select("user_id, nome").in("user_id", viewerIds)
