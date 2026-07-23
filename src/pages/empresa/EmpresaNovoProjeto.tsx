@@ -304,6 +304,7 @@ const EmpresaNovoProjeto = ({ onSuccess }: EmpresaNovoProjetoProps = {}) => {
         escopo_ia: classificacao?.escopo_sugerido || null,
         classificacao_ia: classificacao ? (classificacao as any) : null,
         status: "publicado" as const,
+        roteamento_v2: true,
       }).select("id").single();
       if (error || !projeto) throw error || new Error("Falha ao criar projeto");
 
