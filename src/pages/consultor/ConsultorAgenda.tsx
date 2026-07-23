@@ -340,6 +340,18 @@ const ConsultorAgenda = () => {
         <Button onClick={abrirNovo}><Plus className="h-4 w-4 mr-2" /> Novo evento</Button>
       </div>
 
+      {parceiroCanal && (
+        <Card className="p-3 border-primary/30 bg-primary/5 flex items-start gap-3">
+          <CalendarDays className="h-4 w-4 text-primary mt-0.5" />
+          <div className="text-xs text-foreground">
+            <p className="font-medium">Gerenciado pelo parceiro {parceiroCanal.nome}</p>
+            <p className="text-muted-foreground mt-0.5">
+              Alocações e bloqueios definidos pelo parceiro aparecem no calendário em modo somente leitura ({parceiroDias.length} dia{parceiroDias.length === 1 ? "" : "s"} marcado{parceiroDias.length === 1 ? "" : "s"}).
+            </p>
+          </div>
+        </Card>
+      )}
+
       {/* Resumo */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {(["agendado", "bloqueado", "vago"] as AgendaStatus[]).map((s) => (
