@@ -122,6 +122,20 @@ const ConsultorDashboard = () => {
           setValorHora(valores.reduce((a: number, b: number) => a + b, 0) / valores.length);
         }
       }
+      // vínculo com canal + total de indicações ativas
+      const { data: canalId } = await (supabase as any).rpc("consultor_tem_vinculo_ativo", { p_consultor: user.id });
+      if (canalId) {
+        const [canalRes, indRes] = await Promise.all([
+          supabase.from("canais").select("id, nome").eq("id", canalId).maybeSingle(),
+          (supabase as any)
+            .from("parceiro_indicacoes")
+            .select("id", { count: "exact", head: true })
+            .eq("consultor_user_id", user.id)
+            .in("status", ["indicado", "selecionado"]),
+        ]);
+        if (canalRes.data) setCanalVinculo({ id: canalRes.data.id, nome: canalRes.data.nome });
+        setIndicacoesAtivas(indRes.count ?? 0);
+      }
       setLoading(false);
     };
     fetchData();
