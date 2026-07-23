@@ -599,14 +599,110 @@ const EmpresaProjetos = () => {
       </Dialog>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto custom-scrollbar">
+        <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto custom-scrollbar">
           <DialogHeader>
-            <DialogTitle className="font-display text-lg">Propostas — {selectedProjeto?.nome}</DialogTitle>
+            <DialogTitle className="font-display text-lg">Respostas — {selectedProjeto?.nome}</DialogTitle>
+            <p className="text-xs text-muted-foreground">
+              {propostas.length} proposta{propostas.length === 1 ? "" : "s"} de consultor autônomo · {respostasParceiros.length} resposta{respostasParceiros.length === 1 ? "" : "s"} de parceiro
+            </p>
           </DialogHeader>
-          {propostas.length === 0 ? (
-            <EmptyState message="Nenhuma proposta recebida ainda" icon={User} />
+          {propostas.length === 0 && respostasParceiros.length === 0 ? (
+            <EmptyState message="Nenhuma resposta recebida ainda" icon={User} />
           ) : (
             <div className="space-y-3">
+              {respostasParceiros.length > 0 && (
+                <div className="space-y-3">
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Respostas de parceiros</h4>
+                  {respostasParceiros.map((resp) => {
+                    const isOpen = expandedRespostas[resp.id] !== false;
+                    const ativas = resp.indicacoes.filter((i: any) => i.status !== "retirado");
+                    return (
+                      <div key={resp.id} className="border border-primary/30 rounded-xl bg-primary/5">
+                        <button
+                          type="button"
+                          onClick={() => setExpandedRespostas((prev) => ({ ...prev, [resp.id]: !isOpen }))}
+                          className="w-full flex items-center justify-between gap-3 p-3 text-left"
+                        >
+                          <div className="flex items-center gap-2 min-w-0">
+                            <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-primary text-primary-foreground">
+                              Parceiro
+                            </span>
+                            <span className="text-sm font-medium text-foreground truncate">{resp.canal?.nome || "Canal"}</span>
+                            <span className="text-[11px] text-muted-foreground shrink-0">
+                              · {ativas.length} indicaç{ativas.length === 1 ? "ão" : "ões"}
+                            </span>
+                          </div>
+                          <ChevronRight size={14} className={cn("transition-transform", isOpen && "rotate-90")} />
+                        </button>
+                        {isOpen && (
+                          <div className="border-t border-primary/20 p-3 space-y-2">
+                            {resp.comentarios && (
+                              <p className="text-xs text-muted-foreground italic">"{resp.comentarios}"</p>
+                            )}
+                            {ativas.length === 0 ? (
+                              <p className="text-xs text-muted-foreground">Nenhum consultor ativo nesta resposta.</p>
+                            ) : ativas.map((ind: any) => (
+                              <div key={ind.id} className="border border-border/60 rounded-lg p-3 bg-background">
+                                <div className="flex items-start justify-between gap-3 mb-2">
+                                  <div className="flex items-center gap-2.5 min-w-0">
+                                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary/60 to-accent/60 flex items-center justify-center text-primary-foreground text-xs font-semibold shrink-0">
+                                      {ind.consultor?.nome?.charAt(0) || "C"}
+                                    </div>
+                                    <div className="min-w-0">
+                                      <p className="text-sm font-medium text-foreground truncate">{ind.consultor?.nome || "Consultor"}</p>
+                                      {ind.consultor?.cidade && (
+                                        <p className="text-[11px] text-muted-foreground flex items-center gap-1">
+                                          <MapPin size={10} /> {ind.consultor.cidade}{ind.consultor.estado && `, ${ind.consultor.estado}`}
+                                        </p>
+                                      )}
+                                    </div>
+                                  </div>
+                                  {ind.status === "selecionado" ? (
+                                    <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-success/15 text-success">
+                                      Selecionado
+                                    </span>
+                                  ) : ind.status === "recusado" ? (
+                                    <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
+                                      Não selecionado
+                                    </span>
+                                  ) : null}
+                                </div>
+                                <div className="grid grid-cols-2 gap-2 mt-2">
+                                  <div className="rounded-lg border border-border/60 bg-muted/20 p-2">
+                                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Valor proposto</p>
+                                    <p className="text-sm font-bold text-foreground mt-0.5 flex items-center gap-1">
+                                      <DollarSign size={12} /> {ind.valor_proposto ? `R$ ${Number(ind.valor_proposto).toLocaleString("pt-BR")}` : "—"}
+                                    </p>
+                                  </div>
+                                  <div className="rounded-lg border border-border/60 bg-muted/20 p-2">
+                                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Titularidade</p>
+                                    <p className="text-sm font-medium text-foreground mt-0.5 truncate">{resp.canal?.nome || "Parceiro"}</p>
+                                  </div>
+                                </div>
+                                {ind.observacao && (
+                                  <p className="text-xs text-muted-foreground mt-2 leading-relaxed">{ind.observacao}</p>
+                                )}
+                                {ind.status === "indicado" && (selectedProjeto?.status === "publicado" || selectedProjeto?.status === "em_selecao") && (
+                                  <div className="mt-3">
+                                    <Button size="sm" onClick={() => selectIndicacao(ind.id, ind.consultor?.nome)}>
+                                      <CheckCircle2 size={14} /> Selecionar
+                                    </Button>
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {propostas.length > 0 && (
+                <>
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground pt-2">Propostas diretas</h4>
+
               <div className="rounded-xl border border-border/60 bg-muted/10 p-3 space-y-3">
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                   <Select value={propostaStatusFilter} onValueChange={setPropostaStatusFilter}>
