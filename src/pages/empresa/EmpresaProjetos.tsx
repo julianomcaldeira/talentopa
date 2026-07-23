@@ -752,6 +752,8 @@ const EmpresaProjetos = () => {
                       </span>
                       <StatusBadge status={prop.status} />
                     </div>
+                  </div>
+
 
                   <div className="grid grid-cols-3 gap-2 mt-3 mb-2">
                     <div className="rounded-lg border border-border/60 bg-background p-2">
