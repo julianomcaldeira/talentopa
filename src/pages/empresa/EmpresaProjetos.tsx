@@ -313,6 +313,19 @@ const EmpresaProjetos = () => {
     refetch();
   };
 
+  const selectIndicacao = async (indicacaoId: string, consultorNome?: string) => {
+    if (!window.confirm(`Confirmar seleção${consultorNome ? ` de ${consultorNome}` : ""}? As demais propostas e indicações abertas deste projeto serão recusadas.`)) return;
+    const { error } = await (supabase as any).rpc("empresa_selecionar_indicacao", { p_indicacao_id: indicacaoId });
+    if (error) {
+      toast({ title: "Erro ao selecionar indicação", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Consultor selecionado", description: "A alocação foi criada com titularidade do parceiro." });
+    if (selectedProjeto) await viewPropostas(selectedProjeto);
+    refetch();
+  };
+
+
   const renderDateFilter = (label: string, date: Date | undefined, onSelect: (date: Date | undefined) => void) => (
     <Popover>
       <PopoverTrigger asChild>
