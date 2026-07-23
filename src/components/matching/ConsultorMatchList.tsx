@@ -74,9 +74,7 @@ export const ConsultorMatchList = ({ projetoId, projetoNome, softwareId, onInvit
     setMatches(prev => prev.filter(item => item.user_id !== match.user_id));
   };
 
-  const nivelLabel: Record<string, string> = {
-    junior: "Júnior", pleno: "Pleno", senior: "Sênior", especialista: "Especialista"
-  };
+  const nivelLabel = NIVEL_LABEL;
 
   if (!softwareId) return null;
 
