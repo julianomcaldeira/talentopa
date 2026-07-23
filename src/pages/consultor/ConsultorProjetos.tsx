@@ -35,7 +35,18 @@ const ConsultorProjetos = () => {
   const [detalhesProjeto, setDetalhesProjeto] = useState<any | null>(null);
   const [page, setPage] = useState(1);
   const [viewMode, setViewMode] = useState<ViewMode>("list");
+  const [canalVinculado, setCanalVinculado] = useState<{ id: string; nome: string } | null>(null);
   const PAGE_SIZE = 5;
+
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      const { data: canalId } = await (supabase as any).rpc("consultor_tem_vinculo_ativo", { p_consultor: user.id });
+      if (!canalId) { setCanalVinculado(null); return; }
+      const { data: canal } = await supabase.from("canais").select("id, nome").eq("id", canalId).maybeSingle();
+      if (canal) setCanalVinculado({ id: canal.id, nome: canal.nome });
+    })();
+  }, [user]);
 
   // Filter options
   const [softwares, setSoftwares] = useState<{ id: string; nome: string }[]>([]);
@@ -330,6 +341,15 @@ const ConsultorProjetos = () => {
   return (
     <div>
       <PageHeader title="Projetos Disponíveis" description="Encontre projetos compatíveis com seu perfil técnico" />
+
+      {canalVinculado && (
+        <DataCard className="mb-4 border-primary/30 bg-primary/5">
+          <p className="text-sm text-foreground">
+            Você está vinculado ao parceiro <strong>{canalVinculado.nome}</strong>. As demandas da plataforma são recebidas e respondidas por ele. Acompanhe suas indicações em <strong>Minhas Indicações</strong>.
+          </p>
+        </DataCard>
+      )}
+
 
       {/* Filters */}
       <DataCard className="mb-4">
