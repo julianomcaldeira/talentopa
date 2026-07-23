@@ -63,6 +63,8 @@ const ConsultorAgenda = () => {
   const [diaSelecionado, setDiaSelecionado] = useState<Date | undefined>(new Date());
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [dropTargetKey, setDropTargetKey] = useState<string | null>(null);
+  const [parceiroCanal, setParceiroCanal] = useState<{ id: string; nome: string } | null>(null);
+  const [parceiroDias, setParceiroDias] = useState<{ dia: string; estado: string; projeto_nome?: string }[]>([]);
 
   // Detecta conflito (sobreposição) com eventos existentes que reservam o horário.
   // Eventos com status "vago" representam disponibilidade e não conflitam.
@@ -126,6 +128,31 @@ const ConsultorAgenda = () => {
     } else {
       setProjetos([]);
     }
+
+    // Vínculo ativo com canal (overlay somente leitura)
+    const { data: canalId } = await (supabase as any).rpc("consultor_tem_vinculo_ativo", { p_consultor: user.id });
+    if (canalId) {
+      const { data: canal } = await supabase.from("canais").select("id, nome").eq("id", canalId).maybeSingle();
+      if (canal) {
+        setParceiroCanal({ id: canal.id, nome: canal.nome });
+        const { data: dias } = await supabase
+          .from("consultor_agenda_dias")
+          .select("dia, estado, projeto_id")
+          .eq("consultor_user_id", user.id)
+          .eq("canal_id", canal.id);
+        const pids2 = Array.from(new Set((dias || []).map((d: any) => d.projeto_id).filter(Boolean)));
+        let nomes: Record<string, string> = {};
+        if (pids2.length) {
+          const { data: prjs2 } = await supabase.from("projetos").select("id, nome").in("id", pids2);
+          (prjs2 || []).forEach((p: any) => { nomes[p.id] = p.nome; });
+        }
+        setParceiroDias(((dias || []) as any[]).map((d) => ({ ...d, projeto_nome: d.projeto_id ? nomes[d.projeto_id] : undefined })));
+      }
+    } else {
+      setParceiroCanal(null);
+      setParceiroDias([]);
+    }
+
     setLoading(false);
   };
 
@@ -313,6 +340,18 @@ const ConsultorAgenda = () => {
         <Button onClick={abrirNovo}><Plus className="h-4 w-4 mr-2" /> Novo evento</Button>
       </div>
 
+      {parceiroCanal && (
+        <Card className="p-3 border-primary/30 bg-primary/5 flex items-start gap-3">
+          <CalendarDays className="h-4 w-4 text-primary mt-0.5" />
+          <div className="text-xs text-foreground">
+            <p className="font-medium">Gerenciado pelo parceiro {parceiroCanal.nome}</p>
+            <p className="text-muted-foreground mt-0.5">
+              Alocações e bloqueios definidos pelo parceiro aparecem no calendário em modo somente leitura ({parceiroDias.length} dia{parceiroDias.length === 1 ? "" : "s"} marcado{parceiroDias.length === 1 ? "" : "s"}).
+            </p>
+          </div>
+        </Card>
+      )}
+
       {/* Resumo */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {(["agendado", "bloqueado", "vago"] as AgendaStatus[]).map((s) => (
@@ -440,11 +479,15 @@ const ConsultorAgenda = () => {
                     agendado: diasComEventos.agendado,
                     bloqueado: diasComEventos.bloqueado,
                     vago: diasComEventos.vago,
+                    parceiroAlocado: parceiroDias.filter((d) => d.estado === "alocado").map((d) => parseISO(`${d.dia}T00:00:00`)),
+                    parceiroBloqueado: parceiroDias.filter((d) => d.estado === "bloqueado").map((d) => parseISO(`${d.dia}T00:00:00`)),
                   }}
                   modifiersClassNames={{
                     agendado: "relative after:content-[''] after:absolute after:bottom-1 after:left-1/2 after:-translate-x-1/2 after:h-1 after:w-1 after:rounded-full after:bg-primary",
                     bloqueado: "relative after:content-[''] after:absolute after:bottom-1 after:left-1/2 after:-translate-x-1/2 after:h-1 after:w-1 after:rounded-full after:bg-destructive",
                     vago: "relative after:content-[''] after:absolute after:bottom-1 after:left-1/2 after:-translate-x-1/2 after:h-1 after:w-1 after:rounded-full after:bg-emerald-500",
+                    parceiroAlocado: "ring-1 ring-primary/60 bg-primary/10",
+                    parceiroBloqueado: "ring-1 ring-destructive/60 bg-destructive/10",
                   }}
                   components={{
                     DayContent: ({ date }: { date: Date }) => {

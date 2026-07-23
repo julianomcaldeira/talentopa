@@ -18,6 +18,7 @@ import CanalProjetos from "./pages/canal/CanalProjetos";
 import CanalDemandaDetalhe from "./pages/canal/CanalDemandaDetalhe";
 import CanalAprovacoes from "./pages/canal/CanalAprovacoes";
 import CanalConfiguracoes from "./pages/canal/CanalConfiguracoes";
+import CanalAgenda from "./pages/canal/CanalAgenda";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminCatalogo from "./pages/admin/AdminCatalogo";
 import AdminEmpresas from "./pages/admin/AdminEmpresas";
@@ -157,6 +158,7 @@ const App = () => (
               <Route path="demandas/:id" element={<CanalDemandaDetalhe />} />
               <Route path="aprovacoes" element={<CanalAprovacoes />} />
               <Route path="configuracoes" element={<CanalConfiguracoes />} />
+              <Route path="agenda" element={<CanalAgenda />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />
