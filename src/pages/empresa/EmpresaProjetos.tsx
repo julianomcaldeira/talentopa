@@ -746,8 +746,13 @@ const EmpresaProjetos = () => {
                         )}
                       </div>
                     </div>
-                    <StatusBadge status={prop.status} />
-                  </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
+                        Consultor autônomo
+                      </span>
+                      <StatusBadge status={prop.status} />
+                    </div>
+
                   <div className="grid grid-cols-3 gap-2 mt-3 mb-2">
                     <div className="rounded-lg border border-border/60 bg-background p-2">
                       <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Valor da proposta</p>
