@@ -15,6 +15,7 @@ import { AdminLayout, ConsultorLayout, EmpresaLayout, CanalLayout } from "./comp
 import CanalDashboard from "./pages/canal/CanalDashboard";
 import CanalConsultores from "./pages/canal/CanalConsultores";
 import CanalProjetos from "./pages/canal/CanalProjetos";
+import CanalDemandaDetalhe from "./pages/canal/CanalDemandaDetalhe";
 import CanalAprovacoes from "./pages/canal/CanalAprovacoes";
 import CanalConfiguracoes from "./pages/canal/CanalConfiguracoes";
 import AdminDashboard from "./pages/admin/AdminDashboard";
