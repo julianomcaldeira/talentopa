@@ -63,6 +63,8 @@ const EmpresaProjetos = () => {
   const [loading, setLoading] = useState(true);
   const [selectedProjeto, setSelectedProjeto] = useState<any>(null);
   const [propostas, setPropostas] = useState<any[]>([]);
+  const [respostasParceiros, setRespostasParceiros] = useState<any[]>([]);
+  const [expandedRespostas, setExpandedRespostas] = useState<Record<string, boolean>>({});
   const [visualizacoesHistorico, setVisualizacoesHistorico] = useState<any[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [chatProjeto, setChatProjeto] = useState<any>(null);
