@@ -176,12 +176,22 @@ const CanalProjetos = () => {
       }
     }
 
-    const [enrCanal, enrCons] = await Promise.all([
+    // 3) Demandas da plataforma (roteamento v2, abertas)
+    const { data: demandas } = await supabase
+      .from("projetos")
+      .select("id, nome, status, valor_estimado, prazo_estimado, created_at, empresa_user_id")
+      .eq("roteamento_v2", true)
+      .in("status", ["publicado", "em_selecao"])
+      .order("created_at", { ascending: false });
+
+    const [enrCanal, enrCons, enrDem] = await Promise.all([
       enrichProjetos((criados as any[]) || []),
       enrichProjetos(projetosDosConsultores),
+      enrichProjetos((demandas as any[]) || []),
     ]);
     setProjetosCanal(enrCanal);
     setProjetosConsultores(enrCons);
+    setDemandasPlataforma(enrDem);
   };
 
   useEffect(() => {
