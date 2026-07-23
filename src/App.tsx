@@ -53,6 +53,7 @@ import AdminPerfil from "./pages/admin/AdminPerfil";
 import ConsultorRelatorios from "./pages/consultor/ConsultorRelatorios";
 import ConsultorConvitesCanal from "./pages/consultor/ConsultorConvitesCanal";
 import ConsultorAgenda from "./pages/consultor/ConsultorAgenda";
+import ConsultorMinhasIndicacoes from "./pages/consultor/ConsultorMinhasIndicacoes";
 import EmpresaRelatorios from "./pages/empresa/EmpresaRelatorios";
 import ProjetoGestao from "./pages/projetos/ProjetoGestao";
 import GestaoProjetos from "./pages/projetos/GestaoProjetos";
@@ -121,6 +122,7 @@ const App = () => (
               <Route index element={<ConsultorDashboard />} />
               <Route path="projetos" element={<ConsultorProjetos />} />
               <Route path="minhas-propostas" element={<ConsultorMinhasPropostas />} />
+              <Route path="minhas-indicacoes" element={<ConsultorMinhasIndicacoes />} />
               <Route path="convites-canal" element={<ConsultorConvitesCanal />} />
               <Route path="agenda" element={<ConsultorAgenda />} />
               <Route path="perfil" element={<ConsultorPerfil />} />

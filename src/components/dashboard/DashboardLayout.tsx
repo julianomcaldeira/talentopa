@@ -1,11 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation, Outlet, useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   LayoutDashboard, Server, Puzzle, Cog, FileText, Users, Building2,
   FolderKanban, DollarSign, LogOut, Menu, X, ChevronRight, Search, 
-  Star, Settings, BarChart3, BookOpen, Brain, Sparkles, MessageSquare, Trophy, Bot, FileSpreadsheet, SlidersHorizontal, Activity, ScrollText, Briefcase, Workflow, ShieldAlert, ShieldCheck, UserCog, Mail, CalendarDays, Network, ListChecks, Shield
+  Star, Settings, BarChart3, BookOpen, Brain, Sparkles, MessageSquare, Trophy, Bot, FileSpreadsheet, SlidersHorizontal, Activity, ScrollText, Briefcase, Workflow, ShieldAlert, ShieldCheck, UserCog, Mail, CalendarDays, Network, ListChecks, Shield, Handshake
 } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
 import NotificationBell from "@/components/notifications/NotificationBell";
 import workzLogoWhite from "@/assets/workz-logo-white.png";
@@ -207,7 +208,28 @@ const consultorLinks = [
   { to: "/consultor/relatorios", icon: FileSpreadsheet, label: "Relatórios" },
 ];
 
-export const ConsultorLayout = () => <DashboardLayout links={consultorLinks} title="Consultor" />;
+export const ConsultorLayout = () => {
+  const { user } = useAuth();
+  const [temVinculo, setTemVinculo] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      const { data } = await (supabase as any).rpc("consultor_tem_vinculo_ativo", { p_consultor: user.id });
+      setTemVinculo(!!data);
+    })();
+  }, [user]);
+
+  const links = temVinculo
+    ? [
+        ...consultorLinks.slice(0, 3),
+        { to: "/consultor/minhas-indicacoes", icon: Handshake, label: "Minhas Indicações" },
+        ...consultorLinks.slice(3),
+      ]
+    : consultorLinks;
+
+  return <DashboardLayout links={links} title="Consultor" />;
+};
 
 const empresaLinks = [
   { to: "/empresa", icon: LayoutDashboard, label: "Dashboard" },

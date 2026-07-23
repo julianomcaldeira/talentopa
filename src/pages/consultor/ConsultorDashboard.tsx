@@ -82,6 +82,8 @@ const ConsultorDashboard = () => {
   const [agenda, setAgenda] = useState<any[]>([]);
   const [valorHora, setValorHora] = useState<number>(60);
   const [loading, setLoading] = useState(true);
+  const [canalVinculo, setCanalVinculo] = useState<{ id: string; nome: string } | null>(null);
+  const [indicacoesAtivas, setIndicacoesAtivas] = useState<number>(0);
 
   useEffect(() => {
     if (!user) return;
@@ -119,6 +121,20 @@ const ConsultorDashboard = () => {
         if (valores.length > 0) {
           setValorHora(valores.reduce((a: number, b: number) => a + b, 0) / valores.length);
         }
+      }
+      // vínculo com canal + total de indicações ativas
+      const { data: canalId } = await (supabase as any).rpc("consultor_tem_vinculo_ativo", { p_consultor: user.id });
+      if (canalId) {
+        const [canalRes, indRes] = await Promise.all([
+          supabase.from("canais").select("id, nome").eq("id", canalId).maybeSingle(),
+          (supabase as any)
+            .from("parceiro_indicacoes")
+            .select("id", { count: "exact", head: true })
+            .eq("consultor_user_id", user.id)
+            .in("status", ["indicado", "selecionado"]),
+        ]);
+        if (canalRes.data) setCanalVinculo({ id: canalRes.data.id, nome: canalRes.data.nome });
+        setIndicacoesAtivas(indRes.count ?? 0);
       }
       setLoading(false);
     };
@@ -243,6 +259,34 @@ const ConsultorDashboard = () => {
           </div>
         </div>
       </motion.div>
+
+      {/* ===== INDICAÇÕES DO PARCEIRO ===== */}
+      {canalVinculo && (
+        <motion.div custom={0.5} variants={fadeUp} initial="hidden" animate="visible">
+          <Link
+            to="/consultor/minhas-indicacoes"
+            className="group flex items-center justify-between gap-4 rounded-2xl border border-border/60 bg-card p-5 shadow-card hover:border-primary/40 hover:shadow-md transition"
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                <Briefcase size={20} className="text-primary" />
+              </div>
+              <div>
+                <p className="text-[11px] uppercase tracking-[0.12em] text-muted-foreground font-semibold">
+                  Indicações do parceiro
+                </p>
+                <p className="text-sm text-foreground mt-0.5">
+                  <span className="text-2xl font-display font-bold tracking-tight text-primary mr-2">
+                    {indicacoesAtivas}
+                  </span>
+                  indicação(ões) ativa(s) via <span className="font-medium">{canalVinculo.nome}</span>
+                </p>
+              </div>
+            </div>
+            <ChevronRight size={18} className="text-muted-foreground group-hover:text-primary transition" />
+          </Link>
+        </motion.div>
+      )}
 
       {/* ===== DISPONIBILIDADE — MÊS VIGENTE ===== */}
       <motion.section custom={1} variants={fadeUp} initial="hidden" animate="visible" className="space-y-3">
