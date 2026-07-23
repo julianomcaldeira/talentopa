@@ -421,6 +421,64 @@ export type Database = {
         }
         Relationships: []
       }
+      consultor_agenda_dias: {
+        Row: {
+          canal_id: string
+          consultor_user_id: string
+          created_at: string
+          dia: string
+          estado: string
+          id: string
+          jornada_horas: number
+          projeto_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          canal_id: string
+          consultor_user_id: string
+          created_at?: string
+          dia: string
+          estado: string
+          id?: string
+          jornada_horas?: number
+          projeto_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          canal_id?: string
+          consultor_user_id?: string
+          created_at?: string
+          dia?: string
+          estado?: string
+          id?: string
+          jornada_horas?: number
+          projeto_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "consultor_agenda_dias_canal_id_fkey"
+            columns: ["canal_id"]
+            isOneToOne: false
+            referencedRelation: "canais"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "consultor_agenda_dias_canal_id_fkey"
+            columns: ["canal_id"]
+            isOneToOne: false
+            referencedRelation: "canais_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "consultor_agenda_dias_projeto_id_fkey"
+            columns: ["projeto_id"]
+            isOneToOne: false
+            referencedRelation: "projetos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       consultor_assinatura: {
         Row: {
           created_at: string
@@ -526,7 +584,9 @@ export type Database = {
           bio_profissional: string | null
           created_at: string
           curriculo_url: string | null
+          dias_semana_disponiveis: number[] | null
           id: string
+          jornada_diaria_horas: number | null
           linkedin: string | null
           updated_at: string
           user_id: string
@@ -535,7 +595,9 @@ export type Database = {
           bio_profissional?: string | null
           created_at?: string
           curriculo_url?: string | null
+          dias_semana_disponiveis?: number[] | null
           id?: string
+          jornada_diaria_horas?: number | null
           linkedin?: string | null
           updated_at?: string
           user_id: string
@@ -544,7 +606,9 @@ export type Database = {
           bio_profissional?: string | null
           created_at?: string
           curriculo_url?: string | null
+          dias_semana_disponiveis?: number[] | null
           id?: string
+          jornada_diaria_horas?: number | null
           linkedin?: string | null
           updated_at?: string
           user_id?: string
@@ -983,6 +1047,116 @@ export type Database = {
             columns: ["proposta_id"]
             isOneToOne: false
             referencedRelation: "propostas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      parceiro_indicacoes: {
+        Row: {
+          canal_id: string
+          consultor_user_id: string
+          created_at: string
+          id: string
+          observacao: string | null
+          resposta_id: string
+          status: string
+          valor_proposto: number | null
+        }
+        Insert: {
+          canal_id: string
+          consultor_user_id: string
+          created_at?: string
+          id?: string
+          observacao?: string | null
+          resposta_id: string
+          status?: string
+          valor_proposto?: number | null
+        }
+        Update: {
+          canal_id?: string
+          consultor_user_id?: string
+          created_at?: string
+          id?: string
+          observacao?: string | null
+          resposta_id?: string
+          status?: string
+          valor_proposto?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "parceiro_indicacoes_canal_id_fkey"
+            columns: ["canal_id"]
+            isOneToOne: false
+            referencedRelation: "canais"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "parceiro_indicacoes_canal_id_fkey"
+            columns: ["canal_id"]
+            isOneToOne: false
+            referencedRelation: "canais_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "parceiro_indicacoes_resposta_id_fkey"
+            columns: ["resposta_id"]
+            isOneToOne: false
+            referencedRelation: "parceiro_respostas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      parceiro_respostas: {
+        Row: {
+          canal_id: string
+          comentarios: string | null
+          created_at: string
+          id: string
+          projeto_id: string
+          respondido_por: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          canal_id: string
+          comentarios?: string | null
+          created_at?: string
+          id?: string
+          projeto_id: string
+          respondido_por?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          canal_id?: string
+          comentarios?: string | null
+          created_at?: string
+          id?: string
+          projeto_id?: string
+          respondido_por?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "parceiro_respostas_canal_id_fkey"
+            columns: ["canal_id"]
+            isOneToOne: false
+            referencedRelation: "canais"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "parceiro_respostas_canal_id_fkey"
+            columns: ["canal_id"]
+            isOneToOne: false
+            referencedRelation: "canais_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "parceiro_respostas_projeto_id_fkey"
+            columns: ["projeto_id"]
+            isOneToOne: false
+            referencedRelation: "projetos"
             referencedColumns: ["id"]
           },
         ]
@@ -1802,6 +1976,7 @@ export type Database = {
           prazo_propostas: string | null
           problema_atual: string | null
           protocolo: string | null
+          roteamento_v2: boolean
           software_id: string | null
           status: Database["public"]["Enums"]["status_projeto"]
           template_id: string | null
@@ -1829,6 +2004,7 @@ export type Database = {
           prazo_propostas?: string | null
           problema_atual?: string | null
           protocolo?: string | null
+          roteamento_v2?: boolean
           software_id?: string | null
           status?: Database["public"]["Enums"]["status_projeto"]
           template_id?: string | null
@@ -1856,6 +2032,7 @@ export type Database = {
           prazo_propostas?: string | null
           problema_atual?: string | null
           protocolo?: string | null
+          roteamento_v2?: boolean
           software_id?: string | null
           status?: Database["public"]["Enums"]["status_projeto"]
           template_id?: string | null
@@ -2326,6 +2503,10 @@ export type Database = {
       consultor_recusar_inicio: {
         Args: { p_proposta_id: string }
         Returns: Json
+      }
+      consultor_tem_vinculo_ativo: {
+        Args: { p_consultor: string }
+        Returns: string
       }
       coordenador_co_validar_fase: {
         Args: { p_fase_id: string }
