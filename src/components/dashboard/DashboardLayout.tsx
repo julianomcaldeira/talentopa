@@ -208,7 +208,28 @@ const consultorLinks = [
   { to: "/consultor/relatorios", icon: FileSpreadsheet, label: "Relatórios" },
 ];
 
-export const ConsultorLayout = () => <DashboardLayout links={consultorLinks} title="Consultor" />;
+export const ConsultorLayout = () => {
+  const { user } = useAuth();
+  const [temVinculo, setTemVinculo] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      const { data } = await (supabase as any).rpc("consultor_tem_vinculo_ativo", { p_consultor: user.id });
+      setTemVinculo(!!data);
+    })();
+  }, [user]);
+
+  const links = temVinculo
+    ? [
+        ...consultorLinks.slice(0, 3),
+        { to: "/consultor/minhas-indicacoes", icon: Handshake, label: "Minhas Indicações" },
+        ...consultorLinks.slice(3),
+      ]
+    : consultorLinks;
+
+  return <DashboardLayout links={links} title="Consultor" />;
+};
 
 const empresaLinks = [
   { to: "/empresa", icon: LayoutDashboard, label: "Dashboard" },
