@@ -36,8 +36,11 @@ interface Projeto {
   valor_estimado: number | null;
   prazo_estimado: string | null;
   created_at: string;
+  software_id?: string | null;
   consultor_nome?: string | null;
   empresa_nome?: string | null;
+  elegiveis_count?: number;
+  elegiveis_nomes?: string[];
 }
 
 interface EmpresaOption {
@@ -180,7 +183,7 @@ const CanalProjetos = () => {
     // 3) Demandas da plataforma (roteamento v2, abertas)
     const { data: demandas } = await supabase
       .from("projetos")
-      .select("id, nome, status, valor_estimado, prazo_estimado, created_at, empresa_user_id")
+      .select("id, nome, status, valor_estimado, prazo_estimado, created_at, empresa_user_id, software_id")
       .eq("roteamento_v2", true)
       .in("status", ["publicado", "em_selecao"])
       .order("created_at", { ascending: false });
@@ -190,6 +193,39 @@ const CanalProjetos = () => {
       enrichProjetos(projetosDosConsultores),
       enrichProjetos((demandas as any[]) || []),
     ]);
+
+    // Anota consultores elegíveis do canal para cada demanda (CA-01/CA-03)
+    if (enrDem.length && consultorIds.length) {
+      const softwareIds = Array.from(
+        new Set(enrDem.map((d) => d.software_id).filter(Boolean) as string[])
+      );
+      if (softwareIds.length) {
+        const { data: habs } = await supabase
+          .from("consultor_habilidades")
+          .select("user_id, software_id")
+          .in("user_id", consultorIds)
+          .in("software_id", softwareIds);
+        const { data: profs } = await supabase
+          .from("profiles")
+          .select("user_id, nome")
+          .in("user_id", consultorIds);
+        const nomeMap = new Map<string, string>(
+          ((profs as any[]) || []).map((p) => [p.user_id, p.nome as string])
+        );
+        const bySoftware = new Map<string, Set<string>>();
+        ((habs as any[]) || []).forEach((h) => {
+          if (!bySoftware.has(h.software_id)) bySoftware.set(h.software_id, new Set());
+          bySoftware.get(h.software_id)!.add(h.user_id);
+        });
+        enrDem.forEach((d) => {
+          const set = d.software_id ? bySoftware.get(d.software_id) : null;
+          const ids = set ? Array.from(set) : [];
+          d.elegiveis_count = ids.length;
+          d.elegiveis_nomes = ids.map((id) => nomeMap.get(id) || "Consultor");
+        });
+      }
+    }
+
     setProjetosCanal(enrCanal);
     setProjetosConsultores(enrCons);
     setDemandasPlataforma(enrDem);
@@ -491,8 +527,33 @@ const CanalProjetos = () => {
                           ? `R$ ${Number(p.valor_estimado).toLocaleString("pt-BR")}`
                           : "Sem valor"}
                       </p>
+                      {typeof p.elegiveis_count === "number" && p.elegiveis_count > 0 && (
+                        <p
+                          className="text-xs text-primary mt-1 truncate"
+                          title={p.elegiveis_nomes?.join(", ")}
+                        >
+                          <User className="inline h-3 w-3 mr-1" />
+                          {p.elegiveis_count} do seu quadro{" "}
+                          {p.elegiveis_count === 1 ? "elegível" : "elegíveis"}
+                          {p.elegiveis_nomes && p.elegiveis_nomes.length > 0
+                            ? `: ${p.elegiveis_nomes.slice(0, 3).join(", ")}${
+                                p.elegiveis_nomes.length > 3
+                                  ? ` +${p.elegiveis_nomes.length - 3}`
+                                  : ""
+                              }`
+                            : ""}
+                        </p>
+                      )}
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
+                      {typeof p.elegiveis_count === "number" && (
+                        <Badge
+                          variant={p.elegiveis_count > 0 ? "default" : "secondary"}
+                          className="text-[11px]"
+                        >
+                          {p.elegiveis_count} elegíveis
+                        </Badge>
+                      )}
                       <Badge variant="outline" className="capitalize">
                         {p.status?.replace(/_/g, " ")}
                       </Badge>
