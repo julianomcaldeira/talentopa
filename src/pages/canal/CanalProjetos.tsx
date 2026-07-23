@@ -271,6 +271,7 @@ const CanalProjetos = () => {
           valor_estimado: valorNum,
           prazo_estimado: form.prazo || null,
           status: "rascunho",
+          roteamento_v2: true,
         })
         .select("id")
         .single();
