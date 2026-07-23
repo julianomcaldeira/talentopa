@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { DataCard, LoadingState, EmptyState } from "@/components/dashboard/DashboardComponents";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -8,24 +7,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import { useScoreConfig } from "@/hooks/useScoreConfig";
 import { ConsultorDetailDialog } from "./ConsultorDetailDialog";
-
-interface ConsultorMatch {
-  user_id: string;
-  nome: string;
-  cidade: string | null;
-  estado: string | null;
-  avatar_url: string | null;
-  bio_profissional: string | null;
-  linkedin: string | null;
-  score: number;
-  matchDetails: {
-    softwareMatch: boolean;
-    modulosMatch: number;
-    funcsMatch: number;
-    nivel: string;
-    valor_hora: number | null;
-  };
-}
+import {
+  computeConsultorMatches,
+  fetchConsultoresComVinculoAtivo,
+  NIVEL_LABEL,
+  type ConsultorMatch,
+} from "@/lib/matchScore";
 
 interface Props {
   projetoId: string;
