@@ -479,11 +479,15 @@ const ConsultorAgenda = () => {
                     agendado: diasComEventos.agendado,
                     bloqueado: diasComEventos.bloqueado,
                     vago: diasComEventos.vago,
+                    parceiroAlocado: parceiroDias.filter((d) => d.estado === "alocado").map((d) => parseISO(`${d.dia}T00:00:00`)),
+                    parceiroBloqueado: parceiroDias.filter((d) => d.estado === "bloqueado").map((d) => parseISO(`${d.dia}T00:00:00`)),
                   }}
                   modifiersClassNames={{
                     agendado: "relative after:content-[''] after:absolute after:bottom-1 after:left-1/2 after:-translate-x-1/2 after:h-1 after:w-1 after:rounded-full after:bg-primary",
                     bloqueado: "relative after:content-[''] after:absolute after:bottom-1 after:left-1/2 after:-translate-x-1/2 after:h-1 after:w-1 after:rounded-full after:bg-destructive",
                     vago: "relative after:content-[''] after:absolute after:bottom-1 after:left-1/2 after:-translate-x-1/2 after:h-1 after:w-1 after:rounded-full after:bg-emerald-500",
+                    parceiroAlocado: "ring-1 ring-primary/60 bg-primary/10",
+                    parceiroBloqueado: "ring-1 ring-destructive/60 bg-destructive/10",
                   }}
                   components={{
                     DayContent: ({ date }: { date: Date }) => {
