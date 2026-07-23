@@ -210,6 +210,14 @@ export const ConsultorMatchList = ({ projetoId, projetoNome, softwareId, onInvit
         )}
       </AnimatePresence>
 
+      {!loading && expanded && (
+        <p className="mt-3 text-[11px] text-muted-foreground italic">
+          Consultores vinculados a parceiros são avaliados e indicados diretamente pelos respectivos parceiros.
+        </p>
+      )}
+
+
+
       <ConsultorDetailDialog
         open={detailOpen}
         onOpenChange={setDetailOpen}
