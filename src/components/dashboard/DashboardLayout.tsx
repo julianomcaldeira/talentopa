@@ -7,7 +7,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import NotificationBell from "@/components/notifications/NotificationBell";
 import workzLogoWhite from "@/assets/workz-logo-white.png";
 import {
-  Command,
   CommandDialog,
   CommandEmpty,
   CommandGroup,
