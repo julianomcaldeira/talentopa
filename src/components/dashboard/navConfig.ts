@@ -1,12 +1,13 @@
+import type { ElementType } from "react";
 import {
   LayoutDashboard, Server, FileText, Users, Building2,
-  FolderKanban, DollarSign, Star, Settings, BookOpen,
+  FolderKanban, DollarSign, Star, Settings,
   MessageSquare, Trophy, Bot, FileSpreadsheet, SlidersHorizontal, Activity,
   ScrollText, Briefcase, Workflow, ShieldAlert, ShieldCheck, UserCog, Mail,
   CalendarDays, Network, ListChecks, Handshake,
 } from "lucide-react";
 
-export type NavLinkItem = { to: string; icon: React.ElementType; label: string };
+export type NavLinkItem = { to: string; icon: ElementType; label: string };
 export type NavGroup = { label: string; items: NavLinkItem[] };
 
 export const adminGroups: NavGroup[] = [
@@ -137,5 +138,3 @@ export const canalGroups: NavGroup[] = [
     items: [{ to: "/canal/configuracoes", icon: Settings, label: "Configurações" }],
   },
 ];
-
-export const unusedIcons = { BookOpen };
