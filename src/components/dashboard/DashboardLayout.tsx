@@ -1,29 +1,75 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Link, useLocation, Outlet, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import {
-  LayoutDashboard, Server, Puzzle, Cog, FileText, Users, Building2,
-  FolderKanban, DollarSign, LogOut, Menu, X, ChevronRight, Search, 
-  Star, Settings, BarChart3, BookOpen, Brain, Sparkles, MessageSquare, Trophy, Bot, FileSpreadsheet, SlidersHorizontal, Activity, ScrollText, Briefcase, Workflow, ShieldAlert, ShieldCheck, UserCog, Mail, CalendarDays, Network, ListChecks, Shield, Handshake
-} from "lucide-react";
+import { LogOut, Menu, X, Search, PanelLeftClose, PanelLeftOpen, UserCog } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import NotificationBell from "@/components/notifications/NotificationBell";
 import workzLogoWhite from "@/assets/workz-logo-white.png";
+import {
+  CommandDialog,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  NavGroup,
+  adminGroups,
+  canalGroups,
+  consultorGroups,
+  empresaGroups,
+} from "./navConfig";
+
+const COLLAPSE_KEY = "workz.sidebar.collapsed";
 
 const DashboardLayout = ({
-  links,
+  groups,
   title,
-  accent,
+  profileTo,
 }: {
-  links: { to: string; icon: React.ElementType; label: string }[];
+  groups: NavGroup[];
   title: string;
-  accent?: string;
+  profileTo?: string;
 }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(
+    () => typeof window !== "undefined" && localStorage.getItem(COLLAPSE_KEY) === "1"
+  );
+  const [cmdOpen, setCmdOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { profile, role, signOut } = useAuth();
+
+  useEffect(() => {
+    localStorage.setItem(COLLAPSE_KEY, collapsed ? "1" : "0");
+  }, [collapsed]);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        setCmdOpen((v) => !v);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  const allItems = useMemo(() => groups.flatMap((g) => g.items.map((i) => ({ ...i, group: g.label }))), [groups]);
+
+  const current = allItems.find((i) => i.to === location.pathname);
+  const currentGroup = current?.group;
 
   const handleSignOut = async () => {
     await signOut();
@@ -31,182 +77,227 @@ const DashboardLayout = ({
   };
 
   const initials = profile?.nome
-    ? profile.nome.split(" ").map(n => n[0]).slice(0, 2).join("").toUpperCase()
+    ? profile.nome.split(" ").map((n) => n[0]).slice(0, 2).join("").toUpperCase()
     : "U";
 
-  return (
-    <div className="min-h-screen flex bg-background">
-      {/* Sidebar */}
-      <aside
-        className={`fixed inset-y-0 left-0 z-50 w-[260px] sidebar-gradient text-sidebar-foreground flex flex-col transform transition-transform duration-300 ease-out lg:translate-x-0 lg:static ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
-      >
-        {/* Logo */}
-        <div className="flex items-center gap-3 h-[72px] px-5 border-b border-sidebar-border/50">
-          <Link to="/" className="flex-1 min-w-0 flex items-center" aria-label="Workz">
-            <img src={workzLogoWhite} alt="Workz" className="h-6 w-auto select-none" draggable={false} />
-            <span className="ml-3 text-[11px] text-sidebar-foreground/50 capitalize truncate border-l border-sidebar-border/60 pl-3">{title}</span>
-          </Link>
-          <button className="lg:hidden text-sidebar-foreground/60 hover:text-sidebar-foreground" onClick={() => setSidebarOpen(false)}>
-            <X size={18} />
-          </button>
-        </div>
+  const width = collapsed ? "lg:w-[76px]" : "lg:w-[248px]";
 
-        {/* Nav */}
-        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto custom-scrollbar">
-          <p className="text-[10px] uppercase tracking-[0.12em] text-sidebar-foreground/40 font-semibold px-3 mb-2">
-            Menu principal
-          </p>
-          {links.map((link) => {
-            const isActive = location.pathname === link.to;
-            return (
-              <Link
-                key={link.to}
-                to={link.to}
-                className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] transition-all duration-200 relative ${
-                  isActive
-                    ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium shadow-sm"
-                    : "text-sidebar-foreground/60 hover:bg-sidebar-accent/40 hover:text-sidebar-foreground"
-                }`}
-                onClick={() => setSidebarOpen(false)}
-              >
-                {isActive && (
-                  <motion.div
-                    layoutId="activeNav"
-                    className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-full bg-primary"
-                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                  />
-                )}
-                <link.icon size={18} className={isActive ? "text-primary" : "text-sidebar-foreground/40 group-hover:text-sidebar-foreground/60"} />
-                <span>{link.label}</span>
-                {isActive && <ChevronRight size={14} className="ml-auto text-sidebar-foreground/30" />}
-              </Link>
-            );
-          })}
-          <div className="mt-2 pt-2 border-t border-sidebar-border/50">
+  return (
+    <TooltipProvider delayDuration={200}>
+      <div className="min-h-screen flex bg-background">
+        {/* Sidebar */}
+        <aside
+          className={`fixed inset-y-0 left-0 z-50 w-[248px] ${width} sidebar-gradient text-sidebar-foreground flex flex-col transform transition-all duration-200 ease-out lg:translate-x-0 lg:static ${
+            sidebarOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
+        >
+          {/* Logo */}
+          <div className={`flex items-center h-16 border-b border-sidebar-border/50 ${collapsed ? "lg:justify-center lg:px-0" : ""} gap-3 px-4`}>
+            <Link to="/" className="flex-1 min-w-0 flex items-center lg:flex-none" aria-label="Workz">
+              <img src={workzLogoWhite} alt="Workz" className={`w-auto select-none ${collapsed ? "h-5" : "h-5"}`} draggable={false} />
+            </Link>
+            {!collapsed && (
+              <span className="hidden lg:inline text-[10px] uppercase tracking-wider text-sidebar-foreground/45 truncate">
+                {title}
+              </span>
+            )}
             <button
-              onClick={handleSignOut}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] text-sidebar-foreground/50 hover:bg-sidebar-accent/30 hover:text-sidebar-foreground transition-all w-full"
+              className="lg:hidden text-sidebar-foreground/60 hover:text-sidebar-foreground"
+              onClick={() => setSidebarOpen(false)}
+              aria-label="Fechar menu"
             >
-              <LogOut size={16} />
-              Sair da conta
+              <X size={18} />
             </button>
           </div>
-        </nav>
 
-        {/* User section */}
-        <div className="p-3 border-t border-sidebar-border/50">
-          <div className="flex items-center gap-3 px-3 py-3 rounded-xl bg-sidebar-accent/30">
-            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary/80 to-accent/80 flex items-center justify-center text-primary-foreground font-semibold text-xs shadow-md">
-              {initials}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-sidebar-accent-foreground truncate">{profile?.nome || "Usuário"}</p>
-              <p className="text-[11px] text-sidebar-foreground/40 truncate capitalize">{role || ""}</p>
-            </div>
+          {/* Nav */}
+          <nav className="flex-1 px-2.5 py-3 space-y-4 overflow-y-auto custom-scrollbar">
+            {groups.map((group) => (
+              <div key={group.label} className="space-y-0.5">
+                {!collapsed && (
+                  <p className="text-[10px] uppercase tracking-[0.12em] text-sidebar-foreground/35 font-semibold px-2.5 mb-1.5">
+                    {group.label}
+                  </p>
+                )}
+                {collapsed && <div className="h-px bg-sidebar-border/40 mx-2 my-2" />}
+                {group.items.map((link) => {
+                  const isActive = location.pathname === link.to;
+                  const content = (
+                    <Link
+                      key={link.to}
+                      to={link.to}
+                      className={`group relative flex items-center gap-3 rounded-lg text-[13px] transition-colors duration-150 ${
+                        collapsed ? "lg:justify-center lg:px-0 px-2.5" : "px-2.5"
+                      } py-2 ${
+                        isActive
+                          ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
+                          : "text-sidebar-foreground/60 hover:bg-sidebar-accent/40 hover:text-sidebar-foreground"
+                      }`}
+                      onClick={() => setSidebarOpen(false)}
+                    >
+                      {isActive && (
+                        <motion.span
+                          layoutId="activeNav"
+                          className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 rounded-full bg-primary"
+                          transition={{ type: "spring", stiffness: 400, damping: 32 }}
+                        />
+                      )}
+                      <link.icon
+                        size={17}
+                        className={isActive ? "text-primary shrink-0" : "text-sidebar-foreground/45 group-hover:text-sidebar-foreground/70 shrink-0"}
+                      />
+                      <span className={collapsed ? "lg:hidden" : ""}>{link.label}</span>
+                    </Link>
+                  );
+                  return collapsed ? (
+                    <Tooltip key={link.to}>
+                      <TooltipTrigger asChild>{content}</TooltipTrigger>
+                      <TooltipContent side="right">{link.label}</TooltipContent>
+                    </Tooltip>
+                  ) : (
+                    content
+                  );
+                })}
+              </div>
+            ))}
+          </nav>
+
+          {/* Footer: collapse toggle */}
+          <div className="hidden lg:flex items-center border-t border-sidebar-border/50 p-2">
+            <button
+              onClick={() => setCollapsed((v) => !v)}
+              className="flex items-center gap-2 w-full px-2.5 py-2 rounded-lg text-[12px] text-sidebar-foreground/50 hover:bg-sidebar-accent/40 hover:text-sidebar-foreground transition-colors"
+              aria-label={collapsed ? "Expandir menu" : "Recolher menu"}
+            >
+              {collapsed ? <PanelLeftOpen size={16} className="mx-auto" /> : <><PanelLeftClose size={16} /> Recolher menu</>}
+            </button>
           </div>
-        </div>
-      </aside>
+        </aside>
 
-      {/* Backdrop */}
-      <AnimatePresence>
-        {sidebarOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-40 bg-foreground/30 backdrop-blur-sm lg:hidden"
-            onClick={() => setSidebarOpen(false)}
-          />
-        )}
-      </AnimatePresence>
+        {/* Backdrop */}
+        <AnimatePresence>
+          {sidebarOpen && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-40 bg-foreground/30 backdrop-blur-sm lg:hidden"
+              onClick={() => setSidebarOpen(false)}
+            />
+          )}
+        </AnimatePresence>
 
-      {/* Main content */}
-      <div className="flex-1 flex flex-col min-h-screen min-w-0">
-        {/* Top bar */}
-        <header className="h-[72px] border-b border-border bg-card/80 backdrop-blur-xl flex items-center px-4 md:px-6 gap-4 sticky top-0 z-30">
-          <button className="lg:hidden text-foreground/60 hover:text-foreground p-2 rounded-xl hover:bg-muted transition-colors" onClick={() => setSidebarOpen(true)}>
-            <Menu size={20} />
-          </button>
+        {/* Main content */}
+        <div className="flex-1 flex flex-col min-h-screen min-w-0">
+          <header className="h-16 border-b border-border bg-card/85 backdrop-blur-xl flex items-center px-4 md:px-6 gap-3 sticky top-0 z-30">
+            <button
+              className="lg:hidden text-foreground/60 hover:text-foreground p-2 -ml-2 rounded-lg hover:bg-muted transition-colors"
+              onClick={() => setSidebarOpen(true)}
+              aria-label="Abrir menu"
+            >
+              <Menu size={20} />
+            </button>
 
-          {/* Search bar */}
-          <div className="hidden md:flex items-center flex-1 max-w-md">
-            <div className="relative w-full">
-              <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/60" />
-              <input
-                type="text"
-                placeholder="Buscar..."
-                className="w-full h-10 pl-10 pr-4 rounded-xl bg-muted/60 border-0 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
-              />
-            </div>
-          </div>
+            {/* Breadcrumb contextual */}
+            <nav aria-label="Trilha de navegação" className="hidden sm:flex items-center gap-1.5 text-sm min-w-0">
+              <span className="text-muted-foreground">{title}</span>
+              {currentGroup && (
+                <>
+                  <span className="text-muted-foreground/40">/</span>
+                  <span className="text-muted-foreground">{currentGroup}</span>
+                </>
+              )}
+              {current && (
+                <>
+                  <span className="text-muted-foreground/40">/</span>
+                  <span className="font-medium text-foreground truncate">{current.label}</span>
+                </>
+              )}
+            </nav>
 
-          <div className="flex-1 md:hidden" />
+            <div className="flex-1" />
 
-          {/* Right side */}
-          <div className="flex items-center gap-2">
+            {/* Busca / atalho de navegação */}
+            <button
+              onClick={() => setCmdOpen(true)}
+              className="flex items-center gap-2 h-9 pl-3 pr-2 rounded-lg bg-muted/60 hover:bg-muted text-muted-foreground text-sm transition-colors"
+            >
+              <Search size={15} />
+              <span className="hidden md:inline">Ir para…</span>
+              <kbd className="hidden md:inline text-[10px] font-medium px-1.5 py-0.5 rounded bg-background border border-border">
+                ⌘K
+              </kbd>
+            </button>
+
             <NotificationBell />
-            <div className="hidden sm:flex items-center gap-3 pl-3 ml-1 border-l border-border">
-              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary/80 to-accent/80 flex items-center justify-center text-primary-foreground font-semibold text-xs shadow-md">
-                {initials}
-              </div>
-              <div className="hidden lg:block">
-                <p className="text-sm font-medium text-foreground leading-tight">{profile?.nome || "Usuário"}</p>
-                <p className="text-[11px] text-muted-foreground capitalize">{role}</p>
-              </div>
-            </div>
-          </div>
-        </header>
 
-        {/* Page content */}
-        <main className="flex-1 p-4 md:p-6 lg:p-8 overflow-auto">
-          <div className="page-enter">
-            <Outlet />
-          </div>
-        </main>
+            <DropdownMenu>
+              <DropdownMenuTrigger className="flex items-center gap-2 rounded-lg pl-1 pr-1.5 py-1 hover:bg-muted transition-colors">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary/80 to-accent/80 flex items-center justify-center text-primary-foreground font-semibold text-[11px]">
+                  {initials}
+                </div>
+                <div className="hidden lg:block text-left">
+                  <p className="text-[13px] font-medium text-foreground leading-tight">{profile?.nome || "Usuário"}</p>
+                  <p className="text-[11px] text-muted-foreground capitalize leading-tight">{role}</p>
+                </div>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel className="font-normal">
+                  <p className="text-sm font-medium truncate">{profile?.nome || "Usuário"}</p>
+                  <p className="text-xs text-muted-foreground capitalize">{role}</p>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {profileTo && (
+                  <DropdownMenuItem onClick={() => navigate(profileTo)}>
+                    <UserCog className="h-4 w-4 mr-2" /> Meu perfil
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuItem onClick={handleSignOut}>
+                  <LogOut className="h-4 w-4 mr-2" /> Sair da conta
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </header>
+
+          <main className="flex-1 p-4 md:p-6 lg:p-8 overflow-auto">
+            <div className="page-enter mx-auto w-full max-w-[1400px]">
+              <Outlet />
+            </div>
+          </main>
+        </div>
+
+        {/* Command palette */}
+        <CommandDialog open={cmdOpen} onOpenChange={setCmdOpen}>
+          <CommandInput placeholder="Buscar telas do sistema…" />
+          <CommandList>
+            <CommandEmpty>Nada encontrado.</CommandEmpty>
+            {groups.map((g) => (
+              <CommandGroup key={g.label} heading={g.label}>
+                {g.items.map((item) => (
+                  <CommandItem
+                    key={item.to}
+                    value={`${g.label} ${item.label}`}
+                    onSelect={() => {
+                      setCmdOpen(false);
+                      navigate(item.to);
+                    }}
+                  >
+                    <item.icon className="h-4 w-4 mr-2 text-muted-foreground" />
+                    {item.label}
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            ))}
+          </CommandList>
+        </CommandDialog>
       </div>
-    </div>
+    </TooltipProvider>
   );
 };
 
-const adminLinks = [
-  { to: "/admin", icon: LayoutDashboard, label: "Dashboard" },
-  { to: "/admin/projetos", icon: FolderKanban, label: "Projetos" },
-  { to: "/admin/estados-projeto", icon: Workflow, label: "Estados do Projeto" },
-  { to: "/admin/consultores", icon: Users, label: "Consultores" },
-  { to: "/admin/canais", icon: Network, label: "Canais" },
-  { to: "/admin/empresas", icon: Building2, label: "Empresas" },
-  { to: "/admin/moderacao", icon: MessageSquare, label: "Moderação" },
-  { to: "/admin/moderacao/tentativas-bloqueadas", icon: ShieldAlert, label: "Tentativas Bloqueadas" },
-  { to: "/admin/financeiro", icon: DollarSign, label: "Financeiro" },
-  { to: "/admin/catalogo", icon: Server, label: "Catálogo ERP" },
-  { to: "/admin/metricas", icon: Activity, label: "Métricas" },
-  { to: "/admin/relatorios", icon: FileSpreadsheet, label: "Relatórios" },
-  { to: "/admin/audit-logs", icon: ScrollText, label: "Logs de Auditoria" },
-  { to: "/admin/score-config", icon: SlidersHorizontal, label: "Config. de Score" },
-  { to: "/admin/ai-context", icon: Bot, label: "Contexto IA" },
-  { to: "/admin/usuarios", icon: Users, label: "Usuários" },
-  { to: "/admin/administradores", icon: ShieldCheck, label: "Administradores" },
-  { to: "/admin/perfil", icon: UserCog, label: "Meu perfil" },
-];
-
-export const AdminLayout = () => <DashboardLayout links={adminLinks} title="Administração" />;
-
-const consultorLinks = [
-  { to: "/consultor", icon: LayoutDashboard, label: "Dashboard" },
-  { to: "/consultor/projetos", icon: FolderKanban, label: "Encontrar Projetos" },
-  { to: "/consultor/minhas-propostas", icon: FileText, label: "Minhas Propostas" },
-  { to: "/consultor/convites-canal", icon: Mail, label: "Convites de Canais" },
-  { to: "/consultor/agenda", icon: CalendarDays, label: "Minha Agenda" },
-  { to: "/consultor/gestao", icon: Briefcase, label: "Gestão de Projetos" },
-  { to: "/consultor/estados-projeto", icon: Workflow, label: "Estados do Projeto" },
-  { to: "/consultor/perfil", icon: Users, label: "Meu Perfil" },
-  { to: "/consultor/habilidades", icon: Star, label: "Habilidades" },
-  { to: "/consultor/score", icon: Trophy, label: "Score & Portfólio" },
-  { to: "/consultor/copilot", icon: Bot, label: "Copiloto IA" },
-  { to: "/consultor/relatorios", icon: FileSpreadsheet, label: "Relatórios" },
-];
+export const AdminLayout = () => (
+  <DashboardLayout groups={adminGroups} title="Administração" profileTo="/admin/perfil" />
+);
 
 export const ConsultorLayout = () => {
   const { user } = useAuth();
@@ -220,39 +311,17 @@ export const ConsultorLayout = () => {
     })();
   }, [user]);
 
-  const links = temVinculo
-    ? [
-        ...consultorLinks.slice(0, 3),
-        { to: "/consultor/minhas-indicacoes", icon: Handshake, label: "Minhas Indicações" },
-        ...consultorLinks.slice(3),
-      ]
-    : consultorLinks;
-
-  return <DashboardLayout links={links} title="Consultor" />;
+  return (
+    <DashboardLayout groups={consultorGroups(temVinculo)} title="Consultor" profileTo="/consultor/perfil" />
+  );
 };
 
-const empresaLinks = [
-  { to: "/empresa", icon: LayoutDashboard, label: "Dashboard" },
-  { to: "/empresa/projetos", icon: FolderKanban, label: "Projetos" },
-  { to: "/empresa/shortlist", icon: ListChecks, label: "Shortlists (RMO)" },
-  { to: "/empresa/coordenacao", icon: UserCog, label: "Coordenação Técnica" },
-  { to: "/empresa/coordenadores", icon: Users, label: "Equipe" },
-  { to: "/empresa/gestao", icon: Briefcase, label: "Gestão de Projetos" },
-  { to: "/empresa/estados-projeto", icon: Workflow, label: "Estados do Projeto" },
-  { to: "/empresa/consultores", icon: Users, label: "Consultores" },
-  { to: "/empresa/perfil", icon: Building2, label: "Perfil da Empresa" },
-  { to: "/empresa/relatorios", icon: FileSpreadsheet, label: "Relatórios" },
-];
+export const EmpresaLayout = () => (
+  <DashboardLayout groups={empresaGroups} title="Empresa" profileTo="/empresa/perfil" />
+);
 
-export const EmpresaLayout = () => <DashboardLayout links={empresaLinks} title="Empresa" />;
+export const CanalLayout = () => (
+  <DashboardLayout groups={canalGroups} title="Canal" profileTo="/canal/configuracoes" />
+);
 
-const canalLinks = [
-  { to: "/canal", icon: LayoutDashboard, label: "Dashboard" },
-  { to: "/canal/consultores", icon: Users, label: "Meus Consultores" },
-  { to: "/canal/agenda", icon: CalendarDays, label: "Agenda" },
-  { to: "/canal/projetos", icon: FolderKanban, label: "Projetos" },
-  { to: "/canal/aprovacoes", icon: ShieldAlert, label: "Aprovações" },
-  { to: "/canal/configuracoes", icon: Settings, label: "Configurações" },
-];
-
-export const CanalLayout = () => <DashboardLayout links={canalLinks} title="Canal" />;
+export default DashboardLayout;

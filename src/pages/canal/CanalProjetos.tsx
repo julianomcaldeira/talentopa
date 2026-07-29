@@ -28,6 +28,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import { PROJETO_SORT_OPTIONS, sortProjetos, ProjetoSortKey } from "@/lib/projetoSort";
+import PageHeader from "@/components/dashboard/PageHeader";
 
 interface Projeto {
   id: string;
@@ -341,15 +342,12 @@ const CanalProjetos = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-start justify-between gap-4 flex-wrap">
-        <div>
-          <h1 className="text-2xl font-display font-bold text-foreground">Projetos do canal</h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            Projetos criados pelo seu canal, com valor e status.
-          </p>
-        </div>
-
+      <PageHeader
+        title="Projetos do canal"
+        description="Demandas abertas da plataforma, projetos criados pelo canal e entregas dos seus consultores."
+        actions={
         <Dialog open={open} onOpenChange={handleOpenChange}>
+
           <DialogTrigger asChild>
             <Button disabled={!canalId}>
               <Plus className="h-4 w-4 mr-2" />
@@ -468,7 +466,9 @@ const CanalProjetos = () => {
             </form>
           </DialogContent>
         </Dialog>
-      </div>
+        }
+      />
+
 
       {loading ? (
         <div className="flex items-center justify-center py-16">
