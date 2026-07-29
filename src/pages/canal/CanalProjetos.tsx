@@ -345,16 +345,8 @@ const CanalProjetos = () => {
         title="Projetos do canal"
         description="Demandas abertas da plataforma, projetos criados pelo canal e entregas dos seus consultores."
         actions={
-          <Dialog open={open} onOpenChange={handleOpenChange}>
-            <DialogTrigger asChild>
-              <Button disabled={!canalId}>
-                <Plus className="h-4 w-4 mr-2" />
-                Novo projeto
-              </Button>
-            </DialogTrigger>
-
-
         <Dialog open={open} onOpenChange={handleOpenChange}>
+
           <DialogTrigger asChild>
             <Button disabled={!canalId}>
               <Plus className="h-4 w-4 mr-2" />
