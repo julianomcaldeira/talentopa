@@ -28,6 +28,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import { PROJETO_SORT_OPTIONS, sortProjetos, ProjetoSortKey } from "@/lib/projetoSort";
+import PageHeader from "@/components/dashboard/PageHeader";
 
 interface Projeto {
   id: string;
