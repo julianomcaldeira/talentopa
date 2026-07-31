@@ -23,6 +23,8 @@ interface AuthContextType {
   profile: Profile | null;
   role: UserRole | null;
   empresaPapel: string | null;
+  /** Empresa (dono) à qual o usuário pertence: ele mesmo, se for a empresa, ou a empresa que o vinculou (RMO, coordenador, etc.) */
+  empresaUserId: string | null;
   
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
