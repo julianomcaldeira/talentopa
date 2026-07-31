@@ -71,7 +71,7 @@ interface EmpresaNovoProjetoProps {
 }
 
 const EmpresaNovoProjeto = ({ onSuccess }: EmpresaNovoProjetoProps = {}) => {
-  const { user } = useAuth();
+  const { user, empresaUserId } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -170,7 +170,7 @@ const EmpresaNovoProjeto = ({ onSuccess }: EmpresaNovoProjetoProps = {}) => {
         user ? supabase
           .from("projetos")
           .select("id, nome, descricao, problema_atual, objetivo, prazo_estimado, software_id, observacoes, modelo_contratacao, status, created_at, projeto_fases(nome, descricao, ordem)")
-          .eq("empresa_user_id", user.id)
+          .eq("empresa_user_id", empresaUserId || user.id)
           .neq("status", "rascunho")
           .order("created_at", { ascending: false })
           .limit(20) : Promise.resolve({ data: [] as any[] }),
@@ -293,7 +293,7 @@ const EmpresaNovoProjeto = ({ onSuccess }: EmpresaNovoProjetoProps = {}) => {
     setSaving(true);
     try {
       const { data: projeto, error } = await supabase.from("projetos").insert({
-        empresa_user_id: user.id, nome: form.nome, descricao: form.descricao || null,
+        empresa_user_id: empresaUserId || user.id, nome: form.nome, descricao: form.descricao || null,
         problema_atual: form.problema_atual || null, objetivo: form.objetivo || null,
         prazo_estimado: form.prazo_estimado || null,
         prazo_propostas: form.prazo_propostas || null,
