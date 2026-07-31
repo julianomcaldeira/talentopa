@@ -2504,6 +2504,10 @@ export type Database = {
         Args: { p_proposta_id: string }
         Returns: Json
       }
+      consultor_tem_relacao_projeto: {
+        Args: { _projeto_id: string; _user_id: string }
+        Returns: boolean
+      }
       consultor_tem_vinculo_ativo: {
         Args: { p_consultor: string }
         Returns: string
