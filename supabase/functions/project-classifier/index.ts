@@ -12,14 +12,19 @@ async function requireUser(req: Request): Promise<string | null> {
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
   if (!supabaseUrl || !anonKey) return null;
+  const token = authHeader.replace("Bearer ", "").trim();
   try {
     const client = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: authHeader } },
     });
-    const { data, error } = await client.auth.getClaims(authHeader.replace("Bearer ", ""));
-    if (error || !data?.claims?.sub) return null;
-    return data.claims.sub as string;
-  } catch {
+    const { data, error } = await client.auth.getUser(token);
+    if (error || !data?.user?.id) {
+      console.error("auth getUser failed:", error?.message);
+      return null;
+    }
+    return data.user.id;
+  } catch (e) {
+    console.error("auth check exception:", e);
     return null;
   }
 }
