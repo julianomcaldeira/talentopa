@@ -62,13 +62,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     if (roleData) setRole(roleData.role as UserRole);
 
-    // Papel dentro da empresa (coordenador, responsavel, financeiro, operacional)
+    // Papel dentro da empresa (rmo, coordenador, responsavel, financeiro, operacional)
     const { data: empUsr } = await supabase
       .from("empresa_usuarios")
-      .select("papel")
+      .select("papel, empresa_user_id")
       .eq("user_id", userId)
       .maybeSingle();
     setEmpresaPapel((empUsr?.papel as string) || null);
+    setEmpresaUserId((empUsr?.empresa_user_id as string) || (roleData?.role === "empresa" ? userId : null));
 
   };
 
