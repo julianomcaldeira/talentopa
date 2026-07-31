@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Briefcase, ArrowRight, Clock } from "lucide-react";
 
 const GestaoProjetos = () => {
-  const { user, role } = useAuth();
+  const { user, role, empresaUserId } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [projetos, setProjetos] = useState<any[]>([]);
@@ -22,7 +22,7 @@ const GestaoProjetos = () => {
         .order("updated_at", { ascending: false });
 
       if (role === "empresa") {
-        query = query.eq("empresa_user_id", user.id);
+        query = query.eq("empresa_user_id", empresaUserId || user.id);
       } else if (role === "consultor") {
         const { data: props } = await supabase
           .from("propostas")

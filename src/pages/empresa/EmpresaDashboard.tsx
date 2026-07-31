@@ -38,7 +38,7 @@ const statusConfig: Record<string, { label: string; class: string }> = {
 };
 
 const EmpresaDashboard = () => {
-  const { user, profile } = useAuth();
+  const { user, profile, empresaUserId } = useAuth();
   const navigate = useNavigate();
   const [projetos, setProjetos] = useState<any[]>([]);
   const [propostas, setPropostas] = useState<any[]>([]);
@@ -53,7 +53,7 @@ const EmpresaDashboard = () => {
       const { data: projetosData } = await supabase
         .from("projetos")
         .select("*, softwares(id, nome), projeto_fases(id, nome, status)")
-        .eq("empresa_user_id", user.id)
+        .eq("empresa_user_id", empresaUserId || user.id)
         .order("created_at", { ascending: false });
 
       const projs = projetosData || [];
