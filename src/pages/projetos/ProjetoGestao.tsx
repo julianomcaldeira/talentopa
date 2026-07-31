@@ -78,12 +78,12 @@ const ProjetoGestao = () => {
       }
 
       // Verifica se o usuário é RMO da empresa dona do projeto
-      const empresaUserId = projRes.data?.empresa_user_id;
-      if (empresaUserId && user?.id) {
+      const projetoEmpresaId = projRes.data?.empresa_user_id;
+      if (projetoEmpresaId && user?.id) {
         const { data: eu } = await supabase
           .from("empresa_usuarios")
           .select("papel")
-          .eq("empresa_user_id", empresaUserId)
+          .eq("empresa_user_id", projetoEmpresaId)
           .eq("user_id", user.id)
           .eq("papel", "rmo" as any)
           .maybeSingle();
