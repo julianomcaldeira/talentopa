@@ -56,7 +56,7 @@ const KANBAN_COLUMNS: { key: string; label: string; tone: string }[] = [
 ];
 
 const EmpresaProjetos = () => {
-  const { user } = useAuth();
+  const { user, empresaUserId } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [projetos, setProjetos] = useState<any[]>([]);
@@ -86,7 +86,7 @@ const EmpresaProjetos = () => {
     const { data } = await supabase
       .from("projetos")
       .select("*, softwares(nome), projeto_fases(id, nome, status, valor)")
-      .eq("empresa_user_id", user.id)
+      .eq("empresa_user_id", empresaUserId || user.id)
       .order("created_at", { ascending: false });
     if (data) {
       const ids = data.map((p) => p.id);

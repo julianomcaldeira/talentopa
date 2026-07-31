@@ -2650,6 +2650,10 @@ export type Database = {
         Args: { _projeto_id: string; _user_id: string }
         Returns: boolean
       }
+      is_projeto_empresa_team: {
+        Args: { _projeto_id: string; _user_id: string }
+        Returns: boolean
+      }
       is_projeto_party: {
         Args: { _projeto_id: string; _user_id: string }
         Returns: boolean

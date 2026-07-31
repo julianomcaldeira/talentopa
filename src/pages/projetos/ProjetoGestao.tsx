@@ -28,7 +28,7 @@ const STATUS_FASE_OPTIONS = [
 
 const ProjetoGestao = () => {
   const { id: projetoId } = useParams<{ id: string }>();
-  const { user, role } = useAuth();
+  const { user, role, empresaUserId } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -52,10 +52,10 @@ const ProjetoGestao = () => {
   const isConsultor = role === "consultor";
   const isMyProject = useMemo(() => {
     if (!projeto || !user) return false;
-    if (isEmpresa) return projeto.empresa_user_id === user.id;
+    if (isEmpresa) return projeto.empresa_user_id === (empresaUserId || user.id);
     if (isConsultor) return propostaAceita?.consultor_user_id === user.id;
     return role === "admin";
-  }, [projeto, user, role, propostaAceita, isEmpresa, isConsultor]);
+  }, [projeto, user, role, propostaAceita, isEmpresa, isConsultor, empresaUserId]);
 
   const fetchAll = async () => {
     if (!projetoId) { setLoading(false); return; }
@@ -78,12 +78,12 @@ const ProjetoGestao = () => {
       }
 
       // Verifica se o usuário é RMO da empresa dona do projeto
-      const empresaUserId = projRes.data?.empresa_user_id;
-      if (empresaUserId && user?.id) {
+      const projetoEmpresaId = projRes.data?.empresa_user_id;
+      if (projetoEmpresaId && user?.id) {
         const { data: eu } = await supabase
           .from("empresa_usuarios")
           .select("papel")
-          .eq("empresa_user_id", empresaUserId)
+          .eq("empresa_user_id", projetoEmpresaId)
           .eq("user_id", user.id)
           .eq("papel", "rmo" as any)
           .maybeSingle();
@@ -231,7 +231,7 @@ const ProjetoGestao = () => {
         </TabsContent>
 
         <TabsContent value="horas" className="mt-4">
-          <Timesheet projetoId={projeto.id} fases={fases} isConsultor={isConsultor && isMyProject} isEmpresa={isEmpresa && projeto.empresa_user_id === user?.id} projetoNome={projeto.nome} />
+          <Timesheet projetoId={projeto.id} fases={fases} isConsultor={isConsultor && isMyProject} isEmpresa={isEmpresa && projeto.empresa_user_id === (empresaUserId || user?.id)} projetoNome={projeto.nome} />
         </TabsContent>
 
         <TabsContent value="reunioes" className="mt-4">
@@ -418,7 +418,7 @@ const ProjetoGestao = () => {
                     <Download size={12} /> Baixar
                   </Button>
                 )}
-                {isEmpresa && projeto.empresa_user_id === user?.id && (
+                {isEmpresa && projeto.empresa_user_id === (empresaUserId || user?.id) && (
                   <>
                     <Button size="sm" variant="outline" onClick={() => aprovarEntregavel(e.id, true)}>
                       <CheckCircle2 size={12} /> Aprovar

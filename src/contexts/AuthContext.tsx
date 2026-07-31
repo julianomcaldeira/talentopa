@@ -23,6 +23,8 @@ interface AuthContextType {
   profile: Profile | null;
   role: UserRole | null;
   empresaPapel: string | null;
+  /** Empresa (dono) à qual o usuário pertence: ele mesmo, se for a empresa, ou a empresa que o vinculou (RMO, coordenador, etc.) */
+  empresaUserId: string | null;
   
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
@@ -39,6 +41,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [role, setRole] = useState<UserRole | null>(null);
   const [empresaPapel, setEmpresaPapel] = useState<string | null>(null);
+  const [empresaUserId, setEmpresaUserId] = useState<string | null>(null);
   
   const [loading, setLoading] = useState(true);
 
@@ -59,13 +62,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     if (roleData) setRole(roleData.role as UserRole);
 
-    // Papel dentro da empresa (coordenador, responsavel, financeiro, operacional)
+    // Papel dentro da empresa (rmo, coordenador, responsavel, financeiro, operacional)
     const { data: empUsr } = await supabase
       .from("empresa_usuarios")
-      .select("papel")
+      .select("papel, empresa_user_id")
       .eq("user_id", userId)
       .maybeSingle();
     setEmpresaPapel((empUsr?.papel as string) || null);
+    setEmpresaUserId((empUsr?.empresa_user_id as string) || (roleData?.role === "empresa" ? userId : null));
 
   };
 
@@ -81,6 +85,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           setProfile(null);
           setRole(null);
           setEmpresaPapel(null);
+          setEmpresaUserId(null);
         }
         setLoading(false);
       }
@@ -166,7 +171,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ session, user, profile, role, empresaPapel, loading, signIn, signUp, signOut, resetPassword }}>
+    <AuthContext.Provider value={{ session, user, profile, role, empresaPapel, empresaUserId, loading, signIn, signUp, signOut, resetPassword }}>
       {children}
     </AuthContext.Provider>
   );

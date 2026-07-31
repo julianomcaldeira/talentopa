@@ -44,7 +44,7 @@ type ConsultorAgg = {
 };
 
 const EmpresaConsultoresHistorico = () => {
-  const { user } = useAuth();
+  const { user, empresaUserId } = useAuth();
   const navigate = useNavigate();
   const recontratar = (c: ConsultorAgg) => {
     navigate(`/empresa/projetos/novo?recontratar=${c.user_id}&nome=${encodeURIComponent(c.nome)}`);
@@ -63,7 +63,7 @@ const EmpresaConsultoresHistorico = () => {
       const { data: projetos } = await supabase
         .from("projetos")
         .select("id, nome, status, software_id, softwares(nome)")
-        .eq("empresa_user_id", user.id);
+        .eq("empresa_user_id", empresaUserId || user.id);
 
       const projetoIds = (projetos || []).map((p) => p.id);
       if (projetoIds.length === 0) {

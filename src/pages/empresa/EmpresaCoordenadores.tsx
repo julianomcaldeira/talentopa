@@ -24,7 +24,7 @@ type EmpUsr = {
 };
 
 export default function EmpresaCoordenadores() {
-  const { user } = useAuth();
+  const { user, empresaUserId } = useAuth();
   const [equipe, setEquipe] = useState<EmpUsr[]>([]);
   const [email, setEmail] = useState("");
   const [papel, setPapel] = useState("coordenador");
@@ -36,7 +36,7 @@ export default function EmpresaCoordenadores() {
     const { data } = await supabase
       .from("empresa_usuarios")
       .select("id,user_id,papel")
-      .eq("empresa_user_id", user.id);
+      .eq("empresa_user_id", empresaUserId || user.id);
     const rows = (data || []) as EmpUsr[];
     if (rows.length) {
       const ids = rows.map((r) => r.user_id);
