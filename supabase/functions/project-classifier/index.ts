@@ -127,11 +127,11 @@ ${objetivo || "—"}
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "Lovable-API-Key": LOVABLE_API_KEY,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: "google/gemini-3.6-flash",
         messages: [
           { role: "system", content: `${masterContext}\n\nVocê é um analista sênior de projetos ERP. Classifique e estruture somente projetos aderentes ao domínio Workz e ao contexto mestre. Responda em português brasileiro. A soma dos percentuais das fases deve totalizar 100.` },
           { role: "user", content: userPayload },
@@ -142,23 +142,32 @@ ${objetivo || "—"}
     });
 
     if (!response.ok) {
+      const raw = await response.text();
+      console.error("AI gateway error:", response.status, raw);
       if (response.status === 429) {
-        return new Response(JSON.stringify({ error: "Limite de requisições excedido. Tente novamente em instantes." }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        return new Response(JSON.stringify({ error: "Limite de requisições da IA excedido. Tente novamente em instantes." }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
       if (response.status === 402) {
-        return new Response(JSON.stringify({ error: "Créditos da IA esgotados. Contate o administrador." }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        return new Response(JSON.stringify({ error: "Créditos de IA esgotados no workspace. Adicione créditos para usar a análise automática." }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
-      const t = await response.text();
-      console.error("AI gateway error:", response.status, t);
-      return new Response(JSON.stringify({ error: "Erro no serviço de IA" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      let detalhe = "";
+      try {
+        const parsed = JSON.parse(raw);
+        detalhe = parsed?.message || parsed?.error?.message || parsed?.title || "";
+      } catch {
+        detalhe = raw.slice(0, 200);
+      }
+      return new Response(JSON.stringify({ error: `Erro no serviço de IA (${response.status})${detalhe ? `: ${detalhe}` : ""}` }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     const data = await response.json();
     const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
     if (!toolCall) {
-      return new Response(JSON.stringify({ error: "IA não retornou classificação." }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      console.error("no tool_call in AI response:", JSON.stringify(data).slice(0, 500));
+      return new Response(JSON.stringify({ error: "A IA não retornou uma classificação estruturada. Tente novamente com mais detalhes no briefing." }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
     const args = JSON.parse(toolCall.function.arguments);
+
 
     return new Response(JSON.stringify(args), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
