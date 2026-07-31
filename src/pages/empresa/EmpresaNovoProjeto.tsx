@@ -266,7 +266,18 @@ const EmpresaNovoProjeto = ({ onSuccess }: EmpresaNovoProjetoProps = {}) => {
           prazo_estimado: form.prazo_estimado,
         },
       });
-      if (error) throw error;
+      if (error) {
+        // supabase-js lança FunctionsHttpError sem a mensagem do corpo; extrai o motivo real
+        let msg = error.message || "Falha ao analisar projeto.";
+        const ctx = (error as any)?.context;
+        if (ctx && typeof ctx.json === "function") {
+          try {
+            const body = await ctx.clone().json();
+            if (body?.error) msg = body.error;
+          } catch { /* corpo não-JSON */ }
+        }
+        throw new Error(msg);
+      }
       if ((data as any)?.error) throw new Error((data as any).error);
       const result = data as ClassificacaoIA;
       setClassificacao(result);
