@@ -55,11 +55,14 @@ export default function UsuarioEditDialog({ open, onOpenChange, userId, onSaved 
   const [loadingHist, setLoadingHist] = useState(false);
 
   const isAdmin = myRole === "admin";
+  const isEmpresaOwner = myRole === "empresa";
   const canManage = useMemo(() => {
     if (!data || !user) return false;
     if (isAdmin) return true;
-    return data.created_by === user.id;
-  }, [data, user, isAdmin]);
+    if (data.created_by === user.id) return true;
+    if (isEmpresaOwner && data.empresa_user_id === user.id) return true;
+    return false;
+  }, [data, user, isAdmin, isEmpresaOwner]);
 
   useEffect(() => {
     if (!open || !userId) return;
