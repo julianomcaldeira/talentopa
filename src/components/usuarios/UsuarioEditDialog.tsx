@@ -43,7 +43,7 @@ const empresaPapeis = [
 ];
 
 export default function UsuarioEditDialog({ open, onOpenChange, userId, onSaved }: UsuarioEditDialogProps) {
-  const { user, role: myRole } = useAuth();
+  const { user, role: myRole, empresaUserId } = useAuth();
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [data, setData] = useState<EditableData | null>(null);
@@ -55,14 +55,14 @@ export default function UsuarioEditDialog({ open, onOpenChange, userId, onSaved 
   const [loadingHist, setLoadingHist] = useState(false);
 
   const isAdmin = myRole === "admin";
-  const isEmpresaOwner = myRole === "empresa";
+  const isEmpresaUser = myRole === "empresa";
   const canManage = useMemo(() => {
     if (!data || !user) return false;
     if (isAdmin) return true;
     if (data.created_by === user.id) return true;
-    if (isEmpresaOwner && data.empresa_user_id === user.id) return true;
+    if (isEmpresaUser && data.empresa_user_id === (empresaUserId || user.id)) return true;
     return false;
-  }, [data, user, isAdmin, isEmpresaOwner]);
+  }, [data, user, isAdmin, isEmpresaUser, empresaUserId]);
 
   useEffect(() => {
     if (!open || !userId) return;
