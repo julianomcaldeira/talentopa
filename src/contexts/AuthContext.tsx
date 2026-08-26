@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
+
 
 type UserRole = "admin" | "consultor" | "empresa" | "canal";
 
@@ -54,22 +54,42 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     if (profileData) setProfile(profileData as Profile);
 
-    const { data: roleData } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", userId)
-      .single();
-
-    if (roleData) setRole(roleData.role as UserRole);
-
     // Papel dentro da empresa (rmo, coordenador, responsavel, financeiro, operacional)
     const { data: empUsr } = await supabase
       .from("empresa_usuarios")
       .select("papel, empresa_user_id")
       .eq("user_id", userId)
       .maybeSingle();
-    setEmpresaPapel((empUsr?.papel as string) || null);
-    setEmpresaUserId((empUsr?.empresa_user_id as string) || (roleData?.role === "empresa" ? userId : null));
+    const papelEmpresa = (empUsr?.papel as string) || null;
+    setEmpresaPapel(papelEmpresa);
+    setEmpresaUserId((empUsr?.empresa_user_id as string) || null);
+
+    const { data: roleRows } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId);
+
+    let resolvedRole: UserRole | null = null;
+    if (roleRows && roleRows.length) {
+      const roles = roleRows.map((r: any) => r.role as UserRole);
+      // Se tem vínculo em empresa_usuarios, prioriza role empresa (corrige RMO cadastrado como consultor)
+      if (papelEmpresa && roles.includes("empresa")) resolvedRole = "empresa";
+      else if (papelEmpresa && roles.includes("consultor")) {
+        // fallback: vinculado mas sem role empresa ainda (antes do backfill) -> trata como empresa
+        resolvedRole = "empresa";
+      } else if (roles.includes("admin")) resolvedRole = "admin";
+      else if (roles.includes("empresa")) resolvedRole = "empresa";
+      else if (roles.includes("canal")) resolvedRole = "canal";
+      else resolvedRole = roles[0] as UserRole;
+    }
+    if (resolvedRole) setRole(resolvedRole);
+    else if (papelEmpresa) setRole("empresa");
+    else setRole(null);
+
+    // se é empresa dona (sem vínculo mas role empresa), empresaUserId é ele mesmo
+    if (!empUsr?.empresa_user_id && resolvedRole === "empresa") {
+      setEmpresaUserId(userId);
+    }
 
   };
 

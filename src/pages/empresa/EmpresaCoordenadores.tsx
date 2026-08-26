@@ -60,12 +60,14 @@ export default function EmpresaCoordenadores() {
       });
       if (rpcErr) throw rpcErr;
       if (!uid) throw new Error("Usuário com este e-mail não foi encontrado. Peça para se cadastrar primeiro.");
-      const { error } = await supabase.from("empresa_usuarios").insert({
-        empresa_user_id: user.id,
-        user_id: uid as string,
-        papel: papel as any,
+      const empresaOwnerId = empresaUserId || user.id;
+      const { data, error } = await supabase.rpc("empresa_add_membro", {
+        _target: uid as string,
+        _papel: papel,
+        _empresa_user_id: empresaOwnerId,
       });
       if (error) throw error;
+      if ((data as any)?.error) throw new Error((data as any).error);
       toast.success(`Usuário adicionado como ${papel}`);
       setEmail("");
       fetchEquipe();
