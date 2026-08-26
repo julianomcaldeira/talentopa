@@ -49,7 +49,7 @@ const DashboardLayout = ({
   const [cmdOpen, setCmdOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { profile, role, signOut } = useAuth();
+  const { profile, role, empresaPapel, signOut } = useAuth();
 
   useEffect(() => {
     localStorage.setItem(COLLAPSE_KEY, collapsed ? "1" : "0");
@@ -238,13 +238,15 @@ const DashboardLayout = ({
                 </div>
                 <div className="hidden lg:block text-left">
                   <p className="text-[13px] font-medium text-foreground leading-tight">{profile?.nome || "Usuário"}</p>
-                  <p className="text-[11px] text-muted-foreground capitalize leading-tight">{role}</p>
+                  <p className="text-[11px] text-muted-foreground capitalize leading-tight">
+                    {empresaPapel ? empresaPapel : role}
+                  </p>
                 </div>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel className="font-normal">
                   <p className="text-sm font-medium truncate">{profile?.nome || "Usuário"}</p>
-                  <p className="text-xs text-muted-foreground capitalize">{role}</p>
+                  <p className="text-xs text-muted-foreground capitalize">{empresaPapel ? empresaPapel : role}</p>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 {profileTo && (
