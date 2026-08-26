@@ -2,11 +2,12 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { PageHeader, DataCard, LoadingState, SectionTitle } from "@/components/dashboard/DashboardComponents";
-import { MapPin } from "lucide-react";
+import { MapPin, Users } from "lucide-react";
 import AvatarUpload from "@/components/profile/AvatarUpload";
 import ChangePasswordCard from "@/components/profile/ChangePasswordCard";
 import ChangeEmailCard from "@/components/profile/ChangeEmailCard";
@@ -16,12 +17,28 @@ const SectionLabel = ({ children }: { children: React.ReactNode }) => (
   <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{children}</Label>
 );
 
+type TeamMember = {
+  id: string;
+  user_id: string;
+  papel: string;
+  profile?: { nome: string | null; email: string | null } | null;
+};
+
+const papelLabel: Record<string, string> = {
+  rmo: "RMO",
+  coordenador: "Coordenador",
+  responsavel: "Responsável",
+  financeiro: "Financeiro",
+  operacional: "Operacional",
+};
+
 const EmpresaPerfil = () => {
-  const { user, profile } = useAuth();
+  const { user, profile, empresaUserId } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [equipe, setEquipe] = useState<TeamMember[]>([]);
   const [form, setForm] = useState({
     nome: "", telefone: "", cidade: "", estado: "",
     razao_social: "", nome_fantasia: "", cnpj: "", segmento: "",
@@ -41,10 +58,31 @@ const EmpresaPerfil = () => {
         endereco: ep?.endereco || "", inscricao_estadual: ep?.inscricao_estadual || "",
       });
       setAvatarUrl(profile?.avatar_url || null);
+
+      const { data: members } = await supabase
+        .from("empresa_usuarios")
+        .select("id, user_id, papel")
+        .eq("empresa_user_id", empresaUserId || user.id);
+
+      if (members && members.length > 0) {
+        const ids = members.map((m) => m.user_id);
+        const { data: profs } = await supabase
+          .from("profiles")
+          .select("user_id, nome, email")
+          .in("user_id", ids);
+        const profMap = new Map((profs || []).map((p: any) => [p.user_id, p]));
+        setEquipe(
+          members.map((m) => ({
+            ...m,
+            profile: profMap.get(m.user_id) || null,
+          }))
+        );
+      }
+
       setLoading(false);
     };
     fetch();
-  }, [user, profile]);
+  }, [user, profile, empresaUserId]);
 
   const handleSave = async () => {
     if (!user) return;
@@ -104,6 +142,28 @@ const EmpresaPerfil = () => {
         <ChangeEmailCard />
 
         <ChangePasswordCard />
+
+        {equipe.length > 0 && (
+          <DataCard>
+            <div className="flex items-center gap-2 mb-4">
+              <Users size={16} className="text-muted-foreground" />
+              <SectionTitle>Equipe</SectionTitle>
+            </div>
+            <div className="divide-y divide-border/40">
+              {equipe.map((m) => (
+                <div key={m.id} className="flex items-center justify-between py-3">
+                  <div>
+                    <p className="text-sm font-medium">{m.profile?.nome || "Sem nome"}</p>
+                    <p className="text-xs text-muted-foreground">{m.profile?.email}</p>
+                  </div>
+                  <Badge variant={m.papel === "rmo" ? "default" : "secondary"}>
+                    {papelLabel[m.papel] || m.papel}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          </DataCard>
+        )}
 
         <div className="flex justify-end">
           <Button onClick={handleSave} disabled={saving} size="lg">

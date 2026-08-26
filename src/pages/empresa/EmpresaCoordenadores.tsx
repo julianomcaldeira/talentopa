@@ -49,7 +49,7 @@ export default function EmpresaCoordenadores() {
 
   useEffect(() => {
     fetchEquipe();
-  }, [user]);
+  }, [user, empresaUserId]);
 
   const adicionar = async () => {
     if (!user || !email.trim()) return;
