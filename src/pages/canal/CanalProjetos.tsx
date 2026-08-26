@@ -527,33 +527,8 @@ const CanalProjetos = () => {
                           ? `R$ ${Number(p.valor_estimado).toLocaleString("pt-BR")}`
                           : "Sem valor"}
                       </p>
-                      {typeof p.elegiveis_count === "number" && p.elegiveis_count > 0 && (
-                        <p
-                          className="text-xs text-primary mt-1 truncate"
-                          title={p.elegiveis_nomes?.join(", ")}
-                        >
-                          <User className="inline h-3 w-3 mr-1" />
-                          {p.elegiveis_count} do seu quadro{" "}
-                          {p.elegiveis_count === 1 ? "elegível" : "elegíveis"}
-                          {p.elegiveis_nomes && p.elegiveis_nomes.length > 0
-                            ? `: ${p.elegiveis_nomes.slice(0, 3).join(", ")}${
-                                p.elegiveis_nomes.length > 3
-                                  ? ` +${p.elegiveis_nomes.length - 3}`
-                                  : ""
-                              }`
-                            : ""}
-                        </p>
-                      )}
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
-                      {typeof p.elegiveis_count === "number" && (
-                        <Badge
-                          variant={p.elegiveis_count > 0 ? "default" : "secondary"}
-                          className="text-[11px]"
-                        >
-                          {p.elegiveis_count} elegíveis
-                        </Badge>
-                      )}
                       <Badge variant="outline" className="capitalize">
                         {p.status?.replace(/_/g, " ")}
                       </Badge>
