@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { Eye, EyeOff, Building2, User, Loader2, Search, Network } from "lucide-react";
+import { Eye, EyeOff, Building2, User, Loader2, Search, Network, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,7 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { maskCNPJ, maskPhone, unmask } from "@/lib/cnpjMask";
 
-type UserType = "consultor" | "empresa" | "canal" | null;
+type UserType = "consultor" | "empresa" | "canal" | "equipe" | null;
 
 interface CnpjData {
   razao_social: string;
@@ -42,7 +42,7 @@ const Register = () => {
 
   useEffect(() => {
     const t = searchParams.get("type");
-    if (t === "empresa" || t === "consultor" || t === "canal") setUserType(t);
+    if (t === "empresa" || t === "consultor" || t === "canal" || t === "equipe") setUserType(t as UserType);
   }, [searchParams]);
 
   const handleConsultarCnpj = async () => {
@@ -158,7 +158,7 @@ const Register = () => {
           <h1 className="text-2xl font-display font-bold text-foreground mb-2">Criar conta</h1>
           <p className="text-muted-foreground mb-8">Escolha seu perfil e comece agora</p>
 
-          <div className="grid grid-cols-3 gap-3 mb-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
             <button
               type="button"
               onClick={() => { setUserType("consultor"); setCnpjData(null); }}
@@ -204,7 +204,27 @@ const Register = () => {
               </span>
               <span className="text-[11px] text-muted-foreground text-center leading-tight">Gerenciar consultores</span>
             </button>
+            <button
+              type="button"
+              onClick={() => { setUserType("equipe"); setCnpjData(null); }}
+              className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
+                userType === "equipe"
+                  ? "border-primary bg-primary/5 shadow-card-hover"
+                  : "border-border hover:border-primary/40"
+              }`}
+            >
+              <Users className={`h-7 w-7 ${userType === "equipe" ? "text-primary" : "text-muted-foreground"}`} />
+              <span className={`font-medium text-sm ${userType === "equipe" ? "text-primary" : "text-foreground"}`}>
+                Equipe
+              </span>
+              <span className="text-[11px] text-muted-foreground text-center leading-tight">Fazer parte de empresa</span>
+            </button>
           </div>
+          {userType === "equipe" && (
+            <div className="rounded-lg border border-primary/20 bg-primary/5 p-3 text-xs text-muted-foreground mb-5">
+              Cadastre-se como <b className="text-foreground">Equipe</b> se você foi convidado para ser <b>RMO, Coordenador</b> ou outro papel em uma empresa já cadastrada. Depois peça ao dono da empresa para te adicionar em <b>Equipe da Empresa</b>.
+            </div>
+          )}
 
           {userType && (
             <form onSubmit={handleSubmit} className="space-y-5">
