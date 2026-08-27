@@ -68,7 +68,7 @@ const DashboardLayout = ({
 
   const allItems = useMemo(() => groups.flatMap((g) => g.items.map((i) => ({ ...i, group: g.label }))), [groups]);
 
-  const current = allItems.find((i) => i.to === location.pathname);
+  const current = allItems.find((i) => i.to === location.pathname) || [...allItems].sort((a,b)=>b.to.length-a.to.length).find((i) => location.pathname.startsWith(i.to + "/"));
   const currentGroup = current?.group;
 
   const handleSignOut = async () => {
@@ -121,11 +121,13 @@ const DashboardLayout = ({
                 )}
                 {collapsed && <div className="h-px bg-sidebar-border/40 mx-2 my-2" />}
                 {group.items.map((link) => {
-                  const isActive = location.pathname === link.to;
+                  const isBase = ["/admin", "/empresa", "/consultor", "/canal"].includes(link.to);
+                  const isActive = location.pathname === link.to || (!isBase && location.pathname.startsWith(link.to + "/"));
                   const content = (
                     <Link
                       key={link.to}
                       to={link.to}
+                      aria-current={isActive ? "page" : undefined}
                       className={`group relative flex items-center gap-3 rounded-lg text-[13px] transition-colors duration-150 ${
                         collapsed ? "lg:justify-center lg:px-0 px-2.5" : "px-2.5"
                       } py-2 ${

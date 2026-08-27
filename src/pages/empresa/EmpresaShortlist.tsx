@@ -7,6 +7,16 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { ListChecks, CheckCircle2, Users } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 type Projeto = { id: string; nome: string; status: string; empresa_user_id: string; coordenador_user_id: string | null };
 type Proposta = { id: string; projeto_id: string; consultor_user_id: string; valor_proposta: number | null; status: string; consultor_nome?: string };
@@ -20,6 +30,7 @@ export default function EmpresaShortlist() {
   const [selected, setSelected] = useState<Record<string, Set<string>>>({});
   const [loading, setLoading] = useState(true);
   const [empresaOwnerId, setEmpresaOwnerId] = useState<string | null>(null);
+  const [pendingAprovarId, setPendingAprovarId] = useState<string | null>(null);
 
   const fetchData = async () => {
     if (!user) return;
@@ -119,8 +130,10 @@ export default function EmpresaShortlist() {
     }
   };
 
-  const aprovarFinal = async (shortlistId: string) => {
-    if (!confirm("Confirmar seleção final desta proposta? As outras serão recusadas.")) return;
+  const aprovarFinal = async () => {
+    if (!pendingAprovarId) return;
+    const shortlistId = pendingAprovarId;
+    setPendingAprovarId(null);
     try {
       const { error } = await (supabase as any).rpc("rmo_aprovacao_final", { p_shortlist_id: shortlistId });
       if (error) throw error;
@@ -202,7 +215,7 @@ export default function EmpresaShortlist() {
                               <div className="flex items-center gap-2">
                                 <Badge variant="secondary">{slItem.status}</Badge>
                                 {slItem.status === "aprovada_coordenador" && (
-                                  <Button size="sm" onClick={() => aprovarFinal(slItem.id)}>
+                                  <Button size="sm" onClick={() => setPendingAprovarId(slItem.id)}>
                                     <CheckCircle2 size={14} className="mr-1" /> Selecionar
                                   </Button>
                                 )}
@@ -229,6 +242,21 @@ export default function EmpresaShortlist() {
           );
         })
       )}
+
+      <AlertDialog open={!!pendingAprovarId} onOpenChange={(o) => !o && setPendingAprovarId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar seleção final?</AlertDialogTitle>
+            <AlertDialogDescription>
+              O consultor selecionado será contratado e as demais propostas abertas deste projeto serão recusadas.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={aprovarFinal}>Confirmar seleção</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

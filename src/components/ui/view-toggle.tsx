@@ -4,9 +4,11 @@ import { cn } from "@/lib/utils";
 export type ViewMode = "list" | "kanban";
 
 export const ViewToggle = ({ value, onChange, className }: { value: ViewMode; onChange: (v: ViewMode) => void; className?: string }) => (
-  <div className={cn("inline-flex items-center bg-muted/60 border border-border/60 rounded-lg p-0.5", className)}>
+  <div role="group" aria-label="Alternar visualização" className={cn("inline-flex items-center bg-muted/60 border border-border/60 rounded-lg p-0.5", className)}>
     <button
       type="button"
+      aria-pressed={value === "list"}
+      aria-label="Visualização em lista"
       onClick={() => onChange("list")}
       className={cn(
         "flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-colors",
@@ -17,6 +19,8 @@ export const ViewToggle = ({ value, onChange, className }: { value: ViewMode; on
     </button>
     <button
       type="button"
+      aria-pressed={value === "kanban"}
+      aria-label="Visualização em kanban"
       onClick={() => onChange("kanban")}
       className={cn(
         "flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-colors",

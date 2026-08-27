@@ -15,6 +15,16 @@ import {
 import { toast } from "sonner";
 import { UserCog, UserPlus, Trash2, Pencil } from "lucide-react";
 import UsuarioEditDialog from "@/components/usuarios/UsuarioEditDialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 type EmpUsr = {
   id: string;
@@ -30,6 +40,7 @@ export default function EmpresaCoordenadores() {
   const [papel, setPapel] = useState("coordenador");
   const [loading, setLoading] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [pendingRemoveId, setPendingRemoveId] = useState<string | null>(null);
 
   const fetchEquipe = async () => {
     if (!user) return;
@@ -78,8 +89,10 @@ export default function EmpresaCoordenadores() {
     }
   };
 
-  const remover = async (id: string) => {
-    if (!confirm("Remover este usuário da equipe?")) return;
+  const remover = async () => {
+    if (!pendingRemoveId) return;
+    const id = pendingRemoveId;
+    setPendingRemoveId(null);
     const { error } = await supabase.from("empresa_usuarios").delete().eq("id", id);
     if (error) toast.error(error.message);
     else {
@@ -160,7 +173,7 @@ export default function EmpresaCoordenadores() {
                     <Button size="icon" variant="ghost" onClick={() => setEditingId(m.user_id)} title="Editar">
                       <Pencil size={14} />
                     </Button>
-                    <Button size="icon" variant="ghost" onClick={() => remover(m.id)} title="Remover">
+                    <Button size="icon" variant="ghost" onClick={() => setPendingRemoveId(m.id)} title="Remover">
                       <Trash2 size={14} className="text-destructive" />
                     </Button>
                   </div>
@@ -177,6 +190,21 @@ export default function EmpresaCoordenadores() {
         userId={editingId}
         onSaved={fetchEquipe}
       />
+
+      <AlertDialog open={!!pendingRemoveId} onOpenChange={(o) => !o && setPendingRemoveId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remover membro da equipe?</AlertDialogTitle>
+            <AlertDialogDescription>
+              O usuário perderá o acesso como membro da sua empresa e voltará ao perfil anterior. Você pode adicioná-lo novamente depois.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={remover} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Remover</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
