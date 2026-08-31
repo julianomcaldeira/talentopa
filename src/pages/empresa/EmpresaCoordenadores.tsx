@@ -72,18 +72,41 @@ export default function EmpresaCoordenadores() {
       if (rpcErr) throw rpcErr;
       if (!uid) throw new Error("Usuário com este e-mail não foi encontrado. Peça para se cadastrar primeiro.");
       const empresaOwnerId = empresaUserId || user.id;
+      // tenta RPC nova; se schema cache ainda não tem (Lovable ainda não aplicou migration), cai no fallback
       const { data, error } = await supabase.rpc("empresa_add_membro", {
         _target: uid as string,
         _papel: papel,
         _empresa_user_id: empresaOwnerId,
       });
-      if (error) throw error;
+      if (error) {
+        const msg = (error as any)?.message || "";
+        const isCacheMiss = msg.includes("Could not find the function") || msg.includes("schema cache");
+        if (isCacheMiss) {
+          // fallback: insert direto (policy "Empresa gestores manage links" permite para dono)
+          const { error: insErr } = await supabase.from("empresa_usuarios").insert({
+            empresa_user_id: empresaOwnerId,
+            user_id: uid as string,
+            papel: papel as any,
+          });
+          if (insErr) throw insErr;
+          toast.success(`Usuário adicionado como ${papel}`);
+          setEmail("");
+          fetchEquipe();
+          return;
+        }
+        throw error;
+      }
       if ((data as any)?.error) throw new Error((data as any).error);
       toast.success(`Usuário adicionado como ${papel}`);
       setEmail("");
       fetchEquipe();
     } catch (e: any) {
-      toast.error(e.message || "Não foi possível adicionar");
+      const msg = e?.message || "";
+      if (msg.includes("Could not find the function") || msg.includes("schema cache")) {
+        toast.error("Função ainda não publicada no Lovable. Tente novamente em 1 min ou faça insert direto.");
+      } else {
+        toast.error(msg || "Não foi possível adicionar");
+      }
     } finally {
       setLoading(false);
     }
