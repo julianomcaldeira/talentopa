@@ -61,7 +61,7 @@ const ProjetoItem = ({ p, showConsultor }: { p: Projeto; showConsultor?: boolean
       <p className="text-xs text-muted-foreground mt-0.5">
         {p.empresa_nome ? `${p.empresa_nome} · ` : ""}
         {p.prazo_estimado
-          ? `Prazo: ${new Date(p.prazo_estimado).toLocaleDateString("pt-BR")}`
+          ? (() => { const d = new Date(p.prazo_estimado); return isNaN(d.getTime()) ? "Sem prazo" : `Prazo: ${d.toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" })}`; })()
           : "Sem prazo"}{" "}
         ·{" "}
         {p.valor_estimado

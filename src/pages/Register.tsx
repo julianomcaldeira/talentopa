@@ -7,7 +7,8 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { maskCNPJ, maskPhone, unmask } from "@/lib/cnpjMask";
+import { maskCNPJ, unmask } from "@/lib/cnpjMask";
+import { maskPhone, validatePhone } from "@/lib/phoneUtils";
 
 type UserType = "consultor" | "empresa" | "canal" | "equipe" | null;
 
@@ -82,8 +83,9 @@ const Register = () => {
       toast({ title: "Consulte o CNPJ", description: "Clique em buscar para validar o CNPJ.", variant: "destructive" });
       return;
     }
-    if (!unmask(formData.telefone) || unmask(formData.telefone).length < 10) {
-      toast({ title: "Telefone inválido", variant: "destructive" });
+    const phoneCheck = validatePhone(formData.telefone, true);
+    if (!phoneCheck.valid) {
+      toast({ title: "Telefone inválido", description: phoneCheck.error, variant: "destructive" });
       return;
     }
 
@@ -360,12 +362,13 @@ const Register = () => {
         </div>
       </div>
 
-      <div className="hidden lg:flex flex-1 bg-hero items-center justify-center p-12">
-        <div className="max-w-md text-center">
+      <div className="hidden lg:flex flex-1 bg-gradient-to-br from-primary via-primary to-primary/80 items-center justify-center p-12 relative overflow-hidden">
+        <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_30%_20%,white,transparent_50%)]" />
+        <div className="max-w-md text-center relative z-10">
           <h2 className="text-3xl font-display font-bold text-primary-foreground mb-4">
             Junte-se ao maior marketplace de ERP
           </h2>
-          <p className="text-primary-foreground/60">
+          <p className="text-primary-foreground/80">
             Milhares de empresas e consultores já confiam na Workz.
           </p>
         </div>

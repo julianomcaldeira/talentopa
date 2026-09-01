@@ -199,8 +199,8 @@ const ConsultorProjetos = () => {
 
   const scoreColor = (s: number) => s >= 75 ? "text-success" : s >= 50 ? "text-warning" : "text-muted-foreground";
   const scoreBg = (s: number) => s >= 75 ? "bg-success/10 border-success/20" : s >= 50 ? "bg-warning/10 border-warning/20" : "bg-muted/50 border-border";
-  const formatDateTime = (value: string) => new Date(value).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
-  const formatDeadline = (value: string) => new Date(`${value}T23:59:59`).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
+  const formatDateTime = (value: string) => { const d = new Date(value); return isNaN(d.getTime()) ? "—" : d.toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short", timeZone: "America/Sao_Paulo" }); };
+  const formatDeadline = (value: string) => { const d = new Date(`${value}T23:59:59`); return isNaN(d.getTime()) ? "—" : d.toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short", timeZone: "America/Sao_Paulo" }); };
 
   // Apply filters
   const filteredProjetos = useMemo(() => {
@@ -538,7 +538,7 @@ const ConsultorProjetos = () => {
                 )}
                 {p.prazo_estimado && (
                   <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-md">
-                    <Calendar size={10} /> {new Date(p.prazo_estimado).toLocaleDateString("pt-BR")}
+                    <Calendar size={10} /> {(() => { const d = new Date(p.prazo_estimado); return isNaN(d.getTime()) ? "—" : d.toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" }); })()}
                   </span>
                 )}
                 {p.created_at && (

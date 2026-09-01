@@ -135,7 +135,7 @@ const EmpresaProjetos = () => {
     const result = projetos.filter((p) => {
       if (statusFilter !== "all" && p.status !== statusFilter) return false;
       if (prazoFilter !== "all") {
-        const prazo = p.prazo_propostas ? new Date(p.prazo_propostas + "T00:00:00") : null;
+        const prazo = (() => { if (!p.prazo_propostas) return null; const d = new Date(p.prazo_propostas + "T00:00:00"); return isNaN(d.getTime()) ? null : d; })();
         if (prazoFilter === "sem_prazo") {
           if (prazo) return false;
         } else {
