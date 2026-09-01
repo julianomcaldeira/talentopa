@@ -80,7 +80,8 @@ export default function EmpresaCoordenadores() {
       });
       if (error) {
         const msg = (error as any)?.message || "";
-        const isCacheMiss = msg.includes("Could not find the function") || msg.includes("schema cache");
+        const code = (error as any)?.code || "";
+        const isCacheMiss = code === "PGRST202" || msg.includes("Could not find the function") || msg.includes("schema cache");
         if (isCacheMiss) {
           // fallback: insert direto (policy "Empresa gestores manage links" permite para dono)
           const { error: insErr } = await supabase.from("empresa_usuarios").insert({
@@ -102,8 +103,11 @@ export default function EmpresaCoordenadores() {
       fetchEquipe();
     } catch (e: any) {
       const msg = e?.message || "";
-      if (msg.includes("Could not find the function") || msg.includes("schema cache")) {
-        toast.error("Função ainda não publicada no Lovable. Tente novamente em 1 min ou faça insert direto.");
+      const code = e?.code || "";
+      if (code === "PGRST202" || msg.includes("Could not find the function") || msg.includes("schema cache")) {
+        toast.error("Função ainda não publicada no Lovable. Tente novamente em 1 min.");
+      } else if (msg.includes("duplicate key") || code === "23505") {
+        toast.error("Este usuário já está vinculado à sua empresa.");
       } else {
         toast.error(msg || "Não foi possível adicionar");
       }

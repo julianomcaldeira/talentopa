@@ -101,13 +101,22 @@ const EmpresaProjetos = () => {
 
   useEffect(() => {
     if (!user) return;
-    refetch().then(() => setLoading(false));
-  }, [user]);
+    // aguarda empresaUserId resolver para não buscar com owner errado (RMO)
+    if (empresaUserId === null && user) {
+      // ainda carregando vínculo, aguarda próximo ciclo
+      return;
+    }
+    let cancelled = false;
+    setLoading(true);
+    refetch().then(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, [user, empresaUserId]);
 
   useEffect(() => {
     if (!user) return;
+    const channelId = empresaUserId || user.id;
     const channel = supabase
-      .channel(`empresa-propostas-${user.id}`)
+      .channel(`empresa-propostas-${channelId}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "propostas" }, () => refetch())
       .on("postgres_changes", { event: "*", schema: "public", table: "parceiro_respostas" }, () => {
         if (selectedProjeto) void viewPropostas(selectedProjeto);
@@ -117,7 +126,7 @@ const EmpresaProjetos = () => {
       })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
-  }, [user?.id, selectedProjeto?.id]);
+  }, [user?.id, empresaUserId, selectedProjeto?.id]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();

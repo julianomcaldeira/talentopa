@@ -118,17 +118,19 @@ const Register = () => {
 
       await signUp(formData.email, formData.password, metadata);
 
-      // Update profile/empresa with phone & CNPJ data (trigger creates base records)
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        await supabase.from("profiles").update({ telefone: formData.telefone }).eq("user_id", user.id);
+      // Supabase pode exigir confirmação de e-mail → getUser retorna null; trigger já criou profiles com telefone
+      const { data: { user: newUser } } = await supabase.auth.getUser();
+      if (newUser) {
+        const { error: profErr } = await supabase.from("profiles").update({ telefone: formData.telefone }).eq("user_id", newUser.id);
+        if (profErr) console.warn("profiles update", profErr.message);
         if (userType === "empresa" && cnpjData) {
-          await supabase.from("empresa_perfil").update({
+          const { error: empErr } = await supabase.from("empresa_perfil").update({
             cnpj: cnpjData.cnpj,
             nome_fantasia: cnpjData.nome_fantasia,
             endereco: cnpjData.endereco,
             segmento: cnpjData.segmento,
-          }).eq("user_id", user.id);
+          }).eq("user_id", newUser.id);
+          if (empErr) console.warn("empresa_perfil update", empErr.message);
         }
       }
 

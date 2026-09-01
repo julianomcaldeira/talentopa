@@ -89,12 +89,16 @@ const ConsultorProjetos = () => {
 
   useEffect(() => {
     if (!user) return;
+    let cancelled = false;
     const fetchAll = async () => {
-      const [projRes, skillsRes, propRes, swRes, modRes] = await Promise.all([
-        supabase.from("projetos")
-          .select("*, softwares(nome)")
-          .in("status", ["publicado", "em_selecao"])
-          .order("created_at", { ascending: false }),
+      setLoading(true);
+      try {
+        const [projRes, skillsRes, propRes, swRes, modRes] = await Promise.all([
+          supabase.from("projetos")
+            .select("*, softwares(nome)")
+            .in("status", ["publicado", "em_selecao"])
+            .order("created_at", { ascending: false })
+            .limit(100),
         supabase.from("consultor_habilidades")
           .select("software_id, modulo_id, funcionalidade_id, nivel")
           .eq("user_id", user.id),
@@ -142,10 +146,16 @@ const ConsultorProjetos = () => {
         });
       }
 
-      setProjetos(projs);
-      setLoading(false);
+      if (!cancelled) setProjetos(projs);
+      } catch (e) {
+        console.error("ConsultorProjetos fetchAll", e);
+        if (!cancelled) toast({ title: "Erro ao carregar projetos", description: (e as any)?.message, variant: "destructive" });
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
     };
     fetchAll();
+    return () => { cancelled = true; };
   }, [user]);
 
   const handleProposal = async () => {

@@ -187,7 +187,8 @@ const CanalProjetos = () => {
       .select("id, nome, status, valor_estimado, prazo_estimado, created_at, empresa_user_id, software_id")
       .eq("roteamento_v2", true)
       .in("status", ["publicado", "em_selecao"])
-      .order("created_at", { ascending: false });
+      .order("created_at", { ascending: false })
+      .limit(100);
 
     const [enrCanal, enrCons, enrDem] = await Promise.all([
       enrichProjetos((criados as any[]) || []),
