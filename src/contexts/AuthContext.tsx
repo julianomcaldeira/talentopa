@@ -46,81 +46,91 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   const fetchProfile = async (userId: string) => {
-    const { data: profileData } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("user_id", userId)
-      .single();
+    try {
+      const [{ data: profileData, error: profErr }, { data: empUsr }, { data: roleRows }] = await Promise.all([
+        supabase.from("profiles").select("*").eq("user_id", userId).single(),
+        supabase.from("empresa_usuarios").select("papel, empresa_user_id").eq("user_id", userId).maybeSingle(),
+        supabase.from("user_roles").select("role").eq("user_id", userId),
+      ]);
 
-    if (profileData) setProfile(profileData as Profile);
+      if (profErr) {
+        // profile pode não existir se trigger falhou — não trava, continua para resolver role
+        console.warn("fetchProfile profiles error", profErr.message);
+      }
+      if (profileData) setProfile(profileData as Profile);
+      else setProfile(null);
 
-    // Papel dentro da empresa (rmo, coordenador, responsavel, financeiro, operacional)
-    const { data: empUsr } = await supabase
-      .from("empresa_usuarios")
-      .select("papel, empresa_user_id")
-      .eq("user_id", userId)
-      .maybeSingle();
-    const papelEmpresa = (empUsr?.papel as string) || null;
-    setEmpresaPapel(papelEmpresa);
-    setEmpresaUserId((empUsr?.empresa_user_id as string) || null);
+      const papelEmpresa = (empUsr?.papel as string) || null;
+      setEmpresaPapel(papelEmpresa);
 
-    const { data: roleRows } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", userId);
+      // empresaUserId inicial (vínculo); se for dono sem vínculo, corrige depois
+      setEmpresaUserId((empUsr?.empresa_user_id as string) || null);
 
-    let resolvedRole: UserRole | null = null;
-    if (roleRows && roleRows.length) {
-      const roles = roleRows.map((r: any) => r.role as UserRole);
-      // Se tem vínculo em empresa_usuarios, prioriza role empresa (corrige RMO cadastrado como consultor)
-      if (papelEmpresa && roles.includes("empresa")) resolvedRole = "empresa";
-      else if (papelEmpresa && roles.includes("consultor")) {
-        // fallback: vinculado mas sem role empresa ainda (antes do backfill) -> trata como empresa
-        resolvedRole = "empresa";
-      } else if (roles.includes("admin")) resolvedRole = "admin";
-      else if (roles.includes("empresa")) resolvedRole = "empresa";
-      else if (roles.includes("canal")) resolvedRole = "canal";
-      else resolvedRole = roles[0] as UserRole;
+      let resolvedRole: UserRole | null = null;
+      if (roleRows && roleRows.length) {
+        const roles = roleRows.map((r: any) => r.role as UserRole);
+        // admin sempre prioriza, mesmo com vínculo empresa
+        if (roles.includes("admin")) resolvedRole = "admin";
+        else if (papelEmpresa && roles.includes("empresa")) resolvedRole = "empresa";
+        else if (papelEmpresa && roles.includes("consultor")) {
+          // fallback: vinculado mas sem role empresa ainda (antes do backfill) -> trata como empresa
+          resolvedRole = "empresa";
+        } else if (roles.includes("empresa")) resolvedRole = "empresa";
+        else if (roles.includes("canal")) resolvedRole = "canal";
+        else resolvedRole = roles[0] as UserRole;
+      }
+      if (resolvedRole) setRole(resolvedRole);
+      else if (papelEmpresa) setRole("empresa");
+      else setRole(null);
+
+      if (!empUsr?.empresa_user_id && resolvedRole === "empresa") {
+        setEmpresaUserId(userId);
+      }
+    } catch (e) {
+      console.error("fetchProfile failed", e);
+      setRole(null);
     }
-    if (resolvedRole) setRole(resolvedRole);
-    else if (papelEmpresa) setRole("empresa");
-    else setRole(null);
-
-    // se é empresa dona (sem vínculo mas role empresa), empresaUserId é ele mesmo
-    if (!empUsr?.empresa_user_id && resolvedRole === "empresa") {
-      setEmpresaUserId(userId);
-    }
-
   };
 
   useEffect(() => {
+    let cancelled = false;
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
+        if (cancelled) return;
         setSession(session);
         setUser(session?.user ?? null);
 
         if (session?.user) {
-          setTimeout(() => fetchProfile(session.user.id), 0);
+          // evita deadlock do Supabase: deferir, mas aguardar fetch antes de liberar loading
+          setTimeout(async () => {
+            if (cancelled) return;
+            await fetchProfile(session.user.id);
+            if (!cancelled) setLoading(false);
+          }, 0);
         } else {
           setProfile(null);
           setRole(null);
           setEmpresaPapel(null);
           setEmpresaUserId(null);
+          if (!cancelled) setLoading(false);
         }
-        setLoading(false);
       }
     );
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (cancelled) return;
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        fetchProfile(session.user.id);
+        await fetchProfile(session.user.id);
       }
-      setLoading(false);
+      if (!cancelled) setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      cancelled = true;
+      subscription.unsubscribe();
+    };
   }, []);
 
   // Reage a alterações do perfil de acesso feitas pelo admin em tempo real:
@@ -180,7 +190,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setProfile(null);
     setRole(null);
     setEmpresaPapel(null);
-    
+    setEmpresaUserId(null);
   };
 
   const resetPassword = async (email: string) => {

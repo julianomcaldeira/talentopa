@@ -5,6 +5,9 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -65,9 +68,23 @@ const queryClient = new QueryClient();
 
 const AuthRedirect = () => {
   const { session, role, loading } = useAuth();
+  const [timedOut, setTimedOut] = useState(false);
+  useEffect(() => {
+    if (!loading || role) return;
+    const t = setTimeout(() => setTimedOut(true), 6000);
+    return () => clearTimeout(t);
+  }, [loading, role]);
   if (loading) return null;
   if (!session) return <Navigate to="/login" replace />;
   if (!role) {
+    if (timedOut) {
+      return (
+        <div className="min-h-screen flex flex-col items-center justify-center bg-background gap-4 p-6 text-center">
+          <p className="text-sm text-muted-foreground">Não foi possível carregar seu perfil. Tente sair e entrar novamente.</p>
+          <Button variant="outline" onClick={async () => { await supabase.auth.signOut(); window.location.href = "/login"; }}>Sair e fazer login</Button>
+        </div>
+      );
+    }
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
