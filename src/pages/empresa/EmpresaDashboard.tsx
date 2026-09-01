@@ -474,8 +474,12 @@ const EmpresaDashboard = () => {
                   return (
                     <div
                       key={p.id}
-                      className="p-4 px-5 hover:bg-muted/30 transition-colors cursor-pointer group"
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`Ver projeto ${p.nome}`}
+                      className="p-4 px-5 hover:bg-muted/30 transition-colors cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                       onClick={() => navigate("/empresa/projetos")}
+                      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); navigate("/empresa/projetos"); }}}
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3.5">

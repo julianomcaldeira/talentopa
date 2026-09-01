@@ -15,55 +15,56 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 import { AdminLayout, ConsultorLayout, EmpresaLayout, CanalLayout } from "./components/dashboard/DashboardLayout";
-import CanalDashboard from "./pages/canal/CanalDashboard";
-import CanalConsultores from "./pages/canal/CanalConsultores";
-import CanalProjetos from "./pages/canal/CanalProjetos";
-import CanalDemandaDetalhe from "./pages/canal/CanalDemandaDetalhe";
-import CanalAprovacoes from "./pages/canal/CanalAprovacoes";
-import CanalConfiguracoes from "./pages/canal/CanalConfiguracoes";
-import CanalAgenda from "./pages/canal/CanalAgenda";
-import AdminDashboard from "./pages/admin/AdminDashboard";
-import AdminCatalogo from "./pages/admin/AdminCatalogo";
-import AdminEmpresas from "./pages/admin/AdminEmpresas";
-import AdminProjetos from "./pages/admin/AdminProjetos";
-import AdminFinanceiro from "./pages/admin/AdminFinanceiro";
-import AdminConsultores from "./pages/admin/AdminConsultores";
-import AdminCanais from "./pages/admin/AdminCanais";
-import AdminProjetoDetalhe from "./pages/admin/AdminProjetoDetalhe";
-import AdminModeracao from "./pages/admin/AdminModeracao";
-import AdminTentativasBloqueadas from "./pages/admin/AdminTentativasBloqueadas";
-import AdminMetricas from "./pages/admin/AdminMetricas";
-import AdminAuditLogs from "./pages/admin/AdminAuditLogs";
-import ConsultorDashboard from "./pages/consultor/ConsultorDashboard";
-import ConsultorPerfil from "./pages/consultor/ConsultorPerfil";
-import ConsultorHabilidades from "./pages/consultor/ConsultorHabilidades";
-import ConsultorProjetos from "./pages/consultor/ConsultorProjetos";
-import ConsultorMinhasPropostas from "./pages/consultor/ConsultorMinhasPropostas";
-import ConsultorCopilot from "./pages/consultor/ConsultorCopilot";
-import ConsultorScore from "./pages/consultor/ConsultorScore";
-import ConsultorPortfolioPublico from "./pages/consultor/ConsultorPortfolioPublico";
-import EmpresaDashboard from "./pages/empresa/EmpresaDashboard";
-import EmpresaPerfil from "./pages/empresa/EmpresaPerfil";
-import EmpresaNovoProjeto from "./pages/empresa/EmpresaNovoProjeto";
-import EmpresaProjetos from "./pages/empresa/EmpresaProjetos";
-import EmpresaConsultoresHistorico from "./pages/empresa/EmpresaConsultoresHistorico";
-import AdminRelatorios from "./pages/admin/AdminRelatorios";
-import AdminScoreConfig from "./pages/admin/AdminScoreConfig";
-import AdminAIContext from "./pages/admin/AdminAIContext";
-import AdminUsuarios from "./pages/admin/AdminUsuarios";
-import AdminTodosUsuarios from "./pages/admin/AdminTodosUsuarios";
-import AdminPerfil from "./pages/admin/AdminPerfil";
-import ConsultorRelatorios from "./pages/consultor/ConsultorRelatorios";
-import ConsultorConvitesCanal from "./pages/consultor/ConsultorConvitesCanal";
-import ConsultorAgenda from "./pages/consultor/ConsultorAgenda";
-import ConsultorMinhasIndicacoes from "./pages/consultor/ConsultorMinhasIndicacoes";
-import EmpresaRelatorios from "./pages/empresa/EmpresaRelatorios";
-import ProjetoGestao from "./pages/projetos/ProjetoGestao";
-import GestaoProjetos from "./pages/projetos/GestaoProjetos";
-import ProjectStateReference from "./pages/projetos/ProjectStateReference";
-import EmpresaShortlist from "./pages/empresa/EmpresaShortlist";
-import EmpresaCoordenadores from "./pages/empresa/EmpresaCoordenadores";
-import EmpresaCoordenadorPainel from "./pages/empresa/EmpresaCoordenadorPainel";
+import { lazy, Suspense } from "react";
+const CanalDashboard = lazy(() => import("./pages/canal/CanalDashboard"));
+const CanalConsultores = lazy(() => import("./pages/canal/CanalConsultores"));
+const CanalProjetos = lazy(() => import("./pages/canal/CanalProjetos"));
+const CanalDemandaDetalhe = lazy(() => import("./pages/canal/CanalDemandaDetalhe"));
+const CanalAprovacoes = lazy(() => import("./pages/canal/CanalAprovacoes"));
+const CanalConfiguracoes = lazy(() => import("./pages/canal/CanalConfiguracoes"));
+const CanalAgenda = lazy(() => import("./pages/canal/CanalAgenda"));
+const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
+const AdminCatalogo = lazy(() => import("./pages/admin/AdminCatalogo"));
+const AdminEmpresas = lazy(() => import("./pages/admin/AdminEmpresas"));
+const AdminProjetos = lazy(() => import("./pages/admin/AdminProjetos"));
+const AdminFinanceiro = lazy(() => import("./pages/admin/AdminFinanceiro"));
+const AdminConsultores = lazy(() => import("./pages/admin/AdminConsultores"));
+const AdminCanais = lazy(() => import("./pages/admin/AdminCanais"));
+const AdminProjetoDetalhe = lazy(() => import("./pages/admin/AdminProjetoDetalhe"));
+const AdminModeracao = lazy(() => import("./pages/admin/AdminModeracao"));
+const AdminTentativasBloqueadas = lazy(() => import("./pages/admin/AdminTentativasBloqueadas"));
+const AdminMetricas = lazy(() => import("./pages/admin/AdminMetricas"));
+const AdminAuditLogs = lazy(() => import("./pages/admin/AdminAuditLogs"));
+const ConsultorDashboard = lazy(() => import("./pages/consultor/ConsultorDashboard"));
+const ConsultorPerfil = lazy(() => import("./pages/consultor/ConsultorPerfil"));
+const ConsultorHabilidades = lazy(() => import("./pages/consultor/ConsultorHabilidades"));
+const ConsultorProjetos = lazy(() => import("./pages/consultor/ConsultorProjetos"));
+const ConsultorMinhasPropostas = lazy(() => import("./pages/consultor/ConsultorMinhasPropostas"));
+const ConsultorCopilot = lazy(() => import("./pages/consultor/ConsultorCopilot"));
+const ConsultorScore = lazy(() => import("./pages/consultor/ConsultorScore"));
+const ConsultorPortfolioPublico = lazy(() => import("./pages/consultor/ConsultorPortfolioPublico"));
+const EmpresaDashboard = lazy(() => import("./pages/empresa/EmpresaDashboard"));
+const EmpresaPerfil = lazy(() => import("./pages/empresa/EmpresaPerfil"));
+const EmpresaNovoProjeto = lazy(() => import("./pages/empresa/EmpresaNovoProjeto"));
+const EmpresaProjetos = lazy(() => import("./pages/empresa/EmpresaProjetos"));
+const EmpresaConsultoresHistorico = lazy(() => import("./pages/empresa/EmpresaConsultoresHistorico"));
+const AdminRelatorios = lazy(() => import("./pages/admin/AdminRelatorios"));
+const AdminScoreConfig = lazy(() => import("./pages/admin/AdminScoreConfig"));
+const AdminAIContext = lazy(() => import("./pages/admin/AdminAIContext"));
+const AdminUsuarios = lazy(() => import("./pages/admin/AdminUsuarios"));
+const AdminTodosUsuarios = lazy(() => import("./pages/admin/AdminTodosUsuarios"));
+const AdminPerfil = lazy(() => import("./pages/admin/AdminPerfil"));
+const ConsultorRelatorios = lazy(() => import("./pages/consultor/ConsultorRelatorios"));
+const ConsultorConvitesCanal = lazy(() => import("./pages/consultor/ConsultorConvitesCanal"));
+const ConsultorAgenda = lazy(() => import("./pages/consultor/ConsultorAgenda"));
+const ConsultorMinhasIndicacoes = lazy(() => import("./pages/consultor/ConsultorMinhasIndicacoes"));
+const EmpresaRelatorios = lazy(() => import("./pages/empresa/EmpresaRelatorios"));
+const ProjetoGestao = lazy(() => import("./pages/projetos/ProjetoGestao"));
+const GestaoProjetos = lazy(() => import("./pages/projetos/GestaoProjetos"));
+const ProjectStateReference = lazy(() => import("./pages/projetos/ProjectStateReference"));
+const EmpresaShortlist = lazy(() => import("./pages/empresa/EmpresaShortlist"));
+const EmpresaCoordenadores = lazy(() => import("./pages/empresa/EmpresaCoordenadores"));
+const EmpresaCoordenadorPainel = lazy(() => import("./pages/empresa/EmpresaCoordenadorPainel"));
 const queryClient = new QueryClient();
 
 const AuthRedirect = () => {
@@ -102,6 +103,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
+          <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>}>
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
@@ -182,6 +184,7 @@ const App = () => (
 
             <Route path="*" element={<NotFound />} />
           </Routes>
+          </Suspense>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>

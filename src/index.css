@@ -186,6 +186,12 @@
     }
   }
 
+  @media (prefers-reduced-motion: reduce) {
+    .page-enter {
+      animation: none;
+    }
+  }
+
   .proposal-soft-pulse {
     animation: proposalSoftPulse 2.8s ease-in-out infinite;
     box-shadow: 0 4px 18px hsl(var(--primary) / 0.14);

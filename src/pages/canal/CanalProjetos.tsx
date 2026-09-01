@@ -396,7 +396,7 @@ const CanalProjetos = () => {
                   </SelectTrigger>
                   <SelectContent>
                     {empresas.length === 0 ? (
-                      <div className="px-2 py-1.5 text-sm text-muted-foreground">Nenhuma empresa</div>
+                      <SelectItem value="__empty_empresa__" disabled>Nenhuma empresa</SelectItem>
                     ) : (
                       empresas.map((e) => (
                         <SelectItem key={e.user_id} value={e.user_id}>
@@ -419,9 +419,7 @@ const CanalProjetos = () => {
                   </SelectTrigger>
                   <SelectContent>
                     {consultores.length === 0 ? (
-                      <div className="px-2 py-1.5 text-sm text-muted-foreground">
-                        Nenhum consultor ativo no canal
-                      </div>
+                      <SelectItem value="__empty_consultor__" disabled>Nenhum consultor ativo no canal</SelectItem>
                     ) : (
                       consultores.map((c) => (
                         <SelectItem key={c.user_id} value={c.user_id}>
