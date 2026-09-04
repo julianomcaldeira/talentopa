@@ -118,14 +118,35 @@ export default function EmpresaCoordenadores() {
 
   const remover = async () => {
     if (!pendingRemoveId) return;
-    const id = pendingRemoveId;
+    const link = equipe.find((e) => e.id === pendingRemoveId);
+    const targetUserId = link?.user_id;
     setPendingRemoveId(null);
-    const { error } = await supabase.from("empresa_usuarios").delete().eq("id", id);
-    if (error) toast.error(error.message);
-    else {
-      toast.success("Removido");
-      fetchEquipe();
+    if (!targetUserId) {
+      toast.error("Vínculo não encontrado");
+      return;
     }
+    const empresaOwnerId = empresaUserId || user!.id;
+    // tenta RPC que também revoga role empresa se não tiver mais vínculo
+    const { error } = await supabase.rpc("empresa_remove_membro", {
+      _target: targetUserId,
+      _empresa_user_id: empresaOwnerId,
+    } as any);
+    if (error) {
+      const msg = (error as any)?.message || "";
+      const isCacheMiss = msg.includes("Could not find the function") || msg.includes("schema cache") || (error as any)?.code === "PGRST202";
+      if (isCacheMiss) {
+        // fallback: delete direto (sem revogar role) — será corrigido quando migration aplicar
+        const { error: delErr } = await supabase.from("empresa_usuarios").delete().eq("id", link!.id);
+        if (delErr) toast.error(delErr.message);
+        else toast.success("Removido (role será revogada após sync do Lovable)");
+      } else {
+        toast.error(msg || "Falha ao remover");
+        return;
+      }
+    } else {
+      toast.success("Removido e acesso revogado");
+    }
+    fetchEquipe();
   };
 
   const papelLabel: Record<string, string> = {

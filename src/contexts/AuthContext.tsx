@@ -144,6 +144,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         "postgres_changes",
         { event: "*", schema: "public", table: "user_roles", filter: `user_id=eq.${user.id}` },
         async (payload: any) => {
+          const eventType = payload.eventType as string;
+          // DELETE: payload.old contém role removida
+          if (eventType === "DELETE") {
+            const oldRole = (payload.old?.role as UserRole) || null;
+            if (oldRole === role) {
+              // role revogada — refaz fetch para cair no fallback consultor/empresa
+              await fetchProfile(user.id);
+              window.location.replace("/login");
+            }
+            return;
+          }
           const newRole = (payload.new?.role as UserRole) || null;
           const oldRole = role;
           if (newRole && newRole !== oldRole) {
@@ -154,7 +165,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               empresa: "/empresa",
               canal: "/canal",
             };
-            // hard reload garante que menus, permissões e caches sejam refeitos
             window.location.replace(map[newRole] || "/");
           }
         }
@@ -165,6 +175,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       supabase.removeChannel(channel);
     };
   }, [user?.id, role]);
+
+  // Se empresa remover vínculo do usuário, forçar refetch/logout
+  useEffect(() => {
+    if (!user?.id) return;
+    const ch = supabase
+      .channel(`empresa-vinculo-${user.id}`)
+      .on("postgres_changes", { event: "DELETE", schema: "public", table: "empresa_usuarios", filter: `user_id=eq.${user.id}` }, async () => {
+        await fetchProfile(user.id);
+        // se perdeu vínculo e não é dono, volta para login
+        setTimeout(() => window.location.replace("/login"), 500);
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [user?.id]);
 
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
