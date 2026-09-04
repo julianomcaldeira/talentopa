@@ -82,9 +82,14 @@ export async function computeConsultorMatches(
 
   const scored: { user_id: string; score: number; details: MatchDetails }[] = [];
   consultorMap.forEach((skills, userId) => {
-    let score = scoreCfg.match_software;
     const matchedModulos = skills.filter((s) => s.modulo_id && projetoModulos.includes(s.modulo_id));
     const matchedFuncs = skills.filter((s) => s.funcionalidade_id && projetoFuncs.includes(s.funcionalidade_id));
+    // Aderência: se demanda tem escopo (módulos/funcs), exigir pelo menos 1 match neles; só software não basta
+    const hasScope = projetoModulos.length > 0 || projetoFuncs.length > 0;
+    const hasAderencia = !hasScope || matchedModulos.length > 0 || matchedFuncs.length > 0;
+    if (!hasAderencia) return; // sem aderência → não sugere
+
+    let score = scoreCfg.match_software;
     if (projetoModulos.length > 0) {
       score += Math.round((matchedModulos.length / projetoModulos.length) * scoreCfg.match_modulos);
     }
@@ -160,11 +165,12 @@ export async function computeConsultorMatches(
  */
 export async function fetchConsultoresComVinculoAtivo(userIds: string[]): Promise<Set<string>> {
   if (userIds.length === 0) return new Set();
+  // Qualquer vínculo não desvinculado/recusado já caracteriza "vinculado a Parceiro" → não é avulso
   const { data } = await supabase
     .from("canal_consultores")
     .select("consultor_user_id")
     .in("consultor_user_id", userIds)
-    .eq("status", "ativo");
+    .not("status", "in", "(desvinculado,recusado)");
   return new Set((data || []).map((r: any) => r.consultor_user_id));
 }
 
