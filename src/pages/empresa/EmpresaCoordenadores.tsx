@@ -82,13 +82,22 @@ export default function EmpresaCoordenadores() {
 
   const adicionar = async () => {
     if (!user || !email.trim()) return;
+    const normalizedEmail = email.trim().toLowerCase();
+    if (normalizedEmail === user.email?.toLowerCase()) {
+      toast.error("Você não pode convidar a si mesmo");
+      return;
+    }
     setLoading(true);
     try {
       const { data: uid, error: rpcErr } = await supabase.rpc("find_user_id_by_email", {
-        _email: email.trim(),
+        _email: normalizedEmail,
       });
       if (rpcErr) throw rpcErr;
       if (!uid) throw new Error("Usuário com este e-mail não foi encontrado. Peça para se cadastrar primeiro.");
+      if ((uid as string) === user.id) {
+        toast.error("Você não pode convidar a si mesmo");
+        return;
+      }
       const empresaOwnerId = empresaUserId || user.id;
       // tenta RPC nova; se schema cache ainda não tem (Lovable ainda não aplicou migration), cai no fallback
       const { data, error } = await supabase.rpc("empresa_add_membro", {
@@ -267,11 +276,21 @@ export default function EmpresaCoordenadores() {
             <p className="text-sm text-muted-foreground">Nenhum membro adicionado.</p>
           ) : (
             <div className="divide-y">
-              {equipe.map((m) => (
+              {equipe.map((m) => {
+                const displayName = (() => {
+                  const nome = m.profile?.nome?.trim();
+                  const email = m.profile?.email?.trim();
+                  // se nome é igual ao email ou vazio, mostrar email; se nome parece razão social da empresa, preferir email
+                  if (!nome || nome === email) return email || "Convite pendente";
+                  // heurística: se nome contém LTDA/ME/EIRELI e email existe, mostrar email como fallback visual mas manter nome completo em tooltip
+                  if (email && /LTDA|CONSULTING|LTDA\.|EIRELI|ME\b/i.test(nome) && nome.length > 20) return email;
+                  return nome;
+                })();
+                return (
                 <div key={m.id} className={`flex items-center justify-between py-3 ${m.ativo === false ? "opacity-60" : ""}`}>
                   <div>
-                    <p className="text-sm font-medium flex items-center gap-2">{m.profile?.nome || "Sem nome"} {m.ativo === false && <Badge variant="secondary">Inativo</Badge>}</p>
-                    <p className="text-xs text-muted-foreground">{m.profile?.email}</p>
+                    <p className="text-sm font-medium flex items-center gap-2" title={m.profile?.nome || ""}>{displayName} {m.ativo === false && <Badge variant="secondary">Inativo</Badge>}</p>
+                    <p className="text-xs text-muted-foreground">{m.profile?.email || "sem e-mail"}</p>
                   </div>
                   <div className="flex items-center gap-2">
                     <Badge variant={m.papel === "coordenador" ? "default" : "secondary"}>
@@ -294,7 +313,8 @@ export default function EmpresaCoordenadores() {
                     </Button>
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </CardContent>
