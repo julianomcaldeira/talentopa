@@ -108,7 +108,6 @@ const CanalConsultores = () => {
       });
     });
 
-    // vínculos legados sem convite associado
     vincSemConvite.forEach((v) => {
       merged.push({
         key: `v-${v.id}`,
@@ -123,8 +122,18 @@ const CanalConsultores = () => {
       });
     });
 
-    merged.sort((a, b) => +new Date(b.dataConvite) - +new Date(a.dataConvite));
-    setRows(merged);
+    // Desduplicar por consultor (mesmo email ou user_id) — manter mais recente
+    const dedup = new Map<string, Row>();
+    merged.forEach((r) => {
+      const key = (r.consultorUserId || r.email.toLowerCase()).toLowerCase();
+      const existing = dedup.get(key);
+      if (!existing || new Date(r.dataConvite) > new Date(existing.dataConvite)) {
+        dedup.set(key, r);
+      }
+    });
+    const deduped = Array.from(dedup.values());
+    deduped.sort((a, b) => +new Date(b.dataConvite) - +new Date(a.dataConvite));
+    setRows(deduped);
 
     const ids = Array.from(new Set(merged.map((r) => r.consultorUserId).filter(Boolean) as string[]));
     if (ids.length) {

@@ -40,13 +40,19 @@ const ConsultorConvitesCanal = () => {
 
     const canalIds = Array.from(new Set(list.map((c) => c.canal_id)));
     if (canalIds.length) {
+      // usar canais (view public com security_definer) — fallback para canais direto se RLS negar
       const { data: canais } = await supabase
         .from("canais_public" as any)
         .select("id, nome")
         .in("id", canalIds);
-      const map: Record<string, string> = {};
-      (canais as any[] | null)?.forEach((c) => { map[c.id] = c.nome; });
-      list.forEach((c) => { c.canal_nome = map[c.canal_id]; });
+      let map: Record<string, string> = {};
+      if (canais && canais.length) {
+        (canais as any[]).forEach((c) => { map[c.id] = c.nome; });
+      } else {
+        const { data: canais2 } = await supabase.from("canais").select("id, nome").in("id", canalIds);
+        (canais2 as any[] || []).forEach((c) => { map[c.id] = c.nome; });
+      }
+      list.forEach((c) => { c.canal_nome = map[c.canal_id] || "Canal"; });
     }
     setConvites(list);
     setLoading(false);
