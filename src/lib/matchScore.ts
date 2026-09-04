@@ -126,7 +126,7 @@ export async function computeConsultorMatches(
 
   const userIds = filtered.map((s) => s.user_id);
   const [profilesRes, perfilRes] = await Promise.all([
-    supabase.from("profiles_public" as any).select("user_id, nome, cidade, estado, avatar_url").in("user_id", userIds),
+    supabase.from("profiles").select("user_id, nome, cidade, estado, avatar_url, email").in("user_id", userIds),
     supabase.from("consultor_perfil").select("user_id, bio_profissional, linkedin").in("user_id", userIds),
   ]);
 
@@ -136,9 +136,13 @@ export async function computeConsultorMatches(
   return filtered.map((s) => {
     const profile: any = profileMap.get(s.user_id);
     const perfil: any = perfilMap.get(s.user_id);
+    // nome real do cadastro; fallback é email ou ID curto (nunca "Consultor" genérico sem identificação)
+    const rawNome = profile?.nome?.trim();
+    const email = profile?.email?.trim();
+    const displayNome = rawNome && rawNome.toLowerCase() !== "consultor" ? rawNome : (email ? email.split("@")[0] : `Consultor • ${s.user_id.slice(0, 8)}`);
     return {
       user_id: s.user_id,
-      nome: profile?.nome || "Consultor",
+      nome: displayNome,
       cidade: profile?.cidade || null,
       estado: profile?.estado || null,
       avatar_url: profile?.avatar_url || null,

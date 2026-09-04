@@ -82,14 +82,17 @@ export const ConsultorMatchList = ({ projetoId, projetoNome, softwareId, onInvit
     <div className="mt-6">
       <button
         onClick={() => setExpanded(!expanded)}
-        className="flex items-center gap-2 mb-4 text-foreground hover:text-primary transition-colors"
+        className="flex items-center gap-2 mb-2 text-foreground hover:text-primary transition-colors"
       >
         <Zap size={16} className="text-primary" />
         <span className="font-display font-semibold text-[15px]">
-          Consultores Compatíveis {!loading && `(${matches.length})`}
+          Consultores Compatíveis — Avulsos aderentes {!loading && `(${matches.length})`}
         </span>
         {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
       </button>
+      <p className="text-xs text-muted-foreground mb-4">
+        Apenas consultores <b className="text-foreground">avulsos</b> (não vinculados a Parceiro). Vinculados são indicados pelo Parceiro.
+      </p>
 
       <AnimatePresence>
         {expanded && (
@@ -130,7 +133,8 @@ export const ConsultorMatchList = ({ projetoId, projetoNome, softwareId, onInvit
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between mb-1">
                             <div className="flex items-center gap-2">
-                              <h4 className="font-display font-semibold text-foreground text-sm truncate">{m.nome}</h4>
+                              <h4 className="font-display font-semibold text-foreground text-sm truncate" title={m.nome}>{m.nome}</h4>
+                              <Badge variant="info" className="text-[10px] px-1.5 py-0">Avulso</Badge>
                               <Link to={`/consultor/portfolio/${m.user_id}`} className="text-[10px] text-primary hover:underline flex items-center gap-0.5">
                                 <Trophy size={10} /> Portfólio
                               </Link>
