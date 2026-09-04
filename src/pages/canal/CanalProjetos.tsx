@@ -344,7 +344,7 @@ const CanalProjetos = () => {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Projetos do canal"
+        title="Projetos Parceiro"
         description="Demandas abertas da plataforma, projetos criados pelo canal e entregas dos seus consultores."
         actions={
         <Dialog open={open} onOpenChange={handleOpenChange}>
