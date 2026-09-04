@@ -47,11 +47,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const fetchProfile = async (userId: string) => {
     try {
-      const [{ data: profileData, error: profErr }, { data: empUsr }, { data: roleRows }] = await Promise.all([
-        supabase.from("profiles").select("*").eq("user_id", userId).single(),
-        supabase.from("empresa_usuarios").select("papel, empresa_user_id").eq("user_id", userId).eq("ativo", true).maybeSingle(),
-        supabase.from("user_roles").select("role").eq("user_id", userId),
-      ]);
+      // tentar com ativo=true, fallback sem coluna se migration ainda não aplicou
+      let empUsr: any = null;
+      const profPromise = supabase.from("profiles").select("*").eq("user_id", userId).single();
+      const rolePromise = supabase.from("user_roles").select("role").eq("user_id", userId);
+      const empPromise = supabase.from("empresa_usuarios").select("papel, empresa_user_id").eq("user_id", userId).eq("ativo", true).maybeSingle();
+      const [{ data: profileData, error: profErr }, empRes, { data: roleRows }] = await Promise.all([profPromise, empPromise, rolePromise]);
+      if ((empRes as any)?.error && (empRes as any).error.message?.includes("column") && (empRes as any).error.message?.includes("ativo")) {
+        const { data: fallback } = await supabase.from("empresa_usuarios").select("papel, empresa_user_id").eq("user_id", userId).maybeSingle();
+        empUsr = fallback;
+      } else {
+        empUsr = (empRes as any)?.data;
+      }
+      // verificar se é dono (tem empresa_perfil) para não confundir ex-RMO com empresa
+      const { data: empresaPerfil } = await supabase.from("empresa_perfil").select("user_id").eq("user_id", userId).maybeSingle();
+      const isEmpresaDono = !!empresaPerfil;
 
       if (profErr) {
         // profile pode não existir se trigger falhou — não trava, continua para resolver role
@@ -69,22 +79,41 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       let resolvedRole: UserRole | null = null;
       if (roleRows && roleRows.length) {
         const roles = roleRows.map((r: any) => r.role as UserRole);
-        // admin sempre prioriza, mesmo com vínculo empresa
         if (roles.includes("admin")) resolvedRole = "admin";
         else if (papelEmpresa && roles.includes("empresa")) resolvedRole = "empresa";
         else if (papelEmpresa && roles.includes("consultor")) {
-          // fallback: vinculado mas sem role empresa ainda (antes do backfill) -> trata como empresa
           resolvedRole = "empresa";
-        } else if (roles.includes("empresa")) resolvedRole = "empresa";
-        else if (roles.includes("canal")) resolvedRole = "canal";
+        } else if (roles.includes("empresa") && (papelEmpresa || isEmpresaDono)) {
+          // só mantém empresa se tem vínculo ativo ou é dono (evita ex-RMO órfão virar empresa dona)
+          resolvedRole = "empresa";
+        } else if (roles.includes("canal")) resolvedRole = "canal";
+        else if (roles.includes("consultor")) resolvedRole = "consultor";
         else resolvedRole = roles[0] as UserRole;
       }
+      // se tem papel mas role foi revogada (ex-RMO), não inventar role
       if (resolvedRole) setRole(resolvedRole);
-      else if (papelEmpresa) setRole("empresa");
-      else setRole(null);
+      else if (papelEmpresa) {
+        // vínculo ativo mas sem role — trata como empresa (aguardando backfill)
+        setRole("empresa");
+        resolvedRole = "empresa";
+      } else setRole(null);
 
-      if (!empUsr?.empresa_user_id && resolvedRole === "empresa") {
+      if (!empUsr?.empresa_user_id && resolvedRole === "empresa" && isEmpresaDono) {
         setEmpresaUserId(userId);
+      } else if (!empUsr?.empresa_user_id && resolvedRole === "empresa" && !isEmpresaDono) {
+        // ex-RMO com role órfã e sem vínculo/dono — não é empresa, força consultor ou null
+        const roles = (roleRows || []).map((r: any) => r.role as string);
+        if (roles.includes("consultor")) {
+          setRole("consultor");
+        } else {
+          setRole(null);
+        }
+        setEmpresaUserId(null);
+        // limpar role órfã em background (não bloqueia)
+        if (roles.includes("empresa")) {
+          supabase.from("user_roles").delete().eq("user_id", userId).eq("role", "empresa").then(() => {});
+        }
+        return;
       }
     } catch (e) {
       console.error("fetchProfile failed", e);

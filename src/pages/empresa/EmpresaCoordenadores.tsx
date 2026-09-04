@@ -152,9 +152,13 @@ export default function EmpresaCoordenadores() {
       const msg = (error as any)?.message || "";
       const isCacheMiss = msg.includes("Could not find the function") || msg.includes("schema cache") || (error as any)?.code === "PGRST202";
       if (isCacheMiss) {
-        const { error: delErr } = await supabase.from("empresa_usuarios").delete().eq("id", link!.id);
-        if (delErr) toast.error(delErr.message);
-        else toast.success("Removido (role será revogada após sync do Lovable)");
+        const { error: delErr } = await supabase.from("empresa_usuarios").delete().eq("user_id", targetUserId).eq("empresa_user_id", empresaOwnerId);
+        if (delErr) {
+          const { error: delById } = await supabase.from("empresa_usuarios").delete().eq("id", link!.id);
+          if (delById) { toast.error(delById.message); return; }
+        }
+        await supabase.from("user_roles").delete().eq("user_id", targetUserId).eq("role", "empresa");
+        toast.success("Removido (acesso revogado)");
       } else {
         toast.error(msg || "Falha ao remover");
         return;
