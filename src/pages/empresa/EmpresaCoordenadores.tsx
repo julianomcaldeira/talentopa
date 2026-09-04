@@ -13,7 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { UserCog, UserPlus, Trash2, Pencil } from "lucide-react";
+import { UserCog, UserPlus, Trash2, Pencil, Ban, Power } from "lucide-react";
 import UsuarioEditDialog from "@/components/usuarios/UsuarioEditDialog";
 import {
   AlertDialog,
@@ -30,6 +30,7 @@ type EmpUsr = {
   id: string;
   user_id: string;
   papel: string;
+  ativo: boolean;
   profile?: { nome: string | null; email: string | null };
 };
 
@@ -41,13 +42,30 @@ export default function EmpresaCoordenadores() {
   const [loading, setLoading] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [pendingRemoveId, setPendingRemoveId] = useState<string | null>(null);
+  const [pendingInativarId, setPendingInativarId] = useState<string | null>(null);
+  const [pendingReativarId, setPendingReativarId] = useState<string | null>(null);
 
   const fetchEquipe = async () => {
     if (!user) return;
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("empresa_usuarios")
-      .select("id,user_id,papel")
-      .eq("empresa_user_id", empresaUserId || user.id);
+      .select("id,user_id,papel,ativo")
+      .eq("empresa_user_id", empresaUserId || user.id)
+      .order("ativo", { ascending: false })
+      .order("created_at", { ascending: true });
+    if (error) {
+      // fallback se coluna ativo ainda não existe (migration não aplicada)
+      const { data: fallback } = await supabase.from("empresa_usuarios").select("id,user_id,papel").eq("empresa_user_id", empresaUserId || user.id);
+      const rows = ((fallback || []) as any[]).map((r) => ({ ...r, ativo: true })) as EmpUsr[];
+      if (rows.length) {
+        const ids = rows.map((r) => r.user_id);
+        const { data: profs } = await supabase.from("profiles").select("user_id,nome,email").in("user_id", ids);
+        const map = new Map((profs || []).map((p: any) => [p.user_id, p]));
+        rows.forEach((r) => (r.profile = map.get(r.user_id) as any));
+      }
+      setEquipe(rows);
+      return;
+    }
     const rows = (data || []) as EmpUsr[];
     if (rows.length) {
       const ids = rows.map((r) => r.user_id);
@@ -126,7 +144,6 @@ export default function EmpresaCoordenadores() {
       return;
     }
     const empresaOwnerId = empresaUserId || user!.id;
-    // tenta RPC que também revoga role empresa se não tiver mais vínculo
     const { error } = await supabase.rpc("empresa_remove_membro", {
       _target: targetUserId,
       _empresa_user_id: empresaOwnerId,
@@ -135,7 +152,6 @@ export default function EmpresaCoordenadores() {
       const msg = (error as any)?.message || "";
       const isCacheMiss = msg.includes("Could not find the function") || msg.includes("schema cache") || (error as any)?.code === "PGRST202";
       if (isCacheMiss) {
-        // fallback: delete direto (sem revogar role) — será corrigido quando migration aplicar
         const { error: delErr } = await supabase.from("empresa_usuarios").delete().eq("id", link!.id);
         if (delErr) toast.error(delErr.message);
         else toast.success("Removido (role será revogada após sync do Lovable)");
@@ -146,6 +162,45 @@ export default function EmpresaCoordenadores() {
     } else {
       toast.success("Removido e acesso revogado");
     }
+    fetchEquipe();
+  };
+
+  const inativar = async () => {
+    if (!pendingInativarId) return;
+    const link = equipe.find((e) => e.id === pendingInativarId);
+    const targetUserId = link?.user_id;
+    setPendingInativarId(null);
+    if (!targetUserId) { toast.error("Vínculo não encontrado"); return; }
+    const empresaOwnerId = empresaUserId || user!.id;
+    const { error } = await supabase.rpc("empresa_inativar_membro", {
+      _target: targetUserId,
+      _empresa_user_id: empresaOwnerId,
+    } as any);
+    if (error) {
+      const msg = (error as any)?.message || "";
+      const isCacheMiss = msg.includes("Could not find the function") || msg.includes("schema cache") || (error as any)?.code === "PGRST202" || msg.includes("column") && msg.includes("ativo");
+      if (isCacheMiss) {
+        toast.error("Função de inativação ainda não publicada no Lovable. Aguarde 1 min e tente novamente.");
+      } else toast.error(msg || "Falha ao inativar");
+      return;
+    }
+    toast.success("RMO inativado — acesso revogado, histórico preservado");
+    fetchEquipe();
+  };
+
+  const reativar = async () => {
+    if (!pendingReativarId) return;
+    const link = equipe.find((e) => e.id === pendingReativarId);
+    const targetUserId = link?.user_id;
+    setPendingReativarId(null);
+    if (!targetUserId) { toast.error("Vínculo não encontrado"); return; }
+    const empresaOwnerId = empresaUserId || user!.id;
+    const { error } = await supabase.rpc("empresa_reativar_membro", {
+      _target: targetUserId,
+      _empresa_user_id: empresaOwnerId,
+    } as any);
+    if (error) toast.error((error as any)?.message || "Falha ao reativar");
+    else toast.success("Membro reativado");
     fetchEquipe();
   };
 
@@ -209,9 +264,9 @@ export default function EmpresaCoordenadores() {
           ) : (
             <div className="divide-y">
               {equipe.map((m) => (
-                <div key={m.id} className="flex items-center justify-between py-3">
+                <div key={m.id} className={`flex items-center justify-between py-3 ${m.ativo === false ? "opacity-60" : ""}`}>
                   <div>
-                    <p className="text-sm font-medium">{m.profile?.nome || "Sem nome"}</p>
+                    <p className="text-sm font-medium flex items-center gap-2">{m.profile?.nome || "Sem nome"} {m.ativo === false && <Badge variant="secondary">Inativo</Badge>}</p>
                     <p className="text-xs text-muted-foreground">{m.profile?.email}</p>
                   </div>
                   <div className="flex items-center gap-2">
@@ -221,7 +276,16 @@ export default function EmpresaCoordenadores() {
                     <Button size="icon" variant="ghost" onClick={() => setEditingId(m.user_id)} title="Editar">
                       <Pencil size={14} />
                     </Button>
-                    <Button size="icon" variant="ghost" onClick={() => setPendingRemoveId(m.id)} title="Remover">
+                    {m.ativo === false ? (
+                      <Button size="icon" variant="ghost" onClick={() => setPendingReativarId(m.id)} title="Reativar">
+                        <Power size={14} className="text-success" />
+                      </Button>
+                    ) : (
+                      <Button size="icon" variant="ghost" onClick={() => setPendingInativarId(m.id)} title="Inativar">
+                        <Ban size={14} className="text-amber-600" />
+                      </Button>
+                    )}
+                    <Button size="icon" variant="ghost" onClick={() => setPendingRemoveId(m.id)} title="Excluir definitivamente">
                       <Trash2 size={14} className="text-destructive" />
                     </Button>
                   </div>
@@ -239,17 +303,47 @@ export default function EmpresaCoordenadores() {
         onSaved={fetchEquipe}
       />
 
-      <AlertDialog open={!!pendingRemoveId} onOpenChange={(o) => !o && setPendingRemoveId(null)}>
+      <AlertDialog open={!!pendingInativarId} onOpenChange={(o) => !o && setPendingInativarId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Remover membro da equipe?</AlertDialogTitle>
+            <AlertDialogTitle>Inativar membro?</AlertDialogTitle>
             <AlertDialogDescription>
-              O usuário perderá o acesso como membro da sua empresa e voltará ao perfil anterior. Você pode adicioná-lo novamente depois.
+              O RMO perderá o acesso imediatamente, mas o histórico e as demandas criadas por ele continuarão vinculadas à Empresa. Você pode reativar quando quiser.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={remover} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Remover</AlertDialogAction>
+            <AlertDialogAction onClick={inativar} className="bg-amber-600 text-white hover:bg-amber-700">Inativar</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={!!pendingReativarId} onOpenChange={(o) => !o && setPendingReativarId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Reativar membro?</AlertDialogTitle>
+            <AlertDialogDescription>
+              O acesso do membro será restaurado e ele voltará a ver a Empresa.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={reativar}>Reativar</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={!!pendingRemoveId} onOpenChange={(o) => !o && setPendingRemoveId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir definitivamente?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Isso apaga o vínculo e remove o histórico da equipe. Prefira <b>Inativar</b> se quiser preservar as demandas. Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={remover} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Excluir</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

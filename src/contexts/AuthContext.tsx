@@ -49,7 +49,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       const [{ data: profileData, error: profErr }, { data: empUsr }, { data: roleRows }] = await Promise.all([
         supabase.from("profiles").select("*").eq("user_id", userId).single(),
-        supabase.from("empresa_usuarios").select("papel, empresa_user_id").eq("user_id", userId).maybeSingle(),
+        supabase.from("empresa_usuarios").select("papel, empresa_user_id").eq("user_id", userId).eq("ativo", true).maybeSingle(),
         supabase.from("user_roles").select("role").eq("user_id", userId),
       ]);
 
@@ -176,15 +176,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
   }, [user?.id, role]);
 
-  // Se empresa remover vínculo do usuário, forçar refetch/logout
+  // Se empresa inativar/remover vínculo do usuário, forçar refetch/logout
   useEffect(() => {
     if (!user?.id) return;
     const ch = supabase
       .channel(`empresa-vinculo-${user.id}`)
-      .on("postgres_changes", { event: "DELETE", schema: "public", table: "empresa_usuarios", filter: `user_id=eq.${user.id}` }, async () => {
-        await fetchProfile(user.id);
-        // se perdeu vínculo e não é dono, volta para login
-        setTimeout(() => window.location.replace("/login"), 500);
+      .on("postgres_changes", { event: "*", schema: "public", table: "empresa_usuarios", filter: `user_id=eq.${user.id}` }, async (payload: any) => {
+        const isInactive = payload.eventType === "UPDATE" && payload.new?.ativo === false;
+        const isDelete = payload.eventType === "DELETE";
+        if (isInactive || isDelete) {
+          await fetchProfile(user.id);
+          setTimeout(() => window.location.replace("/login"), 500);
+        }
       })
       .subscribe();
     return () => { supabase.removeChannel(ch); };
