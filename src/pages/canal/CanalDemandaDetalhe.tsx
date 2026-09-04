@@ -448,7 +448,7 @@ const CanalDemandaDetalhe = () => {
           <div>
             <h2 className="font-display font-semibold text-lg">Detalhes por consultor</h2>
             <p className="text-xs text-muted-foreground">
-              Valor proposto e observação são opcionais e podem ser ajustados por consultor.
+              Valor proposto e observação são opcionais. Quando o valor estimado não é informado, deixe em branco ou informe sua proposta.
             </p>
           </div>
           <Separator />
@@ -465,7 +465,7 @@ const CanalDemandaDetalhe = () => {
                     <Input
                       value={i.valor_proposto}
                       onChange={(e) => updateIndicacao(uid, { valor_proposto: e.target.value })}
-                      placeholder="Opcional"
+                      placeholder={projeto.valor_estimado ? `Opcional (estimado R$ ${Number(projeto.valor_estimado).toLocaleString("pt-BR")})` : "Opcional — estimado não informado"}
                       inputMode="decimal"
                       className="h-9"
                     />
