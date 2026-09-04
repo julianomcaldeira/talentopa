@@ -59,7 +59,7 @@ export default function EmpresaCoordenadores() {
       const rows = ((fallback || []) as any[]).map((r) => ({ ...r, ativo: true })) as EmpUsr[];
       if (rows.length) {
         const ids = rows.map((r) => r.user_id);
-        const { data: profs } = await supabase.from("profiles").select("user_id,nome,email").in("user_id", ids);
+        const { data: profs } = await supabase.from("profiles_public" as any).select("user_id,nome,email").in("user_id", ids);
         const map = new Map((profs || []).map((p: any) => [p.user_id, p]));
         rows.forEach((r) => (r.profile = map.get(r.user_id) as any));
       }
@@ -69,9 +69,12 @@ export default function EmpresaCoordenadores() {
     const rows = (data || []) as EmpUsr[];
     if (rows.length) {
       const ids = rows.map((r) => r.user_id);
-      const { data: profs } = await supabase.from("profiles").select("user_id,nome,email").in("user_id", ids);
+      // usar profiles_public (security_definer) — profiles tem RLS restritivo (só próprio/admin) e retornaria "Sem nome"
+      const { data: profs } = await supabase.from("profiles_public" as any).select("user_id,nome,email").in("user_id", ids);
       const map = new Map((profs || []).map((p: any) => [p.user_id, p]));
       rows.forEach((r) => (r.profile = map.get(r.user_id) as any));
+      // fallback para invites onde o convidado ainda não tem profiles (nunca logou): buscar email do convite não existe aqui, mas manter email do profile
+      // se ainda sem nome, o displayName fará fallback para email
     }
     setEquipe(rows);
   };

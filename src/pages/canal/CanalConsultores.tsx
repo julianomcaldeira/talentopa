@@ -135,9 +135,9 @@ const CanalConsultores = () => {
     deduped.sort((a, b) => +new Date(b.dataConvite) - +new Date(a.dataConvite));
     setRows(deduped);
 
-    const ids = Array.from(new Set(merged.map((r) => r.consultorUserId).filter(Boolean) as string[]));
+    const ids = Array.from(new Set(deduped.map((r) => r.consultorUserId).filter(Boolean) as string[]));
     if (ids.length) {
-      const { data: pr } = await supabase.from("profiles").select("user_id, nome, email").in("user_id", ids);
+      const { data: pr } = await supabase.from("profiles_public" as any).select("user_id, nome, email").in("user_id", ids);
       const map: Record<string, ProfileLite> = {};
       (pr || []).forEach((p: any) => { map[p.user_id] = p; });
       setProfiles(map);
