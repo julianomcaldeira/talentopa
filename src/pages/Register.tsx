@@ -43,7 +43,8 @@ const Register = () => {
 
   useEffect(() => {
     const t = searchParams.get("type");
-    if (t === "empresa" || t === "consultor" || t === "canal" || t === "equipe") setUserType(t as UserType);
+    if (t === "rmo") setUserType("equipe");
+    else if (t === "empresa" || t === "consultor" || t === "canal" || t === "equipe") setUserType(t as UserType);
   }, [searchParams]);
 
   const handleConsultarCnpj = async () => {
@@ -219,14 +220,14 @@ const Register = () => {
             >
               <Users className={`h-7 w-7 ${userType === "equipe" ? "text-primary" : "text-muted-foreground"}`} />
               <span className={`font-medium text-sm ${userType === "equipe" ? "text-primary" : "text-foreground"}`}>
-                Equipe
+                RMO
               </span>
               <span className="text-[11px] text-muted-foreground text-center leading-tight">Fazer parte de empresa</span>
             </button>
           </div>
           {userType === "equipe" && (
             <div className="rounded-lg border border-primary/20 bg-primary/5 p-3 text-xs text-muted-foreground mb-5">
-              Cadastre-se como <b className="text-foreground">Equipe</b> se você foi convidado para ser <b>RMO, Coordenador</b> ou outro papel em uma empresa já cadastrada. Depois peça ao dono da empresa para te adicionar em <b>Equipe da Empresa</b>.
+              Cadastre-se como <b className="text-foreground">RMO</b> se você foi convidado para operar os projetos de uma empresa já cadastrada. Depois peça ao dono da empresa para te adicionar em <b>Equipe da Empresa</b>.
             </div>
           )}
 
