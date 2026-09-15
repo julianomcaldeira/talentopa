@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState } from "react"; // touch: dispara auto-deploy Lovable 15/09/2026
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Eye, EyeOff, Building2, User, Loader2, Search, Network, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
