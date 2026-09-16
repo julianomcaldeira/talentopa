@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { LogOut, Menu, X, Search, PanelLeftClose, PanelLeftOpen, UserCog } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import NotificationBell from "@/components/notifications/NotificationBell";
+import SchemaDriftBanner from "@/components/SchemaDriftBanner";
 import workzLogoWhite from "@/assets/workz-logo-white.png";
 import {
   CommandDialog,
@@ -262,6 +263,8 @@ const DashboardLayout = ({
               </DropdownMenuContent>
             </DropdownMenu>
           </header>
+
+          <SchemaDriftBanner />
 
           <main className="flex-1 p-4 md:p-6 lg:p-8 overflow-auto">
             <div className="page-enter mx-auto w-full max-w-[1400px]">
