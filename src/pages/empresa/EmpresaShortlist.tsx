@@ -137,7 +137,7 @@ export default function EmpresaShortlist() {
     try {
       const { error } = await (supabase as any).rpc("rmo_aprovacao_final", { p_shortlist_id: shortlistId });
       if (error) throw error;
-      toast.success("Consultor selecionado. Aguarde confirmação.");
+      toast.success("Consultor selecionado. A seleção segue aberta para novos escolhidos.");
       fetchData();
     } catch (e: any) {
       toast.error(e.message || "Falha na aprovação");
@@ -248,7 +248,7 @@ export default function EmpresaShortlist() {
           <AlertDialogHeader>
             <AlertDialogTitle>Confirmar seleção final?</AlertDialogTitle>
             <AlertDialogDescription>
-              O consultor selecionado será contratado e as demais propostas abertas deste projeto serão recusadas.
+              O consultor escolhido passará a "Selecionado". Os demais candidatos permanecem pendentes e só serão recusados quando a demanda for encerrada.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

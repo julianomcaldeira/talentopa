@@ -26,7 +26,7 @@ GRANT SELECT ON public.empresa_perfil_public TO authenticated, anon;
 -- CanalConsultores desduplicado: garantir que consultor só aparece uma vez por canal (manter mais recente)
 -- Limpar duplicatas já existentes (mesmo consultor_user_id no mesmo canal com múltiplos convites)
 WITH ranked AS (
-  SELECT id, ROW_NUMBER() OVER (PARTITION BY canal_id, COALESCE(consultor_user_id::text, email) ORDER BY created_at DESC) as rn
+  SELECT id, ROW_NUMBER() OVER (PARTITION BY canal_id, COALESCE(consultor_user_id::text, convite_email) ORDER BY created_at DESC) as rn
   FROM public.canal_consultores
 ),
 dup_convites AS (

@@ -7,11 +7,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { PageHeader, DataCard, StatusBadge, EmptyState, LoadingState } from "@/components/dashboard/DashboardComponents";
 import { ViewToggle, ViewMode } from "@/components/ui/view-toggle";
-import { FolderKanban, Eye, MapPin, Clock, DollarSign, User, MessageSquare, Pencil, Search, ChevronLeft, ChevronRight, Settings2, Plus, BadgeCheck, CheckCircle2, CalendarIcon, X, XCircle } from "lucide-react";
+import { FolderKanban, Eye, MapPin, Clock, DollarSign, User, MessageSquare, Pencil, Search, ChevronLeft, ChevronRight, Settings2, Plus, BadgeCheck, CheckCircle2, CalendarIcon, X, XCircle, Archive, Undo2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { ConsultorMatchList } from "@/components/matching/ConsultorMatchList";
@@ -25,9 +26,11 @@ const PAGE_SIZE = 6;
 const PROPOSTAS_PAGE_SIZE = 5;
 const PROPOSTA_STATUS_OPTIONS = [
   { value: "all", label: "Todos os status" },
+  { value: "selecionada", label: "Selecionada" },
   { value: "enviada", label: "Enviada" },
   { value: "pre_aprovada", label: "Pré-aprovada" },
   { value: "aguardando_consultor", label: "Aguardando consultor" },
+  { value: "desconsiderada", label: "Desconsiderada" },
   { value: "aceita", label: "Aceita" },
   { value: "recusada", label: "Recusada" },
 ];
@@ -80,6 +83,7 @@ const EmpresaProjetos = () => {
   const [propostaDataInicio, setPropostaDataInicio] = useState<Date | undefined>();
   const [propostaDataFim, setPropostaDataFim] = useState<Date | undefined>();
   const [propostaPage, setPropostaPage] = useState(1);
+  const [encerrarProjeto, setEncerrarProjeto] = useState<any>(null);
 
   const refetch = async () => {
     if (!user) return;
@@ -294,15 +298,75 @@ const EmpresaProjetos = () => {
     );
   };
 
-  const acceptProposal = async (propostaId: string) => {
-    const { error } = await (supabase as any).rpc("empresa_aceitar_proposta", { p_proposta_id: propostaId });
+  const selecionarProposta = async (propostaId: string) => {
+    const { error } = await (supabase as any).rpc("empresa_selecionar_proposta", { p_proposta_id: propostaId });
     if (error) {
-      toast({ title: "Erro ao aceitar proposta", description: error.message, variant: "destructive" });
+      toast({ title: "Erro ao selecionar", description: error.message, variant: "destructive" });
       return;
     }
-    toast({ title: "Proposta aceita!", description: "Aguardando confirmação do consultor para iniciar o projeto." });
+    toast({ title: "Consultor selecionado", description: "A demanda segue aberta — você pode selecionar outros consultores." });
+    if (selectedProjeto) await viewPropostas(selectedProjeto);
+    refetch();
+  };
+
+  const desconsiderarProposta = async (propostaId: string) => {
+    const { error } = await (supabase as any).rpc("empresa_desconsiderar_proposta", { p_proposta_id: propostaId });
+    if (error) {
+      toast({ title: "Erro", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Candidato desconsiderado", description: "É reversível enquanto a demanda estiver dentro do prazo de propostas." });
+    if (selectedProjeto) await viewPropostas(selectedProjeto);
+  };
+
+  const reconsiderarProposta = async (propostaId: string) => {
+    const { error } = await (supabase as any).rpc("empresa_reconsiderar_proposta", { p_proposta_id: propostaId });
+    if (error) {
+      toast({ title: "Erro", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Candidato reconsiderado", description: "O candidato voltou para a avaliação." });
+    if (selectedProjeto) await viewPropostas(selectedProjeto);
+  };
+
+  const desconsiderarIndicacao = async (indicacaoId: string) => {
+    const { error } = await (supabase as any).rpc("empresa_desconsiderar_indicacao", { p_indicacao_id: indicacaoId });
+    if (error) {
+      toast({ title: "Erro", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Indicação desconsiderada", description: "É reversível enquanto a demanda estiver dentro do prazo de propostas." });
+    if (selectedProjeto) await viewPropostas(selectedProjeto);
+  };
+
+  const reconsiderarIndicacao = async (indicacaoId: string) => {
+    const { error } = await (supabase as any).rpc("empresa_reconsiderar_indicacao", { p_indicacao_id: indicacaoId });
+    if (error) {
+      toast({ title: "Erro", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Indicação reconsiderada", description: "O candidato voltou para a avaliação." });
+    if (selectedProjeto) await viewPropostas(selectedProjeto);
+  };
+
+  const confirmarEncerramento = async () => {
+    if (!encerrarProjeto) return;
+    const projeto = encerrarProjeto;
+    setEncerrarProjeto(null);
+    const { error } = await (supabase as any).rpc("empresa_encerrar_demanda", { p_projeto_id: projeto.id });
+    if (error) {
+      toast({ title: "Erro ao encerrar demanda", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Demanda encerrada", description: "Candidatos não selecionados foram recusados. As respostas ficam preservadas para histórico." });
     setDialogOpen(false);
     refetch();
+  };
+
+  const prazoPropostasAberto = (p: any) => {
+    if (!p?.prazo_propostas) return true;
+    const d = new Date(p.prazo_propostas + "T23:59:59");
+    return !isNaN(d.getTime()) && d >= new Date();
   };
 
   const preApproveProposal = async (propostaId: string) => {
@@ -316,26 +380,13 @@ const EmpresaProjetos = () => {
     refetch();
   };
 
-  const rejectProposal = async (propostaId: string) => {
-    if (!window.confirm("Tem certeza que deseja recusar esta proposta? O consultor será notificado.")) return;
-    const { error } = await (supabase as any).rpc("empresa_recusar_proposta", { p_proposta_id: propostaId, p_motivo: null });
-    if (error) {
-      toast({ title: "Erro ao recusar proposta", description: error.message, variant: "destructive" });
-      return;
-    }
-    toast({ title: "Proposta recusada", description: "O consultor foi notificado." });
-    if (selectedProjeto) await viewPropostas(selectedProjeto);
-    refetch();
-  };
-
   const selectIndicacao = async (indicacaoId: string, consultorNome?: string) => {
-    if (!window.confirm(`Confirmar seleção${consultorNome ? ` de ${consultorNome}` : ""}? As demais propostas e indicações abertas deste projeto serão recusadas.`)) return;
     const { error } = await (supabase as any).rpc("empresa_selecionar_indicacao", { p_indicacao_id: indicacaoId });
     if (error) {
       toast({ title: "Erro ao selecionar indicação", description: error.message, variant: "destructive" });
       return;
     }
-    toast({ title: "Consultor selecionado", description: "A alocação foi criada com titularidade do parceiro." });
+    toast({ title: "Consultor selecionado", description: "A demanda segue aberta — você pode selecionar outros consultores." });
     if (selectedProjeto) await viewPropostas(selectedProjeto);
     refetch();
   };
@@ -383,6 +434,11 @@ const EmpresaProjetos = () => {
 
   const renderActions = (p: any) => (
     <div className="flex flex-wrap items-center gap-2">
+      {(p.status === "publicado" || p.status === "em_selecao") && (
+        <Button size="sm" variant="outline" className="text-destructive hover:text-destructive border-destructive/40 hover:bg-destructive/10" onClick={() => setEncerrarProjeto(p)}>
+          <Archive size={14} /> Encerrar demanda
+        </Button>
+      )}
       {(p.status === "publicado" || p.status === "em_selecao" || p.status === "em_andamento" || p.status === "concluido") && (
         <>
           {p.status !== "concluido" && (
@@ -443,6 +499,7 @@ const EmpresaProjetos = () => {
               {KANBAN_COLUMNS.map(c => (
                 <SelectItem key={c.key} value={c.key}>{c.label}</SelectItem>
               ))}
+              <SelectItem value="encerrada">Encerrada</SelectItem>
             </SelectContent>
           </Select>
           <Select value={prazoFilter} onValueChange={setPrazoFilter}>
@@ -676,11 +733,19 @@ const EmpresaProjetos = () => {
                                     <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-success/15 text-success">
                                       Selecionado
                                     </span>
+                                  ) : ind.status === "desconsiderado" ? (
+                                    <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
+                                      Desconsiderado
+                                    </span>
                                   ) : ind.status === "recusado" ? (
                                     <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
                                       Não selecionado
                                     </span>
-                                  ) : null}
+                                  ) : (
+                                    <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-info/15 text-info">
+                                      Pendente
+                                    </span>
+                                  )}
                                 </div>
                                 <div className="grid grid-cols-2 gap-2 mt-2">
                                   <div className="rounded-lg border border-border/60 bg-muted/20 p-2">
@@ -698,10 +763,24 @@ const EmpresaProjetos = () => {
                                   <p className="text-xs text-muted-foreground mt-2 leading-relaxed">{ind.observacao}</p>
                                 )}
                                 {ind.status === "indicado" && (selectedProjeto?.status === "publicado" || selectedProjeto?.status === "em_selecao") && (
-                                  <div className="mt-3">
+                                  <div className="mt-3 flex flex-wrap gap-2">
                                     <Button size="sm" onClick={() => selectIndicacao(ind.id, ind.consultor?.nome)}>
                                       <CheckCircle2 size={14} /> Selecionar
                                     </Button>
+                                    <Button size="sm" variant="outline" className="text-destructive hover:text-destructive border-destructive/40 hover:bg-destructive/10" onClick={() => desconsiderarIndicacao(ind.id)}>
+                                      <XCircle size={14} /> Desconsiderar
+                                    </Button>
+                                  </div>
+                                )}
+                                {ind.status === "desconsiderado" && (selectedProjeto?.status === "publicado" || selectedProjeto?.status === "em_selecao") && (
+                                  <div className="mt-3">
+                                    {prazoPropostasAberto(selectedProjeto) ? (
+                                      <Button size="sm" variant="outline" onClick={() => reconsiderarIndicacao(ind.id)}>
+                                        <Undo2 size={14} /> Reconsiderar
+                                      </Button>
+                                    ) : (
+                                      <p className="text-[11px] text-muted-foreground">Prazo de propostas encerrado — esta decisão não é mais reversível.</p>
+                                    )}
                                   </div>
                                 )}
                               </div>
@@ -792,20 +871,29 @@ const EmpresaProjetos = () => {
                   </div>
                   {prop.comentarios && <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{prop.comentarios}</p>}
                   <div className="flex flex-wrap gap-2 mt-3">
-                    {(prop.status === "enviada" || prop.status === "contraproposta_consultor") && (
-                      <Button size="sm" variant="outline" onClick={() => preApproveProposal(prop.id)}>
-                        <BadgeCheck size={14} /> {prop.status === "contraproposta_consultor" ? "Pré-aprovar contraproposta" : "Pré-aprovar"}
-                      </Button>
-                    )}
                     {(prop.status === "enviada" || prop.status === "pre_aprovada" || prop.status === "contraproposta_consultor") && (
-                      <Button size="sm" onClick={() => acceptProposal(prop.id)}>
-                        <CheckCircle2 size={14} /> Aprovação final
-                      </Button>
+                      <>
+                        <Button size="sm" onClick={() => selecionarProposta(prop.id)}>
+                          <CheckCircle2 size={14} /> Selecionar
+                        </Button>
+                        {(prop.status === "enviada" || prop.status === "contraproposta_consultor") && (
+                          <Button size="sm" variant="outline" onClick={() => preApproveProposal(prop.id)}>
+                            <BadgeCheck size={14} /> {prop.status === "contraproposta_consultor" ? "Pré-aprovar contraproposta" : "Pré-aprovar"}
+                          </Button>
+                        )}
+                        <Button size="sm" variant="outline" className="text-destructive hover:text-destructive border-destructive/40 hover:bg-destructive/10" onClick={() => desconsiderarProposta(prop.id)}>
+                          <XCircle size={14} /> Desconsiderar
+                        </Button>
+                      </>
                     )}
-                    {(prop.status === "enviada" || prop.status === "pre_aprovada" || prop.status === "contraproposta_consultor") && (
-                      <Button size="sm" variant="outline" className="text-destructive hover:text-destructive border-destructive/40 hover:bg-destructive/10" onClick={() => rejectProposal(prop.id)}>
-                        <XCircle size={14} /> Recusar
-                      </Button>
+                    {prop.status === "desconsiderada" && (selectedProjeto?.status === "publicado" || selectedProjeto?.status === "em_selecao") && (
+                      prazoPropostasAberto(selectedProjeto) ? (
+                        <Button size="sm" variant="outline" onClick={() => reconsiderarProposta(prop.id)}>
+                          <Undo2 size={14} /> Reconsiderar
+                        </Button>
+                      ) : (
+                        <p className="text-[11px] text-muted-foreground self-center">Prazo de propostas encerrado — esta decisão não é mais reversível.</p>
+                      )
                     )}
                   </div>
                 </div>
@@ -852,6 +940,23 @@ const EmpresaProjetos = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={!!encerrarProjeto} onOpenChange={(o) => !o && setEncerrarProjeto(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Encerrar demanda?</AlertDialogTitle>
+            <AlertDialogDescription>
+              A demanda <b className="text-foreground">{encerrarProjeto?.nome}</b> deixará de receber candidaturas. Somente os consultores <b>selecionados</b> permanecem; os demais candidatos (propostas e indicações) passam a <b>não selecionados</b>. As respostas ficam preservadas para histórico. Esta ação é definitiva.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmarEncerramento} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              <Archive size={14} className="mr-1" /> Encerrar demanda
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

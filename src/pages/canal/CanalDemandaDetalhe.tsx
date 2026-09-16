@@ -22,6 +22,7 @@ interface Projeto {
   valor_estimado: number | null;
   prazo_estimado: string | null;
   horas_estimadas: number | null;
+  prazo_propostas?: string | null;
   software_id: string | null;
   empresa_user_id: string;
   roteamento_v2: boolean;
@@ -59,6 +60,12 @@ const CanalDemandaDetalhe = () => {
     [projeto]
   );
 
+  const prazoIndicacaoAberto = useMemo(() => {
+    if (!projeto?.prazo_propostas) return true;
+    const d = new Date(`${projeto.prazo_propostas}T23:59:59`);
+    return isNaN(d.getTime()) || d >= new Date();
+  }, [projeto]);
+
   useEffect(() => {
     if (!projetoId || !user) return;
     (async () => {
@@ -80,7 +87,7 @@ const CanalDemandaDetalhe = () => {
       // Projeto
       const { data: projetoRow, error } = await supabase
         .from("projetos")
-        .select("id, nome, descricao, status, valor_estimado, prazo_estimado, horas_estimadas, software_id, empresa_user_id, roteamento_v2")
+        .select("id, nome, descricao, status, valor_estimado, prazo_estimado, prazo_propostas, horas_estimadas, software_id, empresa_user_id, roteamento_v2")
         .eq("id", projetoId)
         .maybeSingle();
       if (error || !projetoRow) {
@@ -213,6 +220,10 @@ const CanalDemandaDetalhe = () => {
     if (!user || !canalId || !projeto) return;
     if (!projetoEditavel) {
       toast({ title: "Demanda não está mais aberta para indicações", variant: "destructive" });
+      return;
+    }
+    if (!prazoIndicacaoAberto) {
+      toast({ title: "Prazo de propostas encerrado", description: "Esta demanda não recebe mais indicações de parceiros.", variant: "destructive" });
       return;
     }
 
@@ -501,10 +512,15 @@ const CanalDemandaDetalhe = () => {
           />
         </div>
         <div className="flex items-center justify-end gap-2">
+          {!prazoIndicacaoAberto && (
+            <p className="text-xs text-muted-foreground flex items-center gap-1 mr-auto">
+              <AlertTriangle size={12} /> Prazo de propostas encerrado — não é mais possível enviar ou alterar indicações.
+            </p>
+          )}
           <Button variant="outline" onClick={() => navigate("/canal/projetos")} disabled={submitting}>
             Cancelar
           </Button>
-          <Button onClick={handleSubmit} disabled={submitting || !projetoEditavel}>
+          <Button onClick={handleSubmit} disabled={submitting || !projetoEditavel || !prazoIndicacaoAberto}>
             {submitting ? (
               <><Loader2 className="h-4 w-4 mr-1 animate-spin" /> Enviando…</>
             ) : (

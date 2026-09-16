@@ -160,6 +160,18 @@ const ConsultorProjetos = () => {
 
   const handleProposal = async () => {
     if (!user || !selectedProjeto) return;
+    if (selectedProjeto.status !== "publicado" && selectedProjeto.status !== "em_selecao") {
+      toast({ title: "Demanda encerrada", description: "Esta demanda não está mais aceitando propostas.", variant: "destructive" });
+      return;
+    }
+    const prazo = selectedProjeto.prazo_propostas;
+    if (prazo) {
+      const deadline = new Date(`${prazo}T23:59:59`);
+      if (!isNaN(deadline.getTime()) && deadline < new Date()) {
+        toast({ title: "Prazo encerrado", description: "A data limite para envio de propostas já passou.", variant: "destructive" });
+        return;
+      }
+    }
     const { error } = await supabase.from("propostas").insert({
       projeto_id: selectedProjeto.id, consultor_user_id: user.id,
       estimativa_horas: Number(proposalForm.estimativa_horas) || null,
@@ -201,6 +213,13 @@ const ConsultorProjetos = () => {
   const scoreBg = (s: number) => s >= 75 ? "bg-success/10 border-success/20" : s >= 50 ? "bg-warning/10 border-warning/20" : "bg-muted/50 border-border";
   const formatDateTime = (value: string) => { const d = new Date(value); return isNaN(d.getTime()) ? "—" : d.toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short", timeZone: "America/Sao_Paulo" }); };
   const formatDeadline = (value: string) => { const d = new Date(`${value}T23:59:59`); return isNaN(d.getTime()) ? "—" : d.toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short", timeZone: "America/Sao_Paulo" }); };
+
+  const aceitaProposta = (p: any): boolean => {
+    if (p.status !== "publicado" && p.status !== "em_selecao") return false;
+    if (!p.prazo_propostas) return true;
+    const d = new Date(`${p.prazo_propostas}T23:59:59`);
+    return isNaN(d.getTime()) || d >= new Date();
+  };
 
   // Apply filters
   const filteredProjetos = useMemo(() => {
@@ -547,8 +566,8 @@ const ConsultorProjetos = () => {
                   </span>
                 )}
                 {p.prazo_propostas && (
-                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-primary bg-primary/10 border border-primary/30 px-2 py-0.5 rounded-md">
-                    <Calendar size={10} /> Retorno até {formatDeadline(p.prazo_propostas)}
+                  <span className={`inline-flex items-center gap-1 text-[11px] font-bold ${aceitaProposta(p) ? "text-primary bg-primary/10 border border-primary/30" : "text-muted-foreground bg-muted/60 border border-border"} px-2 py-0.5 rounded-md`}>
+                    <Calendar size={10} /> {aceitaProposta(p) ? `Retorno até ${formatDeadline(p.prazo_propostas)}` : "Prazo de propostas encerrado"}
                   </span>
                 )}
               </div>
@@ -557,7 +576,7 @@ const ConsultorProjetos = () => {
                 <Button variant="outline" size="sm" onClick={() => setDetalhesProjeto(p)}>
                   <Eye size={12} /> Detalhes
                 </Button>
-                {!myPropostas.has(p.id) && (
+                {!myPropostas.has(p.id) && aceitaProposta(p) && (
                   <Button size="sm" onClick={() => { setSelectedProjeto(p); setProposalDialog(true); }}>
                     <Send size={12} /> {compact ? "Proposta" : "Enviar proposta"}
                   </Button>

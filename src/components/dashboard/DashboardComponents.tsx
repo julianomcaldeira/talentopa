@@ -53,6 +53,9 @@ const defaultStatusColors: Record<string, string> = {
   aceita: "badge-success",
   recusada: "badge-destructive",
   contraproposta_consultor: "badge-warning",
+  selecionada: "badge-success",
+  desconsiderada: "badge-muted",
+  encerrada: "badge-muted",
 };
 
 const defaultStatusLabels: Record<string, string> = {
@@ -73,6 +76,9 @@ const defaultStatusLabels: Record<string, string> = {
   aceita: "Aceita",
   recusada: "Recusada",
   contraproposta_consultor: "Contraproposta",
+  selecionada: "Selecionada",
+  desconsiderada: "Desconsiderada",
+  encerrada: "Encerrada",
 };
 
 export const StatusBadge = ({ status, labels }: StatusBadgeProps) => {
