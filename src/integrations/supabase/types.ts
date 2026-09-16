@@ -697,27 +697,36 @@ export type Database = {
       }
       empresa_usuarios: {
         Row: {
+          ativo: boolean
           created_at: string
           empresa_user_id: string
           id: string
+          inativado_em: string | null
+          inativado_por: string | null
           observacoes: string | null
           papel: Database["public"]["Enums"]["papel_empresa_usuario"]
           updated_at: string
           user_id: string
         }
         Insert: {
+          ativo?: boolean
           created_at?: string
           empresa_user_id: string
           id?: string
+          inativado_em?: string | null
+          inativado_por?: string | null
           observacoes?: string | null
           papel?: Database["public"]["Enums"]["papel_empresa_usuario"]
           updated_at?: string
           user_id: string
         }
         Update: {
+          ativo?: boolean
           created_at?: string
           empresa_user_id?: string
           id?: string
+          inativado_em?: string | null
+          inativado_por?: string | null
           observacoes?: string | null
           papel?: Database["public"]["Enums"]["papel_empresa_usuario"]
           updated_at?: string
@@ -2107,6 +2116,7 @@ export type Database = {
           prazo_entrega_dias: number | null
           projeto_id: string
           status: Database["public"]["Enums"]["status_proposta"]
+          status_anterior: string | null
           updated_at: string
           valor_proposta: number | null
           visualizada_empresa_em: string | null
@@ -2120,6 +2130,7 @@ export type Database = {
           prazo_entrega_dias?: number | null
           projeto_id: string
           status?: Database["public"]["Enums"]["status_proposta"]
+          status_anterior?: string | null
           updated_at?: string
           valor_proposta?: number | null
           visualizada_empresa_em?: string | null
@@ -2133,6 +2144,7 @@ export type Database = {
           prazo_entrega_dias?: number | null
           projeto_id?: string
           status?: Database["public"]["Enums"]["status_proposta"]
+          status_anterior?: string | null
           updated_at?: string
           valor_proposta?: number | null
           visualizada_empresa_em?: string | null
@@ -2382,8 +2394,8 @@ export type Database = {
           avatar_url: string | null
           cidade: string | null
           created_at: string | null
+          email: string | null
           estado: string | null
-          id: string | null
           nome: string | null
           status: string | null
           user_id: string | null
@@ -2392,8 +2404,8 @@ export type Database = {
           avatar_url?: string | null
           cidade?: string | null
           created_at?: string | null
+          email?: string | null
           estado?: string | null
-          id?: string | null
           nome?: string | null
           status?: string | null
           user_id?: string | null
@@ -2402,8 +2414,8 @@ export type Database = {
           avatar_url?: string | null
           cidade?: string | null
           created_at?: string | null
+          email?: string | null
           estado?: string | null
-          id?: string | null
           nome?: string | null
           status?: string | null
           user_id?: string | null
@@ -2547,6 +2559,26 @@ export type Database = {
         Args: { p_proposta_id: string }
         Returns: Json
       }
+      empresa_add_membro: {
+        Args: { _empresa_user_id: string; _papel: string; _target: string }
+        Returns: Json
+      }
+      empresa_desconsiderar_indicacao: {
+        Args: { p_indicacao_id: string }
+        Returns: Json
+      }
+      empresa_desconsiderar_proposta: {
+        Args: { p_proposta_id: string }
+        Returns: Json
+      }
+      empresa_encerrar_demanda: {
+        Args: { p_projeto_id: string }
+        Returns: Json
+      }
+      empresa_inativar_membro: {
+        Args: { _empresa_user_id: string; _target: string }
+        Returns: Json
+      }
       empresa_indicar_coordenador: {
         Args: { p_coordenador_user_id: string; p_projeto_id: string }
         Returns: Json
@@ -2559,12 +2591,32 @@ export type Database = {
         Args: { p_proposta_id: string }
         Returns: Json
       }
+      empresa_reativar_membro: {
+        Args: { _empresa_user_id: string; _target: string }
+        Returns: Json
+      }
+      empresa_reconsiderar_indicacao: {
+        Args: { p_indicacao_id: string }
+        Returns: Json
+      }
+      empresa_reconsiderar_proposta: {
+        Args: { p_proposta_id: string }
+        Returns: Json
+      }
       empresa_recusar_proposta: {
         Args: { p_motivo?: string; p_proposta_id: string }
         Returns: Json
       }
+      empresa_remove_membro: {
+        Args: { _empresa_user_id: string; _target: string }
+        Returns: Json
+      }
       empresa_selecionar_indicacao: {
         Args: { p_indicacao_id: string }
+        Returns: Json
+      }
+      empresa_selecionar_proposta: {
+        Args: { p_proposta_id: string }
         Returns: Json
       }
       find_user_id_by_email: { Args: { _email: string }; Returns: string }
@@ -2812,6 +2864,7 @@ export type Database = {
         | "em_andamento"
         | "concluido"
         | "cancelado"
+        | "encerrada"
       status_proposta:
         | "enviada"
         | "aceita"
@@ -2820,6 +2873,8 @@ export type Database = {
         | "pre_aprovada"
         | "pendente_aprovacao_canal"
         | "contraproposta_consultor"
+        | "selecionada"
+        | "desconsiderada"
       status_shortlist_item:
         | "na_shortlist"
         | "em_entrevista"
@@ -2998,6 +3053,7 @@ export const Constants = {
         "em_andamento",
         "concluido",
         "cancelado",
+        "encerrada",
       ],
       status_proposta: [
         "enviada",
@@ -3007,6 +3063,8 @@ export const Constants = {
         "pre_aprovada",
         "pendente_aprovacao_canal",
         "contraproposta_consultor",
+        "selecionada",
+        "desconsiderada",
       ],
       status_shortlist_item: [
         "na_shortlist",
