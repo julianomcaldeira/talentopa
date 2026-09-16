@@ -12,12 +12,13 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { PageHeader, DataCard, StatusBadge, EmptyState, LoadingState } from "@/components/dashboard/DashboardComponents";
 import { ViewToggle, ViewMode } from "@/components/ui/view-toggle";
-import { FolderKanban, Eye, MapPin, Clock, DollarSign, User, MessageSquare, Pencil, Search, ChevronLeft, ChevronRight, Settings2, Plus, BadgeCheck, CheckCircle2, CalendarIcon, X, XCircle, Archive, Undo2 } from "lucide-react";
+import { FolderKanban, Eye, User, MessageSquare, Pencil, Search, ChevronLeft, ChevronRight, Settings2, Plus, BadgeCheck, CheckCircle2, CalendarIcon, X, XCircle, Archive, Undo2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { ConsultorMatchList } from "@/components/matching/ConsultorMatchList";
 import { ProjectCommunication } from "@/components/communication/ProjectCommunication";
 import { ProjetoEditDialog } from "@/components/projetos/ProjetoEditDialog";
+import { CandidatoResponseCard } from "@/components/respostas/CandidatoResponseCard";
 import { cn } from "@/lib/utils";
 import EmpresaNovoProjeto from "./EmpresaNovoProjeto";
 import { PROJETO_SORT_OPTIONS, sortProjetos, ProjetoSortKey } from "@/lib/projetoSort";
@@ -246,7 +247,7 @@ const EmpresaProjetos = () => {
       const canalIds = [...new Set(respostasData.map((r: any) => r.canal_id))];
       const [{ data: indicacoesData }, { data: canaisData }] = await Promise.all([
         (supabase as any).from("parceiro_indicacoes").select("*").in("resposta_id", respostaIds),
-        supabase.from("canais").select("id, nome, user_id").in("id", canalIds as string[]),
+        supabase.from("canais_public").select("id, nome").in("id", canalIds as string[]),
       ]);
       const consIds = [...new Set((indicacoesData || []).map((i: any) => i.consultor_user_id))];
       const { data: consProfiles } = consIds.length
@@ -389,6 +390,19 @@ const EmpresaProjetos = () => {
     toast({ title: "Consultor selecionado", description: "A demanda segue aberta — você pode selecionar outros consultores." });
     if (selectedProjeto) await viewPropostas(selectedProjeto);
     refetch();
+  };
+
+  const indicacaoStatusPill = (status: string) => {
+    if (status === "selecionado") {
+      return <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-success/15 text-success">Selecionado</span>;
+    }
+    if (status === "desconsiderado") {
+      return <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-muted text-muted-foreground">Desconsiderado</span>;
+    }
+    if (status === "recusado") {
+      return <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-muted text-muted-foreground">Não selecionado</span>;
+    }
+    return <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-info/15 text-info">Pendente</span>;
   };
 
 
@@ -714,76 +728,40 @@ const EmpresaProjetos = () => {
                             {ativas.length === 0 ? (
                               <p className="text-xs text-muted-foreground">Nenhum consultor ativo nesta resposta.</p>
                             ) : ativas.map((ind: any) => (
-                              <div key={ind.id} className="border border-border/60 rounded-lg p-3 bg-background">
-                                <div className="flex items-start justify-between gap-3 mb-2">
-                                  <div className="flex items-center gap-2.5 min-w-0">
-                                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary/60 to-accent/60 flex items-center justify-center text-primary-foreground text-xs font-semibold shrink-0">
-                                      {ind.consultor?.nome?.charAt(0) || "C"}
-                                    </div>
-                                    <div className="min-w-0">
-                                      <p className="text-sm font-medium text-foreground truncate">{ind.consultor?.nome || "Consultor"}</p>
-                                      {ind.consultor?.cidade && (
-                                        <p className="text-[11px] text-muted-foreground flex items-center gap-1">
-                                          <MapPin size={10} /> {ind.consultor.cidade}{ind.consultor.estado && `, ${ind.consultor.estado}`}
-                                        </p>
-                                      )}
-                                    </div>
-                                  </div>
-                                  {ind.status === "selecionado" ? (
-                                    <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-success/15 text-success">
-                                      Selecionado
-                                    </span>
-                                  ) : ind.status === "desconsiderado" ? (
-                                    <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
-                                      Desconsiderado
-                                    </span>
-                                  ) : ind.status === "recusado" ? (
-                                    <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
-                                      Não selecionado
-                                    </span>
-                                  ) : (
-                                    <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-info/15 text-info">
-                                      Pendente
-                                    </span>
-                                  )}
-                                </div>
-                                <div className="grid grid-cols-2 gap-2 mt-2">
-                                  <div className="rounded-lg border border-border/60 bg-muted/20 p-2">
-                                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Valor proposto</p>
-                                    <p className="text-sm font-bold text-foreground mt-0.5 flex items-center gap-1">
-                                      <DollarSign size={12} /> {ind.valor_proposto ? `R$ ${Number(ind.valor_proposto).toLocaleString("pt-BR")}` : "—"}
-                                    </p>
-                                  </div>
-                                  <div className="rounded-lg border border-border/60 bg-muted/20 p-2">
-                                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Titularidade</p>
-                                    <p className="text-sm font-medium text-foreground mt-0.5 truncate">{resp.canal?.nome || "Parceiro"}</p>
-                                  </div>
-                                </div>
-                                {ind.observacao && (
-                                  <p className="text-xs text-muted-foreground mt-2 leading-relaxed">{ind.observacao}</p>
-                                )}
+                              <CandidatoResponseCard
+                                key={ind.id}
+                                nome={ind.consultor?.nome}
+                                cidade={ind.consultor?.cidade}
+                                estado={ind.consultor?.estado}
+                                origem={
+                                  <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+                                    Parceiro · {resp.canal?.nome || "Parceiro"}
+                                  </span>
+                                }
+                                status={indicacaoStatusPill(ind.status)}
+                                valor={ind.valor_proposto}
+                                observacao={ind.observacao}
+                              >
                                 {ind.status === "indicado" && (selectedProjeto?.status === "publicado" || selectedProjeto?.status === "em_selecao") && (
-                                  <div className="mt-3 flex flex-wrap gap-2">
+                                  <>
                                     <Button size="sm" onClick={() => selectIndicacao(ind.id, ind.consultor?.nome)}>
                                       <CheckCircle2 size={14} /> Selecionar
                                     </Button>
                                     <Button size="sm" variant="outline" className="text-destructive hover:text-destructive border-destructive/40 hover:bg-destructive/10" onClick={() => desconsiderarIndicacao(ind.id)}>
                                       <XCircle size={14} /> Desconsiderar
                                     </Button>
-                                  </div>
+                                  </>
                                 )}
                                 {ind.status === "desconsiderado" && (selectedProjeto?.status === "publicado" || selectedProjeto?.status === "em_selecao") && (
-                                  <div className="mt-3">
-                                    {prazoPropostasAberto(selectedProjeto) ? (
-                                      <Button size="sm" variant="outline" onClick={() => reconsiderarIndicacao(ind.id)}>
-                                        <Undo2 size={14} /> Reconsiderar
-                                      </Button>
-                                    ) : (
-                                      <p className="text-[11px] text-muted-foreground">Prazo de propostas encerrado — esta decisão não é mais reversível.</p>
-                                    )}
-                                  </div>
+                                  prazoPropostasAberto(selectedProjeto) ? (
+                                    <Button size="sm" variant="outline" onClick={() => reconsiderarIndicacao(ind.id)}>
+                                      <Undo2 size={14} /> Reconsiderar
+                                    </Button>
+                                  ) : (
+                                    <p className="text-[11px] text-muted-foreground self-center">Prazo de propostas encerrado — esta decisão não é mais reversível.</p>
+                                  )
                                 )}
-                              </div>
+                              </CandidatoResponseCard>
                             ))}
                           </div>
                         )}
@@ -825,78 +803,47 @@ const EmpresaProjetos = () => {
               {propostasFiltradas.length === 0 ? (
                 <EmptyState message="Nenhuma proposta encontrada com os filtros atuais" icon={Search} />
               ) : propostasPaginadas.map((prop) => (
-                <div key={prop.id} className="border border-border/60 rounded-xl p-4 bg-muted/10">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary/60 to-accent/60 flex items-center justify-center text-primary-foreground text-xs font-semibold">
-                        {prop.consultor?.nome?.charAt(0) || "C"}
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-foreground">{prop.consultor?.nome}</p>
-                        {prop.consultor?.cidade && (
-                          <p className="text-[11px] text-muted-foreground flex items-center gap-1">
-                            <MapPin size={10} /> {prop.consultor.cidade}{prop.consultor.estado && `, ${prop.consultor.estado}`}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
-                        Consultor autônomo
-                      </span>
-                      <StatusBadge status={prop.status} />
-                    </div>
-                  </div>
-
-
-                  <div className="grid grid-cols-3 gap-2 mt-3 mb-2">
-                    <div className="rounded-lg border border-border/60 bg-background p-2">
-                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Valor da proposta</p>
-                      <p className="text-sm font-bold text-foreground mt-0.5 flex items-center gap-1">
-                        <DollarSign size={12} /> {prop.valor_proposta ? `R$ ${Number(prop.valor_proposta).toLocaleString("pt-BR")}` : "—"}
-                      </p>
-                    </div>
-                    <div className="rounded-lg border border-border/60 bg-background p-2">
-                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Prazo de entrega</p>
-                      <p className="text-sm font-bold text-foreground mt-0.5 flex items-center gap-1">
-                        <CalendarIcon size={12} /> {prop.prazo_entrega_dias ? `${prop.prazo_entrega_dias} dia${prop.prazo_entrega_dias === 1 ? "" : "s"}` : "—"}
-                      </p>
-                    </div>
-                    <div className="rounded-lg border border-border/60 bg-background p-2">
-                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Esforço</p>
-                      <p className="text-sm font-bold text-foreground mt-0.5 flex items-center gap-1">
-                        <Clock size={12} /> {prop.estimativa_horas ? `${prop.estimativa_horas}h` : "—"}
-                      </p>
-                    </div>
-                  </div>
-                  {prop.comentarios && <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{prop.comentarios}</p>}
-                  <div className="flex flex-wrap gap-2 mt-3">
-                    {(prop.status === "enviada" || prop.status === "pre_aprovada" || prop.status === "contraproposta_consultor") && (
-                      <>
-                        <Button size="sm" onClick={() => selecionarProposta(prop.id)}>
-                          <CheckCircle2 size={14} /> Selecionar
+                <CandidatoResponseCard
+                  key={prop.id}
+                  nome={prop.consultor?.nome}
+                  cidade={prop.consultor?.cidade}
+                  estado={prop.consultor?.estado}
+                  origem={
+                    <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
+                      Consultor autônomo
+                    </span>
+                  }
+                  status={<StatusBadge status={prop.status} />}
+                  valor={prop.valor_proposta}
+                  prazoDias={prop.prazo_entrega_dias}
+                  esforcoHoras={prop.estimativa_horas}
+                  observacao={prop.comentarios}
+                >
+                  {(prop.status === "enviada" || prop.status === "pre_aprovada" || prop.status === "contraproposta_consultor") && (
+                    <>
+                      <Button size="sm" onClick={() => selecionarProposta(prop.id)}>
+                        <CheckCircle2 size={14} /> Selecionar
+                      </Button>
+                      {(prop.status === "enviada" || prop.status === "contraproposta_consultor") && (
+                        <Button size="sm" variant="outline" onClick={() => preApproveProposal(prop.id)}>
+                          <BadgeCheck size={14} /> {prop.status === "contraproposta_consultor" ? "Pré-aprovar contraproposta" : "Pré-aprovar"}
                         </Button>
-                        {(prop.status === "enviada" || prop.status === "contraproposta_consultor") && (
-                          <Button size="sm" variant="outline" onClick={() => preApproveProposal(prop.id)}>
-                            <BadgeCheck size={14} /> {prop.status === "contraproposta_consultor" ? "Pré-aprovar contraproposta" : "Pré-aprovar"}
-                          </Button>
-                        )}
-                        <Button size="sm" variant="outline" className="text-destructive hover:text-destructive border-destructive/40 hover:bg-destructive/10" onClick={() => desconsiderarProposta(prop.id)}>
-                          <XCircle size={14} /> Desconsiderar
-                        </Button>
-                      </>
-                    )}
-                    {prop.status === "desconsiderada" && (selectedProjeto?.status === "publicado" || selectedProjeto?.status === "em_selecao") && (
-                      prazoPropostasAberto(selectedProjeto) ? (
-                        <Button size="sm" variant="outline" onClick={() => reconsiderarProposta(prop.id)}>
-                          <Undo2 size={14} /> Reconsiderar
-                        </Button>
-                      ) : (
-                        <p className="text-[11px] text-muted-foreground self-center">Prazo de propostas encerrado — esta decisão não é mais reversível.</p>
-                      )
-                    )}
-                  </div>
-                </div>
+                      )}
+                      <Button size="sm" variant="outline" className="text-destructive hover:text-destructive border-destructive/40 hover:bg-destructive/10" onClick={() => desconsiderarProposta(prop.id)}>
+                        <XCircle size={14} /> Desconsiderar
+                      </Button>
+                    </>
+                  )}
+                  {prop.status === "desconsiderada" && (selectedProjeto?.status === "publicado" || selectedProjeto?.status === "em_selecao") && (
+                    prazoPropostasAberto(selectedProjeto) ? (
+                      <Button size="sm" variant="outline" onClick={() => reconsiderarProposta(prop.id)}>
+                        <Undo2 size={14} /> Reconsiderar
+                      </Button>
+                    ) : (
+                      <p className="text-[11px] text-muted-foreground self-center">Prazo de propostas encerrado — esta decisão não é mais reversível.</p>
+                    )
+                  )}
+                </CandidatoResponseCard>
               ))}
               {propostaTotalPages > 1 && (
                 <div className="flex items-center justify-between gap-2 pt-1">
