@@ -8,7 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Loader2, Send, AlertTriangle, Building2, Calendar, DollarSign, Package } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { ArrowLeft, Loader2, Send, Save, Trash2, AlertTriangle, Building2, Calendar, DollarSign, Package } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import { ParceiroMatchList } from "@/components/matching/ParceiroMatchList";
@@ -54,6 +55,9 @@ const CanalDemandaDetalhe = () => {
   const [respostaId, setRespostaId] = useState<string | null>(null);
   const [comentariosResposta, setComentariosResposta] = useState<string>("");
   const [indicacoes, setIndicacoes] = useState<Record<string, IndicacaoRow>>({});
+  const [salvandoId, setSalvandoId] = useState<string | null>(null);
+  const [removendoId, setRemovendoId] = useState<string | null>(null);
+  const [removerTarget, setRemoverTarget] = useState<IndicacaoRow | null>(null);
 
   const projetoEditavel = useMemo(
     () => !!projeto && ["publicado", "em_selecao"].includes(projeto.status),
@@ -179,11 +183,15 @@ const CanalDemandaDetalhe = () => {
         }
       });
 
-      // Remoções
+      // Remoções — bloqueia tentativa de retirar indicação já processada pela empresa
       Object.keys(next).forEach((uid) => {
         if (!set.has(uid)) {
+          const st = next[uid].status;
+          if (st && st !== "indicado") {
+            // já selecionada/desconsiderada/recusada — não pode ser retirada pelo parceiro
+            return;
+          }
           if (next[uid].id) {
-            // já existe no banco → marca como retirado
             next[uid] = { ...next[uid], status: "retirado" };
           } else {
             delete next[uid];
@@ -214,6 +222,43 @@ const CanalDemandaDetalhe = () => {
 
   const updateIndicacao = (uid: string, patch: Partial<IndicacaoRow>) => {
     setIndicacoes((prev) => ({ ...prev, [uid]: { ...prev[uid], ...patch } }));
+  };
+
+  const handleSalvarIndicacao = async (uid: string, indicacaoId: string) => {
+    if (!user) return;
+    const i = indicacoes[uid];
+    setSalvandoId(indicacaoId);
+    const { error } = await (supabase as any).rpc("parceiro_editar_indicacao", {
+      p_indicacao_id: indicacaoId,
+      p_valor_proposto: i.valor_proposto ? Number(i.valor_proposto.replace(",", ".")) : null,
+      p_observacao: i.observacao || null,
+    });
+    setSalvandoId(null);
+    if (error) {
+      toast({ title: "Erro ao salvar indicação", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Indicação salva" });
+  };
+
+  const confirmarRemocao = async () => {
+    if (!removerTarget?.id || !user) return;
+    const targetId = removerTarget.id;
+    const uid = removerTarget.consultor_user_id;
+    setRemovendoId(targetId);
+    const { error } = await (supabase as any).rpc("parceiro_remover_indicacao", { p_indicacao_id: targetId });
+    setRemovendoId(null);
+    setRemoverTarget(null);
+    if (error) {
+      toast({ title: "Erro ao remover indicação", description: error.message, variant: "destructive" });
+      return;
+    }
+    setIndicacoes((prev) => {
+      const next = { ...prev };
+      if (next[uid]) next[uid] = { ...next[uid], status: "retirado" };
+      return next;
+    });
+    toast({ title: "Indicação removida" });
   };
 
   const handleSubmit = async () => {
@@ -300,8 +345,8 @@ const CanalDemandaDetalhe = () => {
         if (insErr) throw insErr;
       }
 
-      // 3) Atualiza existentes (valor/observação e possível reativação)
-      const existentesAtivas = ativos.filter((i) => i.id);
+      // 3) Atualiza existentes ainda 'indicado' (já processadas pela empresa ficam intocadas)
+      const existentesAtivas = ativos.filter((i) => i.id && i.status === "indicado");
       for (const i of existentesAtivas) {
         const { error: upErr } = await supabase
           .from("parceiro_indicacoes")
@@ -466,30 +511,69 @@ const CanalDemandaDetalhe = () => {
           <div className="space-y-4">
             {selectedActiveIds.map((uid) => {
               const i = indicacoes[uid];
+              const processada = !!i.id && !!i.status && i.status !== "indicado";
+              const bloquearBotao = !projetoEditavel || !prazoIndicacaoAberto;
               return (
-                <div key={uid} className="grid grid-cols-1 md:grid-cols-3 gap-3 pb-3 border-b border-border/50 last:border-0">
-                  <div className="md:col-span-3">
-                    <span className="text-sm font-medium text-foreground">{i.consultor_nome || "Consultor"}</span>
+                <div key={uid} className="flex flex-col md:flex-row md:items-end gap-3 pb-3 border-b border-border/50 last:border-0">
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <span className="text-sm font-medium text-foreground">{i.consultor_nome || "Consultor"}</span>
+                      {processada && (
+                        <Badge variant="secondary" className="capitalize text-[11px]">
+                          {i.status!.replace(/_/g, " ")}
+                        </Badge>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                      <div>
+                        <Label className="text-xs">Valor proposto (R$)</Label>
+                        <Input
+                          value={i.valor_proposto}
+                          onChange={(e) => updateIndicacao(uid, { valor_proposto: e.target.value })}
+                          placeholder={projeto.valor_estimado ? `Opcional (estimado R$ ${Number(projeto.valor_estimado).toLocaleString("pt-BR")})` : "Opcional — estimado não informado"}
+                          inputMode="decimal"
+                          disabled={processada || bloquearBotao}
+                          className="h-9"
+                        />
+                      </div>
+                      <div className="md:col-span-2">
+                        <Label className="text-xs">Observação</Label>
+                        <Input
+                          value={i.observacao}
+                          onChange={(e) => updateIndicacao(uid, { observacao: e.target.value })}
+                          placeholder="Opcional"
+                          maxLength={300}
+                          disabled={processada || bloquearBotao}
+                          className="h-9"
+                        />
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <Label className="text-xs">Valor proposto (R$)</Label>
-                    <Input
-                      value={i.valor_proposto}
-                      onChange={(e) => updateIndicacao(uid, { valor_proposto: e.target.value })}
-                      placeholder={projeto.valor_estimado ? `Opcional (estimado R$ ${Number(projeto.valor_estimado).toLocaleString("pt-BR")})` : "Opcional — estimado não informado"}
-                      inputMode="decimal"
-                      className="h-9"
-                    />
-                  </div>
-                  <div className="md:col-span-2">
-                    <Label className="text-xs">Observação</Label>
-                    <Input
-                      value={i.observacao}
-                      onChange={(e) => updateIndicacao(uid, { observacao: e.target.value })}
-                      placeholder="Opcional"
-                      maxLength={300}
-                      className="h-9"
-                    />
+                  <div className="flex items-center gap-2 shrink-0">
+                    {processada ? (
+                      <p className="text-xs text-muted-foreground italic">Processada pela empresa — sem edição</p>
+                    ) : i.id && !bloquearBotao ? (
+                      <>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleSalvarIndicacao(uid, i.id!)}
+                          disabled={salvandoId === i.id || removendoId === i.id}
+                        >
+                          {salvandoId === i.id ? <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" /> : <Save className="h-3.5 w-3.5 mr-1" />}
+                          Salvar
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="text-destructive hover:text-destructive"
+                          onClick={() => setRemoverTarget(i)}
+                          disabled={salvandoId === i.id || removendoId === i.id}
+                        >
+                          <Trash2 className="h-3.5 w-3.5 mr-1" /> Remover
+                        </Button>
+                      </>
+                    ) : null}
                   </div>
                 </div>
               );
@@ -529,6 +613,26 @@ const CanalDemandaDetalhe = () => {
           </Button>
         </div>
       </Card>
+
+      <AlertDialog open={!!removerTarget} onOpenChange={(o) => !o && setRemoverTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remover indicação?</AlertDialogTitle>
+            <AlertDialogDescription>
+              A indicação de <b className="text-foreground">{removerTarget?.consultor_nome || ""}</b> será retirada desta demanda
+              (status <b className="text-foreground">retirado</b>, preservando o histórico). Você poderá reindicar este consultor
+              enquanto a demanda estiver aberta e dentro do prazo.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={removendoId !== null}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmarRemocao} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              {removendoId === removerTarget?.id ? <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" /> : <Trash2 className="h-3.5 w-3.5 mr-1" />}
+              Remover
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
